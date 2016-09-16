@@ -4,7 +4,7 @@
 
 ;; Author: Sean Allred <code@seanallred.com>
 ;; Keywords: git, tools, vc
-;; Package-Requires: ((magit "2.8.0") (dash "20160820.501"))
+;; Package-Requires: ((magit "2.8.0"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -30,7 +30,6 @@
 ;;; Code:
 
 (require 'magit-process)
-(require 'dash)
 
 (defcustom magithub-hub-executable "hub"
   "The hub executable used by Magithub."
