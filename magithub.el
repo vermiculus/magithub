@@ -21,7 +21,8 @@
 
 ;;; Commentary:
 
-;; Magithub is an interface to GitHub implemented as an Emacs package.
+;; Magithub is an interface to GitHub.
+
 ;; It uses the command-line utility `hub' to interface with GitHub.
 ;; See <hub.github.com> for more details.
 
