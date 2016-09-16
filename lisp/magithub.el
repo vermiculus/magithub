@@ -37,6 +37,8 @@
 (defun magithub-command (command &optional args)
   "Run COMMAND synchronously using `magithub-hub-executable'.
 This is a thin wrapper around `magit-git-command-topdir'."
+  (unless (executable-find magithub-hub-executable)
+    (user-error "Please install hub from hub.github.com"))
   (let ((magit-git-executable magithub-hub-executable))
     (magit-run-git-with-editor command args)))
 
