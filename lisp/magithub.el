@@ -29,7 +29,9 @@
 
 ;;; Code:
 
+(require 'magit)
 (require 'magit-process)
+(require 'magit-popup)
 
 (defcustom magithub-hub-executable "hub"
   "The hub executable used by Magithub."
