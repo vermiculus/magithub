@@ -4,7 +4,7 @@
 
 ;; Author: Sean Allred <code@seanallred.com>
 ;; Keywords: git, tools, vc
-;; Package-Requires: ((magit "2.8.0"))
+;; Package-Requires: ((magit "2.8.0") (emacs "24.3"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -39,11 +39,11 @@
   :group 'magithub
   :type 'string)
 
-(defmacro magithub--hub-command (magit-function command args)
-  `(if (executable-find magithub-hub-executable)
-       (let ((magit-git-executable magithub-hub-executable))
-         (funcall ,magit-function command args))
-     (user-error "Please install hub from hub.github.com")))
+(defun magithub--hub-command (magit-function command args)
+  (if (executable-find magithub-hub-executable)
+      (let ((magit-git-executable magithub-hub-executable))
+        (funcall magit-function command args))
+    (user-error "Please install hub from hub.github.com")))
 
 (defun magithub--command (command &optional args)
   "Run COMMAND synchronously using `magithub-hub-executable'."
