@@ -1,6 +1,6 @@
 # Magithub
 
-Magit interfaces for [the `hub` git extension](hub.github.com).
+Magit interfaces for [the `hub` git extension][hub].
 
 ## Installation
 
@@ -23,4 +23,5 @@ your `magit` form to `(require 'magithub)`:
 
 ![Pushing](images/scr4.png)
 
-[gh-use-package]: https://github.com/jwiegley/use-package
+[hub]: //hub.github.com
+[gh-use-package]: //github.com/jwiegley/use-package
