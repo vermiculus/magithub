@@ -36,25 +36,28 @@
   :group 'magithub
   :type 'string)
 
-(defun magithub-command (command &optional args)
-  "Run COMMAND synchronously using `magithub-hub-executable'.
-This is a thin wrapper around `magit-git-command-topdir'."
-  (unless (executable-find magithub-hub-executable)
-    (user-error "Please install hub from hub.github.com"))
-  (let ((magit-git-executable magithub-hub-executable))
-    (magit-run-git-with-editor command args)))
+(defmacro magithub--hub-command (magit-function command args)
+  `(if (executable-find magithub-hub-executable)
+       (let ((magit-git-executable magithub-hub-executable))
+         (funcall ,magit-function command args))
+     (user-error "Please install hub from hub.github.com")))
 
-(defun magithub-create ()
-  "Push the current repository as a new GitHub repository.
-If DESCRIPTION is non-nil, it is the repository description."
-  (interactive)
-  (magithub-command "create" (magithub-create-arguments)))
+(defun magithub--command (command &optional args)
+  "Run COMMAND synchronously using `magithub-hub-executable'."
+  (magithub--hub-command #'magit-run-git command args))
+
+(defun magithub--command (command &optional args)
+  "Run COMMAND asynchronously using `magithub-hub-executable'.
+Ensure GIT_EDITOR is set up appropriately."
+  (magithub--hub-command #'magit-run-git-with-editor command args))
 
 (magit-define-popup magithub-dispatch-popup
   "Popup console for dispatching other Magithub popups."
   'magithub-commands
   :man-page "hub"
-  :actions '((?^ "Create this repository on GitHub" magithub-create-popup))
+  :actions '((?c "Create" magithub-create-popup)
+             (?f "Fork" magithub-fork-popup)
+             (?p "Submit a pull request" magithub-pull-request-popup))
   :max-action-columns 2)
 
 (magit-define-popup magithub-create-popup
@@ -62,9 +65,44 @@ If DESCRIPTION is non-nil, it is the repository description."
   'magithub-commands
   :man-page "hub"
   :switches '((?p "Mark as private" "-p"))
-  :actions '((?x "Create this repository on GitHub" magithub-create))
+  :actions '((?c "Create this repository" magithub-create))
   :options '((?d "Description" "--description=")
              (?h "Homepage" "--homepage=")))
+
+(magit-define-popup magithub-fork-popup
+  "Popup console for forking GitHub repositories."
+  'magithub-commands
+  :man-page "hub"
+  :switches '((?r "Don't add my fork as a remote in this repository" "--no-remote"))
+  :actions '((?f "Fork the project at origin" magithub-fork)))
+
+(unintern "magithub-pull-request-popup")
+
+(magit-define-popup magithub-pull-request-popup
+  "Popup console for creating pull requests on GitHub repositories."
+  'magithub-commands
+  :man-page "hub"
+  :switches '((?f "Ignore unpushed commits" "-f")
+              (?o "Open in my browser" "-o"))
+  :options '((?b "Base branch" "--base=" magit-read-branch)
+             (?h "Head branch" "--head=" magit-read-branch))
+  :actions '((?P "Submit a pull request" magithub-pull-request)))
+
+(defun magithub-create ()
+  "Create the current repository on GitHub."
+  (interactive)
+  (magithub--command "create" (magithub-create-arguments))
+  (magit-push-popup))
+
+(defun magithub-fork ()
+  "Fork 'origin' on GitHub."
+  (interactive)
+  (magithub--command "fork" (magithub-fork-arguments)))
+
+(defun magithub-pull-request ()
+  "Open a pull request to 'origin' on GitHub."
+  (interactive)
+  (magithub--command-with-editor "pull-request" (magithub-pull-request-arguments)))
 
 ;; Integrate into the Magit dispatcher and status buffer
 (magit-define-popup-action 'magit-dispatch-popup
