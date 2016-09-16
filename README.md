@@ -10,8 +10,10 @@ The package can be installed from Melpa.  Otherwise, simply place
 If you use [use-package][gh-use-package], you should instead alter
 your `magit` form to `(require 'magithub)`:
 
-    (use-package magit
-      :config (require 'magithub))
+```elisp
+(use-package magit
+  :config (require 'magithub))
+```
 
 ## Screenshots
 
