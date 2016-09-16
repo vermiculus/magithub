@@ -96,7 +96,7 @@ Ensure GIT_EDITOR is set up appropriately."
   (interactive)
   (when (and (string-equal "master" (magit-get-current-branch))
              (y-or-n-p "Looks like master is checked out.  Create a new branch? "))
-    (call-interactively #'magit-branch-and-checkout))
+    (call-interactively #'magit-branch-spinoff))
   (magithub--command "fork" (magithub-fork-arguments)))
 
 (defun magithub-pull-request ()
