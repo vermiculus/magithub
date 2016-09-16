@@ -102,6 +102,8 @@ Ensure GIT_EDITOR is set up appropriately."
 (defun magithub-pull-request ()
   "Open a pull request to 'origin' on GitHub."
   (interactive)
+  (when (y-or-n-p "Do you want to push any more commits? ")
+    (magit-push-popup))
   (magithub--command-with-editor "pull-request" (magithub-pull-request-arguments)))
 
 ;; Integrate into the Magit dispatcher and status buffer
