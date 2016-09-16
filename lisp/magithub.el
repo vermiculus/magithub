@@ -97,6 +97,9 @@ Ensure GIT_EDITOR is set up appropriately."
 (defun magithub-fork ()
   "Fork 'origin' on GitHub."
   (interactive)
+  (when (and (string-equal "master" (magit-rev-name "HEAD"))
+             (y-or-n-p "Looks like master is checked out.  Create a new branch? "))
+    (call-interactively #'magit-branch-and-checkout))
   (magithub--command "fork" (magithub-fork-arguments)))
 
 (defun magithub-pull-request ()
