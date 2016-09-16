@@ -4,7 +4,7 @@
 
 ;; Author: Sean Allred <code@seanallred.com>
 ;; Keywords: git, tools, vc
-;; Package-Requires: ((magit "2.8.0"))
+;; Package-Requires: ((magit "2.8.0") (emacs "24.3"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
