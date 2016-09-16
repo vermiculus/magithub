@@ -46,7 +46,7 @@
   "Run COMMAND synchronously using `magithub-hub-executable'."
   (magithub--hub-command #'magit-run-git command args))
 
-(defun magithub--command (command &optional args)
+(defun magithub--command-with-editor (command &optional args)
   "Run COMMAND asynchronously using `magithub-hub-executable'.
 Ensure GIT_EDITOR is set up appropriately."
   (magithub--hub-command #'magit-run-git-with-editor command args))
@@ -57,8 +57,7 @@ Ensure GIT_EDITOR is set up appropriately."
   :man-page "hub"
   :actions '((?c "Create" magithub-create-popup)
              (?f "Fork" magithub-fork-popup)
-             (?p "Submit a pull request" magithub-pull-request-popup))
-  :max-action-columns 2)
+             (?p "Submit a pull request" magithub-pull-request-popup)))
 
 (magit-define-popup magithub-create-popup
   "Popup console for creating GitHub repositories."
@@ -75,8 +74,6 @@ Ensure GIT_EDITOR is set up appropriately."
   :man-page "hub"
   :switches '((?r "Don't add my fork as a remote in this repository" "--no-remote"))
   :actions '((?f "Fork the project at origin" magithub-fork)))
-
-(unintern "magithub-pull-request-popup")
 
 (magit-define-popup magithub-pull-request-popup
   "Popup console for creating pull requests on GitHub repositories."
