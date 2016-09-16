@@ -15,10 +15,12 @@ your `magit` form to `(require 'magithub)`:
 
 ## Screenshots
 
-![Melpa Stable Status](images/scr1.png)
+![Dispatch](images/scr1.png)
 
-![Melpa Stable Status](images/scr2.png)
+![Creating](images/scr2.png)
 
-![Melpa Stable Status](images/scr3.png)
+![Forking](images/scr3.png)
 
-![Melpa Stable Status](images/scr4.png)
+![Pushing](images/scr4.png)
+
+[gh-use-package]: https://github.com/jwiegley/use-package
