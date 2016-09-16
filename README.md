@@ -15,13 +15,9 @@ your `magit` form to `(require 'magithub)`:
 
 ## Screenshots
 
-![Dispatch](images/scr1.png)
-
-![Creating](images/scr2.png)
-
-![Forking](images/scr3.png)
-
-![Pushing](images/scr4.png)
+![Dispatch](images/scr1.png)|![Creating](images/scr2.png)
+:-------------------------:|:-------------------------:
+![Forking](images/scr3.png)|![Pushing](images/scr4.png)
 
 [hub]: //hub.github.com
 [gh-use-package]: //github.com/jwiegley/use-package
