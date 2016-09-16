@@ -32,7 +32,10 @@
 (require 'magit-process)
 (require 'dash)
 
-(defvar magithub-hub-executable "hub")
+(defcustom magithub-hub-executable "hub"
+  "The hub executable used by Magithub."
+  :group 'magithub
+  :type 'string)
 
 (defun magithub-command (command &optional args)
   "Run COMMAND synchronously using `magithub-hub-executable'.
