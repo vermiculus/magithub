@@ -39,11 +39,11 @@
   :group 'magithub
   :type 'string)
 
-(defmacro magithub--hub-command (magit-function command args)
-  `(if (executable-find magithub-hub-executable)
-       (let ((magit-git-executable magithub-hub-executable))
-         (funcall ,magit-function command args))
-     (user-error "Please install hub from hub.github.com")))
+(defun magithub--hub-command (magit-function command args)
+  (if (executable-find magithub-hub-executable)
+      (let ((magit-git-executable magithub-hub-executable))
+        (funcall magit-function command args))
+    (user-error "Please install hub from hub.github.com")))
 
 (defun magithub--command (command &optional args)
   "Run COMMAND synchronously using `magithub-hub-executable'."
