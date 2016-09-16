@@ -109,12 +109,10 @@ Ensure GIT_EDITOR is set up appropriately."
   (magithub--command-with-editor "pull-request" (magithub-pull-request-arguments)))
 
 ;; Integrate into the Magit dispatcher and status buffer
-(eval-after-load "magit"
-  '(progn
-     (magit-define-popup-action 'magit-dispatch-popup
-       ?@ "Magithub" 'magithub-dispatch-popup ?!)
-     (define-key magit-status-mode-map (kbd "@")
-       #'magithub-dispatch-popup)))
+(magit-define-popup-action 'magit-dispatch-popup
+  ?@ "Magithub" 'magithub-dispatch-popup ?!)
+(define-key magit-status-mode-map (kbd "@")
+  #'magithub-dispatch-popup)
 
 (provide 'magithub)
 ;;; magithub.el ends here
