@@ -25,6 +25,16 @@ at [hub.github.com][hub].  To force `hub` to authenticate, you can use
 
 ## Screenshots
 
+### Creating a Repository
+
+![Creating](images/create.gif)
+
+### Submitting a Pull Request
+
+![Creating](images/pull-request.gif)
+
+---
+
 ![Dispatch](images/scr1.png)|![Creating](images/scr2.png)
 :-------------------------:|:-------------------------:
 ![Forking](images/scr3.png)|![Pushing](images/scr4.png)
