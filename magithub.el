@@ -99,6 +99,13 @@ Ensure GIT_EDITOR is set up appropriately."
   :actions '((?P "Submit a pull request" magithub-pull-request))
   :default-arguments '("-o"))
 
+(defun magithub-github-repository-p ()
+  "Non-nil if \"origin\" points to GitHub."
+  (let ((url (magit-get "remote" "origin" "url")))
+    (or (string-prefix-p "git@github.com:" url)
+        (string-prefix-p "https://github.com/" url)
+        (string-prefix-p "git://github.com/" url))))
+
 (defun magithub-create ()
   "Create the current repository on GitHub."
   (interactive)
@@ -108,6 +115,8 @@ Ensure GIT_EDITOR is set up appropriately."
 (defun magithub-fork ()
   "Fork 'origin' on GitHub."
   (interactive)
+  (unless (magithub-github-repository-p)
+    (user-error "Not a GitHub repository"))
   (when (and (string-equal "master" (magit-get-current-branch))
              (y-or-n-p "Looks like master is checked out.  Create a new branch? "))
     (call-interactively #'magit-branch-spinoff))
@@ -116,6 +125,8 @@ Ensure GIT_EDITOR is set up appropriately."
 (defun magithub-pull-request ()
   "Open a pull request to 'origin' on GitHub."
   (interactive)
+  (unless (magithub-github-repository-p)
+    (user-error "Not a GitHub repository"))
   (let (just-pushed)
     (unless (magit-get-push-remote)
       (when (y-or-n-p "No push remote defined; push now? ")
