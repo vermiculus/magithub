@@ -48,10 +48,12 @@
   :type 'string)
 
 (defun magithub--hub-command (magit-function command args)
-  (if (executable-find magithub-hub-executable)
-      (let ((magit-git-executable magithub-hub-executable))
-        (funcall magit-function command args))
-    (user-error "Please install hub from hub.github.com")))
+  (unless (executable-find magithub-hub-executable)
+    (user-error "Hub (hub.github.com) not installed; aborting"))
+  (unless (file-exists-p "~/.config/hub")
+    (user-error "Hub hasn't been initialized yet; aborting"))
+  (let ((magit-git-executable magithub-hub-executable))
+    (funcall magit-function command args)))
 
 (defun magithub--command (command &optional args)
   "Run COMMAND synchronously using `magithub-hub-executable'."

@@ -3,7 +3,7 @@
 [![Melpa Status](http://melpa.milkbox.net/packages/magithub-badge.svg)](http://melpa.milkbox.net/#/magithub)
 [![Melpa Stable Status](http://melpa-stable.milkbox.net/packages/magithub-badge.svg)](http://melpa-stable.milkbox.net/#/magithub)
 
-Magit interfaces for [the `hub` git extension][hub].
+Magit interfaces for GitHub.
 
 ## Installation
 
@@ -17,6 +17,11 @@ your `magit` form to `(use-package magithub)`:
 (use-package magit
   :config (use-package magithub))
 ```
+
+For now, Magithub requires the `hub` utility to work -- before trying
+to use Magithub, follow the installation instructions
+at [hub.github.com][hub].  To force `hub` to authenticate, you can use
+`hub browse` in a terminal (inside a GitHub repo).
 
 ## Screenshots
 
