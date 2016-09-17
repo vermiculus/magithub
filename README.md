@@ -1,5 +1,8 @@
 # Magithub
 
+[![Melpa Status](http://melpa.milkbox.net/packages/magithub-badge.svg)](http://melpa.milkbox.net/#/magithub)
+[![Melpa Stable Status](http://melpa-stable.milkbox.net/packages/magithub-badge.svg)](http://melpa-stable.milkbox.net/#/magithub)
+
 Magit interfaces for [the `hub` git extension][hub].
 
 ## Installation
