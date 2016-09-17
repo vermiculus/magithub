@@ -68,7 +68,8 @@ Ensure GIT_EDITOR is set up appropriately."
   "Popup console for dispatching other Magithub popups."
   'magithub-commands
   :man-page "hub"
-  :actions '((?c "Create" magithub-create-popup)
+  :actions '((?@ "Browse on GitHub" magithub-browse)
+             (?c "Create" magithub-create-popup)
              (?f "Fork" magithub-fork-popup)
              (?p "Submit a pull request" magithub-pull-request-popup)))
 
@@ -105,6 +106,12 @@ Ensure GIT_EDITOR is set up appropriately."
     (or (string-prefix-p "git@github.com:" url)
         (string-prefix-p "https://github.com/" url)
         (string-prefix-p "git://github.com/" url))))
+
+(defun magithub-browse ()
+  (interactive)
+  (unless (magithub-github-repository-p)
+    (user-error "Not a GitHub repository"))
+  (call-process magithub-hub-executable nil nil nil "browse"))
 
 (defun magithub-create ()
   "Create the current repository on GitHub."
