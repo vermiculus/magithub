@@ -105,9 +105,17 @@ Ensure GIT_EDITOR is set up appropriately."
 (defun magithub-pull-request ()
   "Open a pull request to 'origin' on GitHub."
   (interactive)
-  (when (y-or-n-p "Do you want to push any more commits? ")
-    (magit-push-popup))
-  (magithub--command-with-editor "pull-request" (magithub-pull-request-arguments)))
+  (let (just-pushed)
+    (unless (magit-get-push-remote)
+      (when (y-or-n-p "No push remote defined; push now? ")
+        (call-interactively #'magit-push-current-to-pushremote)
+        (setq just-pushed t)))
+    (unless (magit-get-push-remote)
+      (user-error "No push remote defined; aborting pull request"))
+    (unless just-pushed
+      (when (y-or-n-p "Do you want to push any more commits? ")
+        (magit-push-popup)))
+    (magithub--command-with-editor "pull-request" (magithub-pull-request-arguments))))
 
 ;; Integrate into the Magit dispatcher and status buffer
 (magit-define-popup-action 'magit-dispatch-popup
