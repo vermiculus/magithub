@@ -48,13 +48,18 @@
   :group 'magithub
   :type 'string)
 
+(defmacro magithub-with-hub (&rest body)
+  `(let  ((magit-git-executable magithub-hub-executable)
+          (magit-pre-call-git-hook nil)
+          (magit-git-global-arguments nil))
+     ,@body))
+
 (defun magithub--hub-command (magit-function command args)
   (unless (executable-find magithub-hub-executable)
     (user-error "Hub (hub.github.com) not installed; aborting"))
   (unless (file-exists-p "~/.config/hub")
     (user-error "Hub hasn't been initialized yet; aborting"))
-  (let ((magit-git-executable magithub-hub-executable))
-    (funcall magit-function command args)))
+  (magithub-with-hub (funcall magit-function command args)))
 
 (defun magithub--command (command &optional args)
   "Run COMMAND synchronously using `magithub-hub-executable'."
@@ -64,6 +69,15 @@
   "Run COMMAND asynchronously using `magithub-hub-executable'.
 Ensure GIT_EDITOR is set up appropriately."
   (magithub--hub-command #'magit-run-git-with-editor command args))
+
+(defun magithub--command-output (command &optional args)
+  "Run COMMAND synchronously using `magithub-hub-executable'
+and returns its output as a list of lines."
+  (magithub-with-hub (magit-git-lines command args)))
+
+(defun magithub--command-quick (command &optional args)
+  "Quickly execute COMMAND with ARGS."
+  (ignore (magithub--command-output command args)))
 
 (magit-define-popup magithub-dispatch-popup
   "Popup console for dispatching other Magithub popups."
@@ -112,7 +126,7 @@ Ensure GIT_EDITOR is set up appropriately."
   (interactive)
   (unless (magithub-github-repository-p)
     (user-error "Not a GitHub repository"))
-  (call-process magithub-hub-executable nil nil nil "browse"))
+  (magithub--command-quick "browse"))
 
 (defun magithub-create ()
   "Create the current repository on GitHub."
