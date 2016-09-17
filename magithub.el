@@ -96,7 +96,8 @@ Ensure GIT_EDITOR is set up appropriately."
               (?o "Open in my browser" "-o"))
   :options '((?b "Base branch" "--base=" magit-read-branch)
              (?h "Head branch" "--head=" magit-read-branch))
-  :actions '((?P "Submit a pull request" magithub-pull-request)))
+  :actions '((?P "Submit a pull request" magithub-pull-request))
+  :default-arguments '("-o"))
 
 (defun magithub-create ()
   "Create the current repository on GitHub."
