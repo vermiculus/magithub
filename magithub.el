@@ -79,6 +79,10 @@ and returns its output as a list of lines."
   "Quickly execute COMMAND with ARGS."
   (ignore (magithub--command-output command args)))
 
+(defvar magithub-after-create-messages
+  '("Don't be shy!"
+    "Don't let your dreams be dreams!"))
+
 (magit-define-popup magithub-dispatch-popup
   "Popup console for dispatching other Magithub popups."
   'magithub-commands
@@ -131,7 +135,11 @@ and returns its output as a list of lines."
 (defun magithub-create ()
   "Create the current repository on GitHub."
   (interactive)
+  (message "Creating repository on GitHub...")
   (magithub--command "create" (magithub-create-arguments))
+  (message "Creating repository on GitHub...done!  %s"
+           (nth (random (length magithub-after-create-messages))
+                magithub-after-create-messages))
   (magit-push-popup))
 
 (defun magithub-fork ()
@@ -142,7 +150,9 @@ and returns its output as a list of lines."
   (when (and (string-equal "master" (magit-get-current-branch))
              (y-or-n-p "Looks like master is checked out.  Create a new branch? "))
     (call-interactively #'magit-branch-spinoff))
-  (magithub--command "fork" (magithub-fork-arguments)))
+  (message "Forking repository on GitHub...")
+  (magithub--command "fork" (magithub-fork-arguments))
+  (message "Forking repository on GitHub...done"))
 
 (defun magithub-pull-request ()
   "Open a pull request to 'origin' on GitHub."
