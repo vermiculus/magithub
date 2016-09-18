@@ -5,9 +5,9 @@
 
 Magithub is a collection of interfaces to GitHub.
 
-Integrated into Magit workflows, Magithub allows very easy, very basic
-GitHub repository management.  Supported actions from the status
-buffer include:
+Integrated into [Magit][magit] workflows, Magithub allows very easy,
+very basic GitHub repository management.  Supported actions from the
+status buffer include:
 
  - pushing brand-new local repositories up to GitHub (`@ c`)
  - creating forks of existing repositories (`@ f`)
@@ -50,5 +50,6 @@ at [hub.github.com][hub].  To force `hub` to authenticate, you can use
 :-------------------------:|:-------------------------:
 ![Forking](images/scr3.png)|![Pushing](images/scr4.png)
 
+[magit]: //www.github.com/magit/magit
 [hub]: //hub.github.com
 [gh-use-package]: //github.com/jwiegley/use-package
