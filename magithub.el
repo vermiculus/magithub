@@ -127,6 +127,7 @@ and returns its output as a list of lines."
   "Popup console for creating GitHub issues."
   'magithub-commands
   :man-page "hub"
+  :options '((?l "Add labels" "--label=" magithub-issue-read-labels))
   :actions '((?c "Create new issue" magithub-issue-new)))
 
 (defun magithub-github-repository-p ()
@@ -143,6 +144,40 @@ and returns its output as a list of lines."
     (user-error "Not a GitHub repository"))
   (magithub--command-with-editor
    "issue" (cons "create" (magithub-issues-arguments))))
+
+(defun magithub-issue-label-list ()
+  "Return a list of issue labels.
+This is a hard-coded list right now."
+  (list "bug" "duplicate" "enhancement"
+        "help wanted" "invalid" "question" "wontfix"))
+
+(defun magithub-issue-read-labels (prompt &optional default)
+  "Read some issue labels."
+  (string-join
+   (magithub--completing-read-multiple
+    (format "%s... %s" prompt "Issue labels (or \"\" to quit): ")
+    (cl-set-difference
+     (magithub-issue-label-list)
+     (when default
+       (split-string default ","))))
+   ","))
+
+(defun magithub--completing-read-multiple (prompt collection)
+  "Using PROMPT, get a list of elements in COLLECTION.
+This function continues until all candidates have been entered or
+until the user enters a value of \"\".  Duplicate entries are not
+allowed."
+  (let (label-list this-label done)
+    (while (not done)
+      (setq collection (remove this-label collection)
+            this-label "")
+      (when collection
+        ;; @todo it would be nice to detect whether or not we are
+        ;; allowed to create labels -- if not, we can require-match
+        (setq this-label (completing-read prompt collection)))
+      (unless (setq done (string-empty-p this-label))
+        (add-to-list 'label-list this-label t)))
+    label-list))
 
 (defface magithub-issue-warning-face
   '((((class color)) :foreground "red"))
