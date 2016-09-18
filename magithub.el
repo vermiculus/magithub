@@ -5,7 +5,7 @@
 ;; Author: Sean Allred <code@seanallred.com>
 ;; Keywords: git, tools, vc
 ;; Homepage: https://github.com/vermiculus/magithub
-;; Package-Requires: ((emacs "24.3") (magit "2.8.0") (git-commit "20160821.1338") (with-editor "20160828.1025"))
+;; Package-Requires: ((emacs "24.3") (magit "2.8.0") (git-commit "20160821.1338") (with-editor "20160828.1025") (cl-lib "1.0") (s "20160711.525"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -45,6 +45,8 @@
 (require 'magit-popup)
 (require 'git-commit)
 (require 'with-editor)
+(require 'cl-lib)
+(require 's)
 
 (defmacro magithub-with-hub (&rest body)
   `(let ((magit-git-executable magithub-hub-executable)
@@ -81,19 +83,42 @@ and returns its output as a list of lines."
   '("Don't be shy!"
     "Don't let your dreams be dreams!"))
 
+(defcustom magithub-hub-executable "hub"
+  "The hub executable used by Magithub."
+  :group 'magithub
+  :package-version '(magithub . "0.1")
+  :type 'string)
+
+(defcustom magithub-dispatch-key ?H
+  "The key used in `magit-dispatch-popup' to activate `magithub-dispatch-popup'."
+  :group 'magithub
+  :package-version '(magithub . "0.2")
+  :type 'character
+  :set (lambda (_ n) (eval-after-load 'magit (magithub-use-dispatch-key n))))
+
+(defvar magithub--old-dispatch-key magithub-dispatch-key)
+(defun magithub-use-dispatch-key (key)
+  (setq magithub-dispatch-key key)
+  (magit-change-popup-key
+   'magit-dispatch-popup
+   :action magithub--old-dispatch-key magithub-dispatch-key)
+  ;;(define-key magit-status-mode-map (char-to-string key) #'magithub-dispatch-popup)
+  (setq magithub--old-dispatch-key magithub-dispatch-key))
+
 (magit-define-popup magithub-dispatch-popup
   "Popup console for dispatching other Magithub popups."
   'magithub-commands
   :man-page "hub"
-  :actions '("Actions"
-             (?h "Browse on GitHub" magithub-browse)
+  :actions `("Actions"
+             (,magithub-dispatch-key "Browse on GitHub" magithub-browse)
              (?c "Create" magithub-create-popup)
              (?f "Fork" magithub-fork-popup)
              (?i "Issues" magithub-issues-popup)
              (?p "Submit a pull request" magithub-pull-request-popup)
              "Meta"
              (?& "Request a feature or report a bug" magithub--meta-new-issue)
-             (?H "Ask for help on Gitter" magithub--meta-help)))
+             (,(if (= magithub-dispatch-key ?h) ?H ?h)
+              "Ask for help on Gitter" magithub--meta-help)))
 
 (magit-define-popup magithub-create-popup
   "Popup console for creating GitHub repositories."
@@ -143,9 +168,9 @@ See /.github/ISSUE_TEMPLATE.md in this repository."
 (defun magithub-github-repository-p ()
   "Non-nil if \"origin\" points to GitHub."
   (let ((url (magit-get "remote" "origin" "url")))
-    (or (string-prefix-p "git@github.com:" url)
-        (string-prefix-p "https://github.com/" url)
-        (string-prefix-p "git://github.com/" url))))
+    (or (s-prefix? "git@github.com:" url)
+        (s-prefix? "https://github.com/" url)
+        (s-prefix? "git://github.com/" url))))
 
 (defun magithub-issue-new ()
   "Create a new issue on GitHub."
@@ -163,12 +188,11 @@ This is a hard-coded list right now."
 
 (defun magithub-issue-read-labels (prompt &optional default)
   "Read some issue labels."
-  (string-join
+  (s-join
    (magithub--completing-read-multiple
     (format "%s... %s" prompt "Issue labels (or \"\" to quit): ")
-    (let* ((default-labels (when default (split-string default ","))))
-      (remove-if (lambda (l) (member l default-labels))
-                 (magithub-issue-label-list))))
+    (let* ((default-labels (when default (s-split default "," t))))
+      (cl-set-difference (magithub-issue-label-list) default-labels)))
    ","))
 
 (defun magithub--completing-read-multiple (prompt collection)
@@ -184,8 +208,8 @@ allowed."
         ;; @todo it would be nice to detect whether or not we are
         ;; allowed to create labels -- if not, we can require-match
         (setq this-label (completing-read prompt collection)))
-      (unless (setq done (string-empty-p this-label))
-        (add-to-list 'label-list this-label t)))
+      (unless (setq done (s-blank? this-label))
+        (push this-label label-list)))
     label-list))
 
 (defface magithub-issue-warning-face
@@ -227,8 +251,8 @@ This function will return nil for matches to
 `git-commit-filename-regexp'."
   (let ((basename (file-name-base path)))
     (and path
-         (string-suffix-p "/.git/" (file-name-directory path))
-         (not (string-match-p git-commit-filename-regexp basename))
+         (s-suffix? "/.git/" (file-name-directory path))
+         (not (s-matches? git-commit-filename-regexp basename))
          (cdr (assoc basename magithub--file-types)))))
 
 (defun magithub-check-buffer ()
@@ -262,7 +286,7 @@ This function will return nil for matches to
   (interactive)
   (unless (magithub-github-repository-p)
     (user-error "Not a GitHub repository"))
-  (when (and (string-equal "master" (magit-get-current-branch))
+  (when (and (s-equals? "master" (magit-get-current-branch))
              (y-or-n-p "Looks like master is checked out.  Create a new branch? "))
     (call-interactively #'magit-branch-spinoff))
   (message "Forking repository on GitHub...")
@@ -285,28 +309,6 @@ This function will return nil for matches to
       (when (y-or-n-p "Do you want to push any more commits? ")
         (magit-push-popup)))
     (magithub--command-with-editor "pull-request" (magithub-pull-request-arguments))))
-
-(defun magithub-use-key (key)
-  (magit-define-popup-action 'magit-dispatch-popup key
-    "Magithub" 'magithub-dispatch-popup ?!)
-  (define-key magit-status-mode-map (char-to-string key)
-    #'magithub-dispatch-popup)
-  (setq magithub-dispatch-key key))
-
-(defcustom magithub-hub-executable "hub"
-  "The hub executable used by Magithub."
-  :group 'magithub
-  :package-version '(magithub . "0.1")
-  :type 'string)
-
-(defcustom magithub-dispatch-key ?H
-  "The key used in `magit-dispatch-popup' to activate `magithub-dispatch-popup'."
-  :group 'magithub
-  :package-version '(magithub . "0.2")
-  :type 'character
-  :set (lambda (_ n)
-         (eval-after-load 'magit
-           (magithub-use-key ?H))))
 
 (provide 'magithub)
 ;;; magithub.el ends here

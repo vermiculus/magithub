@@ -9,10 +9,10 @@ Integrated into [Magit][magit] workflows, Magithub allows very easy,
 very basic GitHub repository management.  Supported actions from the
 status buffer include:
 
- - pushing brand-new local repositories up to GitHub (`h c`)
- - creating forks of existing repositories (`h f`)
- - submitting pull requests upstream (`h p`)
- - creating issues (`h i`)
+ - pushing brand-new local repositories up to GitHub (`H c`)
+ - creating forks of existing repositories (`H f`)
+ - submitting pull requests upstream (`H p`)
+ - creating issues (`H i`)
 
 Happy hacking!
 
