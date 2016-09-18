@@ -90,6 +90,7 @@ and returns its output as a list of lines."
   :actions '((?@ "Browse on GitHub" magithub-browse)
              (?c "Create" magithub-create-popup)
              (?f "Fork" magithub-fork-popup)
+             (?i "Issues" magithub-issues-popup)
              (?p "Submit a pull request" magithub-pull-request-popup)))
 
 (magit-define-popup magithub-create-popup
@@ -119,6 +120,12 @@ and returns its output as a list of lines."
   :actions '((?P "Submit a pull request" magithub-pull-request))
   :default-arguments '("-o"))
 
+(magit-define-popup magithub-issues-popup
+  "Popup console for creating GitHub issues."
+  'magithub-commands
+  :man-page "hub"
+  :actions '((?c "Create new issue" magithub-issue-new)))
+
 (defun magithub-github-repository-p ()
   "Non-nil if \"origin\" points to GitHub."
   (let ((url (magit-get "remote" "origin" "url")))
@@ -126,7 +133,16 @@ and returns its output as a list of lines."
         (string-prefix-p "https://github.com/" url)
         (string-prefix-p "git://github.com/" url))))
 
+(defun magithub-issue-new ()
+  "Create a new issue on GitHub."
+  (interactive)
+  (unless (magithub-github-repository-p)
+    (user-error "Not a GitHub repository"))
+  (magithub--command-with-editor
+   "issue" (cons "create" (magithub-issues-arguments))))
+
 (defun magithub-browse ()
+  "Open the repository in your browser."
   (interactive)
   (unless (magithub-github-repository-p)
     (user-error "Not a GitHub repository"))
