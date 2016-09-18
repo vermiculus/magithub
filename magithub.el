@@ -90,11 +90,14 @@ and returns its output as a list of lines."
   "Popup console for dispatching other Magithub popups."
   'magithub-commands
   :man-page "hub"
-  :actions '((?@ "Browse on GitHub" magithub-browse)
+  :actions '("Actions"
+             (?@ "Browse on GitHub" magithub-browse)
              (?c "Create" magithub-create-popup)
              (?f "Fork" magithub-fork-popup)
              (?i "Issues" magithub-issues-popup)
-             (?p "Submit a pull request" magithub-pull-request-popup)))
+             (?p "Submit a pull request" magithub-pull-request-popup)
+             "Meta"
+             (?& "Request a feature or report a bug" magithub--meta-new-issue)))
 
 (magit-define-popup magithub-create-popup
   "Popup console for creating GitHub repositories."
@@ -129,6 +132,12 @@ and returns its output as a list of lines."
   :man-page "hub"
   :options '((?l "Add labels" "--label=" magithub-issue-read-labels))
   :actions '((?c "Create new issue" magithub-issue-new)))
+
+(defun magithub--meta-new-issue ()
+  "Open a new Magithub issue.
+See /.github/ISSUE_TEMPLATE.md in this repository."
+  (interactive)
+  (browse-url "https://github.com/vermiculus/magithub/issues/new"))
 
 (defun magithub-github-repository-p ()
   "Non-nil if \"origin\" points to GitHub."
