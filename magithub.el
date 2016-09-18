@@ -47,9 +47,9 @@
 (require 'with-editor)
 
 (defmacro magithub-with-hub (&rest body)
-  `(let  ((magit-git-executable magithub-hub-executable)
-          (magit-pre-call-git-hook nil)
-          (magit-git-global-arguments nil))
+  `(let ((magit-git-executable magithub-hub-executable)
+         (magit-pre-call-git-hook nil)
+         (magit-git-global-arguments nil))
      ,@body))
 
 (defun magithub--hub-command (magit-function command args)
@@ -193,24 +193,51 @@ allowed."
   "Face used to call out warnings in the issue-create buffer."
   :group 'magithub)
 
+(defun magithub-setup-edit-buffer ()
+  "Perform setup on a hub edit buffer."
+  (with-editor-mode 1)
+  (git-commit-setup-font-lock)
+  (font-lock-add-keywords
+   nil `((,magithub-hash-regexp (0 'magit-hash t))) t)
+  (add-hook
+   (make-local-variable 'with-editor-pre-finish-hook)
+   (lambda () (unfill-region (point-min) (point-max)))))
+
+(defconst magithub-hash-regexp
+  (rx bow (= 40 (| digit (any (?A . ?F) (?a . ?f)))) eow)
+  "Regexp for matching commit hashes.")
+
+(defun magithub-setup-new-issue-buffer ()
+  "Setup the buffer created for issue-posting."
+  (font-lock-add-keywords
+   nil '(("^# \\(Creating issue for .*\\)" (1 'magithub-issue-warning-face t))) t))
+
+(defvar magithub--file-types
+  '(("ISSUE_EDITMSG" . issue)
+    ("PULLREQ_EDITMSG" . pull-request))
+  "File types -- car is the basename of a file in /.git/, cdr is
+  one of `issue' or `pull-request'.")
+
+(defun magithub--edit-file-type (path)
+  "Determine the type of buffer this is (if it was created by hub).
+Returns `issue', `pull-request', or another non-nil value if
+created by hub.
+
+This function will return nil for matches to
+`git-commit-filename-regexp'."
+  (let ((basename (file-name-base path)))
+    (and path
+         (string-suffix-p "/.git/" (file-name-directory path))
+         (not (string-match-p git-commit-filename-regexp basename))
+         (cdr (assoc basename magithub--file-types)))))
+
 (defun magithub-check-buffer ()
-  (when (and buffer-file-name
-             (member (file-name-base buffer-file-name)
-                     '("ISSUE_EDITMSG")))
-    (with-editor-mode 1)
-    (git-commit-setup-font-lock)
-    (font-lock-add-keywords
-     nil
-     `(("^# \\(Creating issue for .*\\)"
-        (1 'magithub-issue-warning-face t))
-       (,(rx (= 40 (| digit (any (?A . ?F) (?a . ?f)))))
-        (0 'magit-hash t)))
-     t)
-    (set (make-local-variable 'with-editor-pre-finish-hook)
-         with-editor-pre-finish-hook)
-    (add-hook
-     'with-editor-pre-finish-hook
-     (lambda () (unfill-region (point-min) (point-max))))))
+  "If this is a buffer created by hub, perform setup."
+  (let ((type (magithub--edit-file-type buffer-file-name)))
+    (when type
+      (magithub-setup-edit-buffer)
+      (when (eq type 'issue)
+        (magithub-setup-new-issue-buffer)))))
 (add-hook 'find-file-hook #'magithub-check-buffer)
 
 (defun magithub-browse ()
