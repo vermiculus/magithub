@@ -3,7 +3,18 @@
 [![Melpa Status](http://melpa.milkbox.net/packages/magithub-badge.svg)](http://melpa.milkbox.net/#/magithub)
 [![Melpa Stable Status](http://melpa-stable.milkbox.net/packages/magithub-badge.svg)](http://melpa-stable.milkbox.net/#/magithub)
 
-Magit interfaces for GitHub.
+Magithub is a collection of interfaces to GitHub.
+
+Integrated into Magit workflows, Magithub allows very easy, very basic
+GitHub repository management.  Supported actions from the status
+buffer include:
+
+ - pushing brand-new local repositories up to GitHub (`@ c`)
+ - creating forks of existing repositories (`@ f`)
+ - submitting pull requests upstream (`@ p`)
+ - creating issues (`@ i`)
+
+Happy hacking!
 
 ## Installation
 
