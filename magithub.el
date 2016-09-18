@@ -5,7 +5,7 @@
 ;; Author: Sean Allred <code@seanallred.com>
 ;; Keywords: git, tools, vc
 ;; Homepage: https://github.com/vermiculus/magithub
-;; Package-Requires: ((magit "2.8.0") (emacs "24.3"))
+;; Package-Requires: ((emacs "24.3") (magit "2.8.0") (git-commit "20160821.1338") (with-editor "20160828.1025"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@
 ;;  - pushing brand-new local repositories up to GitHub
 ;;  - creating forks of existing repositories
 ;;  - submitting pull requests upstream
+;;  - creating issues
 ;;
 ;; Press `@' in the status buffer to get started -- happy hacking!
 ;;
@@ -42,6 +43,8 @@
 (require 'magit)
 (require 'magit-process)
 (require 'magit-popup)
+(require 'git-commit)
+(require 'with-editor)
 
 (defcustom magithub-hub-executable "hub"
   "The hub executable used by Magithub."
@@ -140,6 +143,24 @@ and returns its output as a list of lines."
     (user-error "Not a GitHub repository"))
   (magithub--command-with-editor
    "issue" (cons "create" (magithub-issues-arguments))))
+
+(defface magithub-issue-warning-face
+  '((((class color)) :foreground "red"))
+  "Face used to call out warnings in the issue-create buffer."
+  :group 'magithub)
+
+(defun magithub-check-buffer ()
+  (and buffer-file-name
+       (member (file-name-base buffer-file-name)
+               '("ISSUE_EDITMSG"))
+       (with-editor-mode 1)
+       (git-commit-setup-font-lock)
+       (font-lock-add-keywords
+        nil
+        '(("^# \\(Creating issue for .*\\)"
+           (1 'magithub-issue-warning-face t)))
+        t)))
+(add-hook 'find-file-hook #'magithub-check-buffer)
 
 (defun magithub-browse ()
   "Open the repository in your browser."
