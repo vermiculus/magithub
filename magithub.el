@@ -92,7 +92,8 @@ and returns its output as a list of lines."
              (?i "Issues" magithub-issues-popup)
              (?p "Submit a pull request" magithub-pull-request-popup)
              "Meta"
-             (?& "Request a feature or report a bug" magithub--meta-new-issue)))
+             (?& "Request a feature or report a bug" magithub--meta-new-issue)
+             (?H "Ask for help on Gitter" magithub--meta-help)))
 
 (magit-define-popup magithub-create-popup
   "Popup console for creating GitHub repositories."
@@ -133,6 +134,11 @@ and returns its output as a list of lines."
 See /.github/ISSUE_TEMPLATE.md in this repository."
   (interactive)
   (browse-url "https://github.com/vermiculus/magithub/issues/new"))
+
+(defun magithub--meta-help ()
+  "Opens Magithub help."
+  (interactive)
+  (browse-url "https://gitter.im/vermiculus/magithub"))
 
 (defun magithub-github-repository-p ()
   "Non-nil if \"origin\" points to GitHub."
