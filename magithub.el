@@ -160,10 +160,9 @@ This is a hard-coded list right now."
   (string-join
    (magithub--completing-read-multiple
     (format "%s... %s" prompt "Issue labels (or \"\" to quit): ")
-    (cl-set-difference
-     (magithub-issue-label-list)
-     (when default
-       (split-string default ","))))
+    (let* ((default-labels (when default (split-string default ","))))
+      (remove-if (lambda (l) (member l default-labels))
+                 (magithub-issue-label-list))))
    ","))
 
 (defun magithub--completing-read-multiple (prompt collection)
