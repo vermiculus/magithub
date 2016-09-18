@@ -225,7 +225,9 @@ allowed."
    nil `((,magithub-hash-regexp (0 'magit-hash t))) t)
   (add-hook
    (make-local-variable 'with-editor-pre-finish-hook)
-   (lambda () (unfill-region (point-min) (point-max)))))
+   (lambda ()
+     (let ((fill-column (point-max)))
+       (fill-region beg end)))))
 
 (defconst magithub-hash-regexp
   (rx bow (= 40 (| digit (any (?A . ?F) (?a . ?f)))) eow)
