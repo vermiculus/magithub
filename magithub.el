@@ -185,16 +185,23 @@ allowed."
   :group 'magithub)
 
 (defun magithub-check-buffer ()
-  (and buffer-file-name
-       (member (file-name-base buffer-file-name)
-               '("ISSUE_EDITMSG"))
-       (with-editor-mode 1)
-       (git-commit-setup-font-lock)
-       (font-lock-add-keywords
-        nil
-        '(("^# \\(Creating issue for .*\\)"
-           (1 'magithub-issue-warning-face t)))
-        t)))
+  (when (and buffer-file-name
+             (member (file-name-base buffer-file-name)
+                     '("ISSUE_EDITMSG")))
+    (with-editor-mode 1)
+    (git-commit-setup-font-lock)
+    (font-lock-add-keywords
+     nil
+     `(("^# \\(Creating issue for .*\\)"
+        (1 'magithub-issue-warning-face t))
+       (,(rx (= 40 (| digit (any (?A . ?F) (?a . ?f)))))
+        (0 'magit-hash t)))
+     t)
+    (set (make-local-variable 'with-editor-pre-finish-hook)
+         with-editor-pre-finish-hook)
+    (add-hook
+     'with-editor-pre-finish-hook
+     (lambda () (unfill-region (point-min) (point-max))))))
 (add-hook 'find-file-hook #'magithub-check-buffer)
 
 (defun magithub-browse ()
