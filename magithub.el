@@ -32,7 +32,7 @@
 ;;  - submitting pull requests upstream
 ;;  - creating issues
 ;;
-;; Press `@' in the status buffer to get started -- happy hacking!
+;; Press `h' in the status buffer to get started -- happy hacking!
 ;;
 ;; [1]: https://hub.github.com
 
@@ -45,11 +45,6 @@
 (require 'magit-popup)
 (require 'git-commit)
 (require 'with-editor)
-
-(defcustom magithub-hub-executable "hub"
-  "The hub executable used by Magithub."
-  :group 'magithub
-  :type 'string)
 
 (defmacro magithub-with-hub (&rest body)
   `(let  ((magit-git-executable magithub-hub-executable)
@@ -91,7 +86,7 @@ and returns its output as a list of lines."
   'magithub-commands
   :man-page "hub"
   :actions '("Actions"
-             (?@ "Browse on GitHub" magithub-browse)
+             (?h "Browse on GitHub" magithub-browse)
              (?c "Create" magithub-create-popup)
              (?f "Fork" magithub-fork-popup)
              (?i "Issues" magithub-issues-popup)
@@ -259,11 +254,27 @@ allowed."
         (magit-push-popup)))
     (magithub--command-with-editor "pull-request" (magithub-pull-request-arguments))))
 
-;; Integrate into the Magit dispatcher and status buffer
-(magit-define-popup-action 'magit-dispatch-popup
-  ?@ "Magithub" 'magithub-dispatch-popup ?!)
-(define-key magit-status-mode-map (kbd "@")
-  #'magithub-dispatch-popup)
+(defun magithub-use-key (key)
+  (magit-define-popup-action 'magit-dispatch-popup key
+    "Magithub" 'magithub-dispatch-popup ?!)
+  (define-key magit-status-mode-map (char-to-string key)
+    #'magithub-dispatch-popup)
+  (setq magithub-dispatch-key key))
+
+(defcustom magithub-hub-executable "hub"
+  "The hub executable used by Magithub."
+  :group 'magithub
+  :package-version '(magithub . "0.1")
+  :type 'string)
+
+(defcustom magithub-dispatch-key ?H
+  "The key used in `magit-dispatch-popup' to activate `magithub-dispatch-popup'."
+  :group 'magithub
+  :package-version '(magithub . "0.2")
+  :type 'character
+  :set (lambda (_ n)
+         (eval-after-load 'magit
+           (magithub-use-key ?H))))
 
 (provide 'magithub)
 ;;; magithub.el ends here
