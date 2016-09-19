@@ -32,7 +32,7 @@
 ;;  - submitting pull requests upstream
 ;;  - creating issues
 ;;
-;; Press `h' in the status buffer to get started -- happy hacking!
+;; Press `H' in the status buffer to get started -- happy hacking!
 ;;
 ;; [1]: https://hub.github.com
 
