@@ -89,36 +89,22 @@ and returns its output as a list of lines."
   :package-version '(magithub . "0.1")
   :type 'string)
 
-(defcustom magithub-dispatch-key ?H
-  "The key used in `magit-dispatch-popup' to activate `magithub-dispatch-popup'."
-  :group 'magithub
-  :package-version '(magithub . "0.2")
-  :type 'character
-  :set (lambda (_ n) (eval-after-load 'magit (magithub-use-dispatch-key n))))
-
-(defvar magithub--old-dispatch-key magithub-dispatch-key)
-(defun magithub-use-dispatch-key (key)
-  (setq magithub-dispatch-key key)
-  (magit-change-popup-key
-   'magit-dispatch-popup
-   :action magithub--old-dispatch-key magithub-dispatch-key)
-  ;;(define-key magit-status-mode-map (char-to-string key) #'magithub-dispatch-popup)
-  (setq magithub--old-dispatch-key magithub-dispatch-key))
-
 (magit-define-popup magithub-dispatch-popup
   "Popup console for dispatching other Magithub popups."
   'magithub-commands
   :man-page "hub"
-  :actions `("Actions"
-             (,magithub-dispatch-key "Browse on GitHub" magithub-browse)
+  :actions '("Actions"
+             (?H "Browse on GitHub" magithub-browse)
              (?c "Create" magithub-create-popup)
              (?f "Fork" magithub-fork-popup)
              (?i "Issues" magithub-issues-popup)
              (?p "Submit a pull request" magithub-pull-request-popup)
              "Meta"
              (?& "Request a feature or report a bug" magithub--meta-new-issue)
-             (,(if (= magithub-dispatch-key ?h) ?H ?h)
-              "Ask for help on Gitter" magithub--meta-help)))
+             (?h "Ask for help on Gitter" magithub--meta-help)))
+
+(magit-define-popup-action 'magit-dispatch-popup ?H "Magithub" ?!)
+(define-key magit-status-mode-map "H" #'magithub-dispatch-popup)
 
 (magit-define-popup magithub-create-popup
   "Popup console for creating GitHub repositories."
@@ -217,6 +203,10 @@ allowed."
   "Face used to call out warnings in the issue-create buffer."
   :group 'magithub)
 
+(defconst magithub-hash-regexp
+  (rx bow (= 40 (| digit (any (?A . ?F) (?a . ?f)))) eow)
+  "Regexp for matching commit hashes.")
+
 (defun magithub-setup-edit-buffer ()
   "Perform setup on a hub edit buffer."
   (with-editor-mode 1)
@@ -227,11 +217,7 @@ allowed."
    (make-local-variable 'with-editor-pre-finish-hook)
    (lambda ()
      (let ((fill-column (point-max)))
-       (fill-region beg end)))))
-
-(defconst magithub-hash-regexp
-  (rx bow (= 40 (| digit (any (?A . ?F) (?a . ?f)))) eow)
-  "Regexp for matching commit hashes.")
+       (fill-region (point-min) (point-max))))))
 
 (defun magithub-setup-new-issue-buffer ()
   "Setup the buffer created for issue-posting."
