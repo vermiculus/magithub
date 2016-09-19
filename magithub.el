@@ -48,6 +48,8 @@
 (require 'cl-lib)
 (require 's)
 
+(require 'magithub-issue)
+
 (defmacro magithub-with-hub (&rest body)
   `(let ((magit-git-executable magithub-hub-executable)
          (magit-pre-call-git-hook nil)
