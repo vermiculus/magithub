@@ -103,7 +103,7 @@ and returns its output as a list of lines."
              (?& "Request a feature or report a bug" magithub--meta-new-issue)
              (?h "Ask for help on Gitter" magithub--meta-help)))
 
-(magit-define-popup-action 'magit-dispatch-popup ?H "Magithub" ?!)
+(magit-define-popup-action 'magit-dispatch-popup ?H "Magithub" #'magithub-dispatch-popup ?!)
 (define-key magit-status-mode-map "H" #'magithub-dispatch-popup)
 
 (magit-define-popup magithub-create-popup
