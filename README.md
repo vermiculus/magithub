@@ -9,10 +9,11 @@ Integrated into [Magit][magit] workflows, Magithub allows very easy,
 very basic GitHub repository management.  Supported actions from the
 status buffer include:
 
- - pushing brand-new local repositories up to GitHub (`H c`)
- - creating forks of existing repositories (`H f`)
- - submitting pull requests upstream (`H p`)
- - creating issues (`H i`)
+ - `H H` opens the current repo in the browser
+ - `H c` pushes brand-new local repositories up to GitHub
+ - `H f` creates forks of existing repositories
+ - `H p` submits pull requests upstream
+ - `H i` creates issues
 
 Happy hacking!
 
@@ -42,7 +43,7 @@ at [hub.github.com][hub].  To force `hub` to authenticate, you can use
 
 ### Submitting a Pull Request
 
-![Creating](images/pull-request.gif)
+![submitting a Pull Request](images/pull-request.gif)
 
 ---
 
