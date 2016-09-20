@@ -177,11 +177,11 @@ This is a hard-coded list right now."
 (defun magithub-issue-read-labels (prompt &optional default)
   "Read some issue labels."
   (s-join
+   ","
    (magithub--completing-read-multiple
     (format "%s... %s" prompt "Issue labels (or \"\" to quit): ")
-    (let* ((default-labels (when default (s-split default "," t))))
-      (cl-set-difference (magithub-issue-label-list) default-labels)))
-   ","))
+    (let* ((default-labels (when default (s-split "," default t))))
+      (cl-set-difference (magithub-issue-label-list) default-labels)))))
 
 (defun magithub--completing-read-multiple (prompt collection)
   "Using PROMPT, get a list of elements in COLLECTION.
