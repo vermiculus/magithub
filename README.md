@@ -51,7 +51,6 @@ at [hub.github.com][hub].  To force `hub` to authenticate, you can use
 ![Dispatch](images/scr1.png)|![Creating](images/scr2.png)
 :-------------------------:|:-------------------------:
 ![Forking](images/scr3.png)|![Pushing](images/scr4.png)
-:-------------------------:|:-------------------------:
 ![Issues and Pull Requests](images/scr5.png)|
 
 ### Note
