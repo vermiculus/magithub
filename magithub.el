@@ -50,6 +50,12 @@
 
 (require 'magithub-issue)
 
+(defcustom magithub-hub-executable "hub"
+  "The hub executable used by Magithub."
+  :group 'magithub
+  :package-version '(magithub . "0.1")
+  :type 'string)
+
 (defmacro magithub-with-hub (&rest body)
   `(let ((magit-git-executable magithub-hub-executable)
          (magit-pre-call-git-hook nil)
@@ -84,12 +90,6 @@ and returns its output as a list of lines."
 (defvar magithub-after-create-messages
   '("Don't be shy!"
     "Don't let your dreams be dreams!"))
-
-(defcustom magithub-hub-executable "hub"
-  "The hub executable used by Magithub."
-  :group 'magithub
-  :package-version '(magithub . "0.1")
-  :type 'string)
 
 (magit-define-popup magithub-dispatch-popup
   "Popup console for dispatching other Magithub popups."
