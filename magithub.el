@@ -30,7 +30,7 @@
 ;;  - pushing brand-new local repositories up to GitHub
 ;;  - creating forks of existing repositories
 ;;  - submitting pull requests upstream
-;;  - creating issues
+;;  - viewing and creating issues
 ;;
 ;; Press `H' in the status buffer to get started -- happy hacking!
 ;;

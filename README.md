@@ -14,6 +14,7 @@ status buffer include:
  - `H f` creates forks of existing repositories
  - `H p` submits pull requests upstream
  - `H i` creates issues
+ - `RET` on an issue open that issue on GitHub
 
 Happy hacking!
 
@@ -50,6 +51,8 @@ at [hub.github.com][hub].  To force `hub` to authenticate, you can use
 ![Dispatch](images/scr1.png)|![Creating](images/scr2.png)
 :-------------------------:|:-------------------------:
 ![Forking](images/scr3.png)|![Pushing](images/scr4.png)
+:-------------------------:|:-------------------------:
+![Issues and Pull Requests](images/scr5.png)|
 
 ### Note
 
