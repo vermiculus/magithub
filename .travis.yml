@@ -1,0 +1,11 @@
+language: generic
+os:
+  - linux
+
+befoore_install:
+  - curl -SOL https://github.com/flycheck/emacs-travis/raw/master/emacs-travis.mk
+  - make -f emacs-travis.mk install_emacs install_cask
+
+script:
+  - cask install
+  - cask exec ert-runner
