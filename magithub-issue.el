@@ -79,18 +79,28 @@
       (insert ?\n))))
 
 (defun magithub-issue-browse (issue)
-  "Visits `issue' in the browser."
+  "Visits `issue' in the browser.
+Interactively, this finds the issue at point.
+
+If `issue' is nil, open the repository's issues page."
   (interactive (list (magit-section-value
                       (magit-current-section))))
-  (if (plist-member issue :url)
-      (browse-url (plist-get issue :url))
-    (user-error "Issue section does not have a URL")))
+  (browse-url
+   (if (plist-member issue :url)
+       (plist-get issue :url)
+     (car (magithub--command-output "browse" '("--url-only" "--" "issues"))))))
 
 (defvar magit-magithub-issue-section-map
   (let ((map (make-sparse-keymap)))
     (define-key map [remap magit-visit-thing] #'magithub-issue-browse)
     map)
   "Keymap for `magithub-issue' sections.")
+
+(defvar magit-magithub-issue-list-section-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [remap magit-visit-thing] #'magithub-issue-browse)
+    map)
+  "Keymap for `magithub-issue-list' sections.")
 
 (defvar magithub--cache (make-hash-table)
   "A hash table to use as a cache.
