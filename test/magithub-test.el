@@ -12,5 +12,4 @@
   (should (byte-compile-file "magithub.el"))
   (should (byte-compile-file "magithub-issue.el")))
 
-(provide 'magit-tests)
-;;; magithub-tests.el ends here
+;;; magithub-test.el ends here

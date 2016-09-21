@@ -9,7 +9,7 @@ matrix:
 
 env:
   - EMACS_VERSION=25.1
-  - EMACS_VERSION=snapshot
+#  - EMACS_VERSION=snapshot
 
 before_install:
   - export PATH="$HOME/bin:$PATH"
