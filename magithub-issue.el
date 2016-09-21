@@ -62,8 +62,9 @@
 (defun magithub-issue-list ()
   "Return a list of issues for the current repository."
   (magithub--cached :issues
-    '(mapcar #'magithub-issue--process-line
-             (magithub--command-output "issue"))))
+    '(with-temp-message "Retrieving issue list..."
+       (mapcar #'magithub-issue--process-line
+               (magithub--command-output "issue")))))
 
 (defun magithub-issue--insert (issue)
   "Insert an `issue' as a Magit section into the buffer."
