@@ -4,6 +4,8 @@
 [![MELPA Stable Status](http://melpa-stable.milkbox.net/packages/magithub-badge.svg)](http://melpa-stable.milkbox.net/#/magithub)
 [![Build Status](https://travis-ci.org/vermiculus/magithub.svg?branch=master)](https://travis-ci.org/vermiculus/magithub)
 
+<img src="images/status.png" width="100%" alt="Overview -- the status buffer"/>
+
 Magithub is a collection of interfaces to GitHub.
 
 Integrated into [Magit][magit] workflows, Magithub allows very easy,
@@ -17,7 +19,8 @@ status buffer include:
  - `H i` creates issues
  - `RET` on an issue open that issue on GitHub
 
-Happy hacking!
+More screenshots and workflow GIFs can be
+found [here](screenshots.md).  Happy hacking!
 
 ## Installation
 
@@ -37,32 +40,7 @@ to use Magithub, follow the installation instructions
 at [hub.github.com][hub].  To force `hub` to authenticate, you can use
 `hub browse` in a terminal (inside a GitHub repo).
 
-## Screenshots
-
-### Creating a Repository
-
-![Creating](images/create.gif)
-
-### Submitting a Pull Request
-
-![submitting a Pull Request](images/pull-request.gif)
-
-### CI Status
-
-![CI Pending](images/ci-pending.png)
-
-![CI Failure](images/ci-failure.png)
-
-![CI Success](images/ci-success.png)
-
----
-
-![Dispatch](images/scr1.png)|![Creating](images/scr2.png)
-:-------------------------:|:-------------------------:
-![Forking](images/scr3.png)|![Pushing](images/scr4.png)
-![Issues and Pull Requests](images/scr5.png)|
-
-### Note
+## Note
 
 There used to be another `magithub`: [nex3/magithub][old-magithub].
 It's long-since unsupported and apparently has many issues
