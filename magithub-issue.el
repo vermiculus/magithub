@@ -71,8 +71,7 @@
   (when issue
     (magit-insert-section (magithub-issue issue)
       (let ((formats (or magithub-issue-format
-                         (eval-when-compile
-                           magithub-issue-format))))
+                         (list :number " %3d " :title " %s "))))
         (while formats
           (let ((key (car formats)) (fmt (cadr formats)))
             (insert (format fmt (plist-get issue key))))
