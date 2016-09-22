@@ -149,5 +149,7 @@ Sets up magithub.ci.url if necessary."
   (if (derived-mode-p major-mode 'magit-status-mode)
       (magit-refresh)))
 
+(magithub-toggle-ci-status-header)
+
 (provide 'magithub-ci)
 ;;; magithub-ci.el ends here
