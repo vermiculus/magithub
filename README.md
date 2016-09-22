@@ -4,7 +4,7 @@
 [![MELPA Stable Status](http://melpa-stable.milkbox.net/packages/magithub-badge.svg)](http://melpa-stable.milkbox.net/#/magithub)
 [![Build Status](https://travis-ci.org/vermiculus/magithub.svg?branch=master)](https://travis-ci.org/vermiculus/magithub)
 
-<img src="images/status.png" width="100%" alt="Overview -- the status buffer"/>
+<a href="screenshots.md"><img align="right" src="https://github.com/vermiculus/magithub/raw/master/images/status.png" width="50%" alt="Overview -- the status buffer"/></a>
 
 Magithub is a collection of interfaces to GitHub.
 
@@ -17,10 +17,10 @@ status buffer include:
  - `H f` creates forks of existing repositories
  - `H p` submits pull requests upstream
  - `H i` creates issues
- - `RET` on an issue open that issue on GitHub
+ - `RET` on an issue open that issue in GitHub
+ - `RET` on the CI header takes you to your CI dashboard
 
-More screenshots and workflow GIFs can be
-found [here](screenshots.md).  Happy hacking!
+Happy hacking!
 
 ## Installation
 
