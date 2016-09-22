@@ -104,8 +104,11 @@ Returns a plist with the following properties:
   "Return a list of issues for the current repository."
   (magithub--cached :issues
     '(with-temp-message "Retrieving issue list..."
-       (mapcar #'magithub-issue--process-line
-               (magithub--command-output "issue")))))
+       (sort
+        (mapcar #'magithub-issue--process-line
+                (magithub--command-output "issue"))
+        (lambda (a b) (< (plist-get a :number)
+                         (plist-get b :number)))))))
 
 (defun magithub-issue--insert (issue)
   "Insert an `issue' as a Magit section into the buffer."
