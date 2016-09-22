@@ -1,10 +1,10 @@
 # Magithub
 
+<a href="screenshots.md"><img align="right" src="https://github.com/vermiculus/magithub/raw/master/images/status.png" width="50%" alt="Overview -- the status buffer"/></a>
+
 [![MELPA Status](http://melpa.milkbox.net/packages/magithub-badge.svg)](http://melpa.milkbox.net/#/magithub)
 [![MELPA Stable Status](http://melpa-stable.milkbox.net/packages/magithub-badge.svg)](http://melpa-stable.milkbox.net/#/magithub)
 [![Build Status](https://travis-ci.org/vermiculus/magithub.svg?branch=master)](https://travis-ci.org/vermiculus/magithub)
-
-<a href="screenshots.md"><img align="right" src="https://github.com/vermiculus/magithub/raw/master/images/status.png" width="50%" alt="Overview -- the status buffer"/></a>
 
 Magithub is a collection of interfaces to GitHub.
 
