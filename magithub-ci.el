@@ -43,9 +43,24 @@
 (defun magithub-ci-status ()
   "One of 'success, 'error, 'failure, 'pending, or 'no-status."
   (with-temp-message "Updating CI status..."
-    (let* ((output (car (magithub--command-output "ci-status")))
+    (let* ((last-commit (magithub-ci-status--last-commit))
+           (output (car (magithub--command-output "ci-status" last-commit)))
            (output (replace-regexp-in-string "\s" "-" output)))
       (intern output))))
+
+(defun magithub-ci-status--last-commit ()
+  "Find the commit considered to have the current CI status.
+Right now, this finds the most recent commit without
+
+    [ci skip]
+
+in the commit message."
+  (let* ((args '("--grep=\\[ci skip\\]'"
+                 "--invert-grep"
+                 "--format=oneline"
+                 "--max-count=1"))
+         (output (magit-git-lines "log" args)))
+    (car (split-string (car output)))))
 
 (defvar magithub-ci-status-alist
   '((no-status . "None")
