@@ -58,22 +58,27 @@
   '((((class color)) :inherit magit-dimmed))
   "Face used when CI status is `no-status'."
   :group 'magithub-faces)
+
 (defface magithub-ci-error
   '((((class color)) :inherit magit-signature-untrusted))
   "Face used when CI status is `error'."
   :group 'magithub-faces)
+
 (defface magithub-ci-pending
   '((((class color)) :inherit magit-signature-untrusted))
   "Face used when CI status is `pending'."
   :group 'magithub-faces)
+
 (defface magithub-ci-success
   '((((class color)) :inherit magit-signature-good))
   "Face used when CI status is `success'."
   :group 'magithub-faces)
+
 (defface magithub-ci-failure
   '((((class color)) :inherit magit-signature-bad))
   "Face used when CI status is `'"
   :group 'magithub-faces)
+
 (defface magithub-ci-unknown
   '((((class color)) :inherit magit-signature-untrusted))
   "Face used when CI status is `unknown'."
@@ -104,7 +109,7 @@ Sets up magithub.ci.url if necessary."
     (magit-insert-section (magithub-ci-status)
       (insert (format "%-10s" "CI: "))
       (insert (propertize
-               (cdr (assoc status magithub-ci-status-alist))
+               (cdr (assq status magithub-ci-status-alist))
                'face (if (facep face) face magithub-ci-status-unknown-face)))
       (insert ?\n))))
 
