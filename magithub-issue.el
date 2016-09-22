@@ -26,17 +26,58 @@
 
 (require 'magit)
 (require 'magit-section)
+(require 'magithub-core)
 
-(declare-function "magithub--command-output" 'magithub)
-(declare-function "magithub-github-repository-p" 'magithub)
+(magit-define-popup magithub-issues-popup
+  "Popup console for creating GitHub issues."
+  'magithub-commands
+  :man-page "hub"
+  :options '((?l "Add labels" "--label=" magithub-issue-read-labels))
+  :actions '((?c "Create new issue" magithub-issue-new)))
 
 (defvar magithub-issue-format
   (list :number " %3d "
         :title " %s ")
   "These properties will be inserted in the order in which their
-  found")
+found.  See `magithub-issue--process-line'.")
+
+(defun magithub-issue-new ()
+  "Create a new issue on GitHub."
+  (interactive)
+  (unless (magithub-github-repository-p)
+    (user-error "Not a GitHub repository"))
+  (magithub--command-with-editor
+   "issue" (cons "create" (magithub-issues-arguments))))
+
+(defun magithub-issue-label-list ()
+  "Return a list of issue labels.
+This is a hard-coded list right now."
+  (list "bug" "duplicate" "enhancement"
+        "help wanted" "invalid" "question" "wontfix"))
+
+(defun magithub-issue-read-labels (prompt &optional default)
+  "Read some issue labels and return a comma-separated string.
+Available issues are provided by `magithub-issue-label-list'.
+
+DEFAULT is a comma-separated list of issues -- those issues that
+are in DEFAULT are not prompted for again."
+  ;; todo: probably need to add DEFAULT to the top here
+  (s-join
+   ","
+   (magithub--completing-read-multiple
+    (format "%s... %s" prompt "Issue labels (or \"\" to quit): ")
+    (let* ((default-labels (when default (s-split "," default t))))
+      (cl-set-difference (magithub-issue-label-list) default-labels)))))
 
 (defun magithub-issue--process-line (s)
+  "Process a line S into an issue.
+
+Returns a plist with the following properties:
+
+  :number  issue or pull request number
+  :type    either 'pull-request or 'issue
+  :title   the title of the issue or pull request
+  :url     link to issue or pull request"
   (let (number title url)
     (with-temp-buffer
       (display-buffer (current-buffer))
@@ -55,7 +96,7 @@
       (setq url (buffer-substring-no-properties (point) (point-max))))
     (list :number number
           :type (if (string-match-p (rx "/pull/" (+ digit) eos) url)
-                    'pull 'issue)
+                    'pull-request 'issue)
           :title title
           :url url)))
 
