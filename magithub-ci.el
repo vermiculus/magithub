@@ -123,7 +123,7 @@ Sets up magithub.ci.url if necessary."
     (unless var-value
       (magit-set
        (setq var-value (read-from-minibuffer "I don't know the CI URL yet -- what is it?  I'll remember: ")
-             var-value (if (string-empty-p var-value) nil var-value))
+             var-value (if (string-equal "" var-value) nil var-value))
        "magithub" "ci" "url"))
     (browse-url var-value)))
 
