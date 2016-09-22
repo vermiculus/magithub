@@ -32,8 +32,11 @@
 ;;   actually tested
 ;; - docstrings!
 
-(require 'magithub)
 (require 'magit)
+(require 'magit-section)
+
+(declare-function "magithub--command-output" 'magithub)
+(declare-function "magithub-github-repository-p" 'magithub)
 
 (defun magithub-maybe-insert-ci-status-header ()
   "If this is a GitHub repository, insert the CI status header."
