@@ -54,9 +54,19 @@ Right now, this finds the most recent commit without
 
     [ci skip]
 
-in the commit message."
-  (let* ((args '("--grep=\\[ci skip\\]'"
-                 "--invert-grep"
+or
+
+    [skip ci]
+
+in the commit message.
+
+See the following resources:
+
+ - https://docs.travis-ci.com/user/customizing-the-build#Skipping-a-build
+ - https://circleci.com/docs/skip-a-build/"
+  (let* ((args '("--invert-grep"
+                 "--grep=\\[ci skip\\]"
+                 "--grep=\\[skip ci\\]"
                  "--format=oneline"
                  "--max-count=1"))
          (output (magit-git-lines "log" args)))
