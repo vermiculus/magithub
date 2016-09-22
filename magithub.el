@@ -50,6 +50,7 @@
 (require 's)
 
 (require 'magithub-issue)
+(require 'magithub-ci)
 
 (defcustom magithub-hub-executable "hub"
   "The hub executable used by Magithub."

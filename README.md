@@ -47,6 +47,14 @@ at [hub.github.com][hub].  To force `hub` to authenticate, you can use
 
 ![submitting a Pull Request](images/pull-request.gif)
 
+### CI Status
+
+![CI Pending](images/ci-pending.png)
+
+![CI Failure](images/ci-failure.png)
+
+![CI Success](images/ci-success.png)
+
 ---
 
 ![Dispatch](images/scr1.png)|![Creating](images/scr2.png)
