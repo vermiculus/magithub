@@ -22,3 +22,14 @@ install:
 
 script:
   - cask exec ert-runner
+
+notifications:
+  email:
+    on_success: never
+    on_failure: change
+  webhooks:
+    urls:
+      - https://webhooks.gitter.im/e/b1163bae60c65660fbd2
+    on_success: change
+    on_failure: always
+    on_start: never
