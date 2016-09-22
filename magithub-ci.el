@@ -141,7 +141,7 @@ Sets up magithub.ci.url if necessary."
       (insert (format "%-10s" "CI: "))
       (insert (propertize
                (cdr (assq status magithub-ci-status-alist))
-               'face (if (facep face) face magithub-ci-status-unknown-face)))
+               'face (if (facep face) face magithub-ci-status-unknown)))
       (insert ?\n))))
 
 (defun magithub-toggle-ci-status-header ()
