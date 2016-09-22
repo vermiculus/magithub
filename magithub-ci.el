@@ -40,13 +40,16 @@
   (when (magithub-github-repository-p)
     (magithub-insert-ci-status-header)))
 
-(defun magithub-ci-status ()
+(defun magithub-ci-status (&optional ignore-ci-skips)
   "One of 'success, 'error, 'failure, 'pending, or 'no-status."
   (with-temp-message "Updating CI status..."
-    (let* ((last-commit (magithub-ci-status--last-commit))
+    (let* ((last-commit (when ignore-ci-skips (magithub-ci-status--last-commit)))
            (output (car (magithub--command-output "ci-status" last-commit)))
-           (output (replace-regexp-in-string "\s" "-" output)))
-      (intern output))))
+           (output (replace-regexp-in-string "\s" "-" output))
+           (status (intern output)))
+      (if (and (not ignore-ci-skips) (eq status 'no-status))
+          (magithub-ci-status t)
+        status))))
 
 (defun magithub-ci-status--last-commit ()
   "Find the commit considered to have the current CI status.
