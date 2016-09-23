@@ -1,5 +1,7 @@
 # Thanks for helping out!
 
+Reporting an error?  Oh no!  I'm happy to take a look at it, but *please* provide the backtrace in your issue: before triggering the error make sure `debug-on-error` is set to `t` (interactively, you can use `M-x toggle-debug-on-error`).  Then, just copy the backtrace that's provided :smile:
+
 As you're probably aware, Magithub is a synthesis of two very fantastic tools: [the magit porcelain for Emacs][magit] and [the `hub` command-line utility][hub].  Please be mindful of which project you're opening this issue against.
 
 Since this project has a familiarity with *both* tools, an issue opened here can easily be redirected somewhere else.
