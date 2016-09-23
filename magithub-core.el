@@ -103,5 +103,32 @@ and returns its output as a list of lines."
   "Quickly execute COMMAND with ARGS."
   (ignore (magithub--command-output command args)))
 
+(defun magithub-error (err-message tag &optional trace)
+  "Report a Magithub error."
+  (setq trace (or trace (with-output-to-string (backtrace))))
+  (when (y-or-n-p (concat tag "  Report?  (A bug report will be placed in your clipboard.)"))
+    (with-current-buffer-window
+     (get-buffer-create "*magithub issue*")
+     #'display-buffer-pop-up-window nil
+     (when (fboundp 'markdown-mode) (markdown-mode))
+     (insert
+      (kill-new
+       (format
+        "## Automated error report
+
+### Description
+
+%s
+
+### Backtrace
+
+```
+%s```
+"
+        (read-string "Briefly describe what you were doing: ")
+        trace))))
+    (magithub--meta-new-issue))
+  (error err-message))
+
 (provide 'magithub-core)
 ;;; magithub-core.el ends here

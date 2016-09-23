@@ -103,7 +103,9 @@ Returns a plist with the following properties:
                         'pull-request 'issue)
               :title title
               :url url)
-      (error "There was an error parsing an issue string: %S" s))))
+      (magithub-error
+       "failed to parse issue"
+       "There was an error parsing issues."))))
 
 (defun magithub-issue-list ()
   "Return a list of issues for the current repository."
