@@ -24,19 +24,12 @@
 
 ;;; Code:
 
-;; TODO
-
-;; - go back in the log for the most recent commit without [ci skip]
-;;   hub checks status of the current commit which will have 'no-status
-;;   when skipped -- probably a good idea to report the commit that was
-;;   actually tested
-;; - docstrings!
-
 (require 'magit)
 (require 'magit-section)
+(require 'magit-popup)
 
-(declare-function "magithub--command-output" 'magithub)
-(declare-function "magithub-github-repository-p" 'magithub)
+(require 'magithub-core)
+(require 'magithub-cache)
 
 (defun magithub-maybe-insert-ci-status-header ()
   "If this is a GitHub repository, insert the CI status header."
@@ -45,13 +38,32 @@
 
 (defun magithub-ci-status (&optional ignore-ci-skips)
   "One of 'success, 'error, 'failure, 'pending, or 'no-status."
+  (let ((same-commit
+         (string-equal (magit-rev-parse "HEAD")
+                       (magithub-ci-status-current-commit))))
+    (unless same-commit
+      (magithub-cache-clear :ci-status))
+    (if (eq (magithub-cache-value :ci-status) 'success)
+        'success
+      (magithub-cache :ci-status
+        `(magithub-ci-status--internal ,ignore-ci-skips)))))
+
+(defun magithub-ci-status-current-commit (&optional new-value)
+  "The commit our cached value corresponds to."
+  (let ((keys (list "magithub" "ci" "lastCommit")))
+    (if new-value (apply #'magit-set new-value keys)
+      (apply #'magit-get keys))))
+
+(defun magithub-ci-status--internal (&optional ignore-ci-skips)
+  "One of 'success, 'error, 'failure, 'pending, or 'no-status."
   (with-temp-message "Updating CI status..."
     (let* ((last-commit (when ignore-ci-skips (magithub-ci-status--last-commit)))
            (output (car (magithub--command-output "ci-status" last-commit)))
            (output (replace-regexp-in-string "\s" "-" output))
            (status (intern output)))
       (if (and (not ignore-ci-skips) (eq status 'no-status))
-          (magithub-ci-status t)
+          (magithub-ci-status--internal t)
+        (magithub-ci-status-current-commit (magit-rev-parse "HEAD"))
         status))))
 
 (defun magithub-ci-status--last-commit ()
