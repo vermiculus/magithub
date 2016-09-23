@@ -41,7 +41,7 @@ considered outdated.")
             (< (plist-get magithub-cache-refresh-seconds-plist cache)
                (time-to-seconds (time-since (car cached-value)))))
         (cdr (puthash cache (cons (current-time) (eval default))
-                      magithub--cache))
+                      magithub-cache--cache))
       (cdr cached-value))))
 
 (defun magithub-cache-value (cache)
