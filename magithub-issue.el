@@ -26,7 +26,9 @@
 
 (require 'magit)
 (require 'magit-section)
+
 (require 'magithub-core)
+(require 'magithub-cache)
 
 (magit-define-popup magithub-issues-popup
   "Popup console for creating GitHub issues."
@@ -105,7 +107,7 @@ Returns a plist with the following properties:
 
 (defun magithub-issue-list ()
   "Return a list of issues for the current repository."
-  (magithub--cached :issues
+  (magithub-cache :issues
     '(with-temp-message "Retrieving issue list..."
        (sort
         (mapcar #'magithub-issue--process-line
@@ -149,36 +151,10 @@ If `issue' is nil, open the repository's issues page."
     map)
   "Keymap for `magithub-issue-list' sections.")
 
-(defvar magithub--cache (make-hash-table)
-  "A hash table to use as a cache.
-Entries are of the form (time-entered . value).")
-
-(defvar magithub--cache-clear-now nil
-  "If non-nil, the cache will be invalidated when next accessed.")
-
-(defvar magithub-cache-refresh-seconds 60
-  "The number of seconds that have to pass for GitHub data to be
-considered outdated.")
-
-(defun magithub--cached (cache default)
-  "The cached value for CACHE (set to DEFAULT if necessary)."
-  (declare (indent defun))
-  (when magithub--cache-clear-now
-    (setq magithub--cache (make-hash-table)
-          magithub--cache-clear-now nil))
-  (let ((cached-value (gethash cache magithub--cache :no-value)))
-    (if (or (eq cached-value :no-value)
-            (< magithub-cache-refresh-seconds
-               (time-to-seconds (time-since (car cached-value)))))
-        (cdr (puthash cache (cons (current-time) (eval default))
-                      magithub--cache))
-      (cdr cached-value))))
-
 (defun magithub-issue--insert-section ()
   "Insert GitHub issues if appropriate."
   (when (magithub-github-repository-p)
-    (let* ((magithub--cache-clear-now (eq this-command #'magit-refresh))
-           (issues (magithub-issue-list)))
+    (let* ((issues (magithub-issue-list)))
       (magit-insert-section (magithub-issue-list)
         (magit-insert-heading "Issues and Pull Requests")
         (if issues (mapc #'magithub-issue--insert issues)
