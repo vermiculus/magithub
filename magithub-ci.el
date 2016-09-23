@@ -142,8 +142,16 @@ Sets up magithub.ci.url if necessary."
 (defvar magit-magithub-ci-status-section-map
   (let ((map (make-sparse-keymap)))
     (define-key map [remap magit-visit-thing] #'magithub-ci-visit)
+    (define-key map [remap magit-refresh] #'magithub-ci-refresh)
     map)
   "Keymap for `magithub-ci-status' header section.")
+
+(defun magithub-ci-refresh ()
+  "Invalidate the CI cache and refresh the buffer."
+  (interactive)
+  (magithub-cache-clear :ci-status)
+  (when (derived-mode-p major-mode 'magit-status-mode)
+    (magit-refresh)))
 
 (defun magithub-insert-ci-status-header ()
   (let* ((status (magithub-ci-status))

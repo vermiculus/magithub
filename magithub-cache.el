@@ -54,7 +54,14 @@ considered outdated.")
       (cdr c))))
 
 (defun magithub-cache-clear (cache)
+  "Clear the cache."
   (remhash cache magithub-cache--cache))
+
+(defun magithub-refresh ()
+  "Refresh all GitHub data."
+  (interactive)
+  (setq magithub-cache--cache (make-hash-table))
+  (magit-refresh))
 
 (provide 'magithub-cache)
 ;;; magithub-cache.el ends here
