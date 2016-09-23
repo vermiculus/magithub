@@ -36,7 +36,7 @@
   (when (magithub-github-repository-p)
     (magithub-insert-ci-status-header)))
 
-(defun magithub-ci-status (&optional ignore-ci-skips)
+(defun magithub-ci-status ()
   "One of 'success, 'error, 'failure, 'pending, or 'no-status."
   (let ((same-commit
          (string-equal (magit-rev-parse "HEAD")
@@ -46,7 +46,7 @@
     (if (eq (magithub-cache-value :ci-status) 'success)
         'success
       (magithub-cache :ci-status
-        `(magithub-ci-status--internal ,ignore-ci-skips)))))
+        '(magithub-ci-status--internal)))))
 
 (defun magithub-ci-status-current-commit (&optional new-value)
   "The commit our cached value corresponds to."
