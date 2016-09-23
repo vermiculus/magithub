@@ -143,15 +143,23 @@ If `issue' is nil, open the repository's issues page."
        (plist-get issue :url)
      (car (magithub--command-output "browse" '("--url-only" "--" "issues"))))))
 
+(defun magithub-issue-refresh ()
+  (interactive)
+  (magithub-cache-clear :issues)
+  (when (derived-mode-p major-mode 'magit-status-mode)
+    (magit-refresh)))
+
 (defvar magit-magithub-issue-section-map
   (let ((map (make-sparse-keymap)))
     (define-key map [remap magit-visit-thing] #'magithub-issue-browse)
+    (define-key map [remap magit-refresh] #'magithub-issue-refresh)
     map)
   "Keymap for `magithub-issue' sections.")
 
 (defvar magit-magithub-issue-list-section-map
   (let ((map (make-sparse-keymap)))
     (define-key map [remap magit-visit-thing] #'magithub-issue-browse)
+    (define-key map [remap magit-refresh] #'magithub-issue-refresh)
     map)
   "Keymap for `magithub-issue-list' sections.")
 
