@@ -60,6 +60,9 @@ allowed."
   :package-version '(magithub . "0.1")
   :type 'string)
 
+(defvar magithub-debug-mode nil
+  "When non-nil, echo hub commands before they're executed.")
+
 (defmacro magithub-with-hub (&rest body)
   `(let ((magit-git-executable magithub-hub-executable)
          (magit-pre-call-git-hook nil)
@@ -71,6 +74,8 @@ allowed."
     (user-error "Hub (hub.github.com) not installed; aborting"))
   (unless (file-exists-p "~/.config/hub")
     (user-error "Hub hasn't been initialized yet; aborting"))
+  (when magithub-debug-mode
+    (message "Calling hub with args: %S %S" command args))
   (magithub-with-hub (funcall magit-function command args)))
 
 (defun magithub--command (command &optional args)
