@@ -58,13 +58,22 @@
   "One of 'success, 'error, 'failure, 'pending, or 'no-status."
   (with-temp-message "Updating CI status..."
     (let* ((last-commit (when ignore-ci-skips (magithub-ci-status--last-commit)))
-           (output (car (magithub--command-output "ci-status" last-commit)))
-           (output (replace-regexp-in-string "\s" "-" output))
-           (status (intern output)))
-      (if (and (not ignore-ci-skips) (eq status 'no-status))
-          (magithub-ci-status--internal t)
-        (magithub-ci-status-current-commit (magit-rev-parse "HEAD"))
-        status))))
+           (output (car (magithub--command-output "ci-status" last-commit))))
+      (if output
+          (let* ((output (replace-regexp-in-string "\s" "-" output))
+                 (status (intern output)))
+            (if (and (not ignore-ci-skips) (eq status 'no-status))
+                (magithub-ci-status--internal t)
+              (magithub-ci-status-current-commit (magit-rev-parse "HEAD"))
+              status))
+        (beep)
+        (setq magithub-hub-error
+              (message
+               (concat "Hub didn't have any output for \"ci-status\"!\n"
+                       "Consider submitting an issue to github/hub.")))
+        'internal-error))))
+
+(magithub--command-output "ci-status")
 
 (defun magithub-ci-status--last-commit ()
   "Find the commit considered to have the current CI status.
@@ -93,9 +102,14 @@ See the following resources:
 (defvar magithub-ci-status-alist
   '((no-status . "None")
     (error . "Error")
+    (internal-error . magithub--hub-error-string)
     (failure . "Failure")
     (pending . "Pending")
     (success . "Success")))
+
+(defun magithub--hub-error-string ()
+  "Internal error string."
+  (format "Internal error!\n%s" magithub-hub-error))
 
 (defface magithub-ci-no-status
   '((((class color)) :inherit magit-dimmed))
@@ -156,11 +170,15 @@ Sets up magithub.ci.url if necessary."
 (defun magithub-insert-ci-status-header ()
   (let* ((status (magithub-ci-status))
          (face   (intern (format "magithub-ci-%s"
-                                 (symbol-name status)))))
+                                 (symbol-name status))))
+         (status-val (cdr (assq status magithub-ci-status-alist))))
     (magit-insert-section (magithub-ci-status)
       (insert (format "%-10s" "CI: "))
       (insert (propertize
-               (cdr (assq status magithub-ci-status-alist))
+               (cond
+                ((stringp status-val) status-val)
+                ((functionp status-val) (funcall status-val))
+                (t (format "%S" status-val)))
                'face (if (facep face) face 'magithub-ci-unknown)))
       (insert ?\n))))
 
