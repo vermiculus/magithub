@@ -42,6 +42,9 @@ considered outdated.")
                (time-to-seconds (time-since (car cached-value)))))
         (cdr (puthash cache (cons (current-time) (eval default))
                       magithub-cache--cache))
+      (when magithub-debug-mode
+        (message "Using cached value for %S (retrieved %s)"
+                 cache (format-time-string "%F %T" (car cached-value))))
       (cdr cached-value))))
 
 (defun magithub-cache-value (cache)
