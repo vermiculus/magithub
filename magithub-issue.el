@@ -79,26 +79,29 @@ Returns a plist with the following properties:
   :title   the title of the issue or pull request
   :url     link to issue or pull request"
   (let (number title url)
-    (with-temp-buffer
-      (display-buffer (current-buffer))
-      (insert s)
-      (goto-char 0)
-      (search-forward "]")
-      (setq number (string-to-number (substring s 0 (point))))
-      (setq title (substring s (point)
-                             (save-excursion
-                               (goto-char (point-max))
-                               (- (search-backward "(") 2))))
-      (goto-char (point-max))
-      (delete-char -2)
-      (search-backward "(")
-      (forward-char 2)
-      (setq url (buffer-substring-no-properties (point) (point-max))))
-    (list :number number
-          :type (if (string-match-p (rx "/pull/" (+ digit) eos) url)
-                    'pull-request 'issue)
-          :title title
-          :url url)))
+    (if (ignore-errors
+          (with-temp-buffer
+            (display-buffer (current-buffer))
+            (insert s)
+            (goto-char 0)
+            (search-forward "]")
+            (setq number (string-to-number (substring s 0 (point))))
+            (setq title (substring s (point)
+                                   (save-excursion
+                                     (goto-char (point-max))
+                                     (- (search-backward "(") 2))))
+            (goto-char (point-max))
+            (delete-char -2)
+            (search-backward "(")
+            (forward-char 2)
+            (setq url (buffer-substring-no-properties (point) (point-max)))
+            t))
+        (list :number number
+              :type (if (string-match-p (rx "/pull/" (+ digit) eos) url)
+                        'pull-request 'issue)
+              :title title
+              :url url)
+      (error "There was an error parsing an issue string: %S" s))))
 
 (defun magithub-issue-list ()
   "Return a list of issues for the current repository."
