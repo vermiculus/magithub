@@ -33,6 +33,13 @@
         (s-prefix? "https://github.com/" url)
         (s-prefix? "git://github.com/" url))))
 
+(defun magithub--api-available-p ()
+  "Non-nil if the API is available."
+  (let ((magit-git-executable "ping")
+        (magit-pre-call-git-hook nil)
+        (magit-git-global-arguments nil))
+    (= 0 (magit-git-exit-code "-c 1" "api.github.com"))))
+
 (defun magithub--completing-read-multiple (prompt collection)
   "Using PROMPT, get a list of elements in COLLECTION.
 This function continues until all candidates have been entered or
