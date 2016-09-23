@@ -1,3 +1,5 @@
+<a href="screenshots.md"><img align="right" src="https://github.com/vermiculus/magithub/raw/master/images/status.png" width="50%" alt="Overview -- the status buffer"/></a>
+
 # Magithub
 
 [![MELPA Status](http://melpa.milkbox.net/packages/magithub-badge.svg)](http://melpa.milkbox.net/#/magithub)
@@ -15,7 +17,8 @@ status buffer include:
  - `H f` creates forks of existing repositories
  - `H p` submits pull requests upstream
  - `H i` creates issues
- - `RET` on an issue open that issue on GitHub
+ - `RET` on an issue open that issue in GitHub
+ - `RET` on the CI header takes you to your CI dashboard
 
 Happy hacking!
 
@@ -37,24 +40,7 @@ to use Magithub, follow the installation instructions
 at [hub.github.com][hub].  To force `hub` to authenticate, you can use
 `hub browse` in a terminal (inside a GitHub repo).
 
-## Screenshots
-
-### Creating a Repository
-
-![Creating](images/create.gif)
-
-### Submitting a Pull Request
-
-![submitting a Pull Request](images/pull-request.gif)
-
----
-
-![Dispatch](images/scr1.png)|![Creating](images/scr2.png)
-:-------------------------:|:-------------------------:
-![Forking](images/scr3.png)|![Pushing](images/scr4.png)
-![Issues and Pull Requests](images/scr5.png)|
-
-### Note
+## Note
 
 There used to be another `magithub`: [nex3/magithub][old-magithub].
 It's long-since unsupported and apparently has many issues
