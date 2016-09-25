@@ -83,7 +83,8 @@ allowed."
     (user-error "Hub hasn't been initialized yet; aborting"))
   (when magithub-debug-mode
     (message "Calling hub with args: %S %S" command args))
-  (magithub-with-hub (funcall magit-function command args)))
+  (with-timeout (5 (error "Took too long!  %s%S" command args))
+    (magithub-with-hub (funcall magit-function command args))))
 
 (defun magithub--command (command &optional args)
   "Run COMMAND synchronously using `magithub-hub-executable'."
@@ -97,7 +98,8 @@ Ensure GIT_EDITOR is set up appropriately."
 (defun magithub--command-output (command &optional args)
   "Run COMMAND synchronously using `magithub-hub-executable'
 and returns its output as a list of lines."
-  (magithub-with-hub (magit-git-lines command args)))
+  (with-timeout (5 (error "Took too long!  %s%S" command args))
+    (magithub-with-hub (magit-git-lines command args))))
 
 (defun magithub--command-quick (command &optional args)
   "Quickly execute COMMAND with ARGS."
