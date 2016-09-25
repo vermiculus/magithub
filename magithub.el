@@ -101,17 +101,6 @@
   :actions '((?P "Submit a pull request" magithub-pull-request))
   :default-arguments '("-o"))
 
-(defun magithub--meta-new-issue ()
-  "Open a new Magithub issue.
-See /.github/ISSUE_TEMPLATE.md in this repository."
-  (interactive)
-  (browse-url "https://github.com/vermiculus/magithub/issues/new"))
-
-(defun magithub--meta-help ()
-  "Opens Magithub help."
-  (interactive)
-  (browse-url "https://gitter.im/vermiculus/magithub"))
-
 (defun magithub-browse ()
   "Open the repository in your browser."
   (interactive)

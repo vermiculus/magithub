@@ -70,6 +70,9 @@ allowed."
 (defvar magithub-debug-mode nil
   "When non-nil, echo hub commands before they're executed.")
 
+(defvar magithub-hub-error nil
+  "When non-nil, this is a message for when hub fails.")
+
 (defmacro magithub-with-hub (&rest body)
   `(let ((magit-git-executable magithub-hub-executable)
          (magit-pre-call-git-hook nil)
@@ -104,6 +107,17 @@ and returns its output as a list of lines."
 (defun magithub--command-quick (command &optional args)
   "Quickly execute COMMAND with ARGS."
   (ignore (magithub--command-output command args)))
+
+(defun magithub--meta-new-issue ()
+  "Open a new Magithub issue.
+See /.github/ISSUE_TEMPLATE.md in this repository."
+  (interactive)
+  (browse-url "https://github.com/vermiculus/magithub/issues/new"))
+
+(defun magithub--meta-help ()
+  "Opens Magithub help."
+  (interactive)
+  (browse-url "https://gitter.im/vermiculus/magithub"))
 
 (defun magithub-error (err-message tag &optional trace)
   "Report a Magithub error."
