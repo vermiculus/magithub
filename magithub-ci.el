@@ -33,7 +33,8 @@
 
 (defun magithub-maybe-insert-ci-status-header ()
   "If this is a GitHub repository, insert the CI status header."
-  (when (magithub-github-repository-p)
+  (when (and (magithub-github-repository-p)
+             (executable-find magithub-hub-executable))
     (magithub-insert-ci-status-header)))
 
 (defun magithub-ci-status ()
@@ -73,8 +74,6 @@
                        "Consider submitting an issue to github/hub.")))
         'internal-error))))
 
-(magithub--command-output "ci-status")
-
 (defun magithub-ci-status--last-commit ()
   "Find the commit considered to have the current CI status.
 Right now, this finds the most recent commit without
@@ -102,12 +101,12 @@ See the following resources:
 (defvar magithub-ci-status-alist
   '((no-status . "None")
     (error . "Error")
-    (internal-error . magithub--hub-error-string)
+    (internal-error . magithub-ci--hub-error-string)
     (failure . "Failure")
     (pending . "Pending")
     (success . "Success")))
 
-(defun magithub--hub-error-string ()
+(defun magithub-ci--hub-error-string ()
   "Internal error string."
   (format "Internal error!\n%s" magithub-hub-error))
 
@@ -186,7 +185,9 @@ Sets up magithub.ci.url if necessary."
   (interactive)
   (if (memq #'magithub-maybe-insert-ci-status-header magit-status-headers-hook)
       (remove-hook 'magit-status-headers-hook #'magithub-maybe-insert-ci-status-header)
-    (add-hook 'magit-status-headers-hook #'magithub-maybe-insert-ci-status-header t))
+    (if (executable-find magithub-hub-executable)
+        (add-hook 'magit-status-headers-hook #'magithub-maybe-insert-ci-status-header t)
+      (message "Magithub: (magithub-toggle-ci-status-header) `hub' isn't installed, so I can't insert the CI header")))
   (if (derived-mode-p major-mode 'magit-status-mode)
       (magit-refresh)))
 

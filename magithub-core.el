@@ -101,8 +101,7 @@ Ensure GIT_EDITOR is set up appropriately."
 (defun magithub--command-output (command &optional args)
   "Run COMMAND synchronously using `magithub-hub-executable'
 and returns its output as a list of lines."
-  (with-timeout (5 (error "Took too long!  %s%S" command args))
-    (magithub-with-hub (magit-git-lines command args))))
+  (magithub--hub-command #'magit-git-lines command args))
 
 (defun magithub--command-quick (command &optional args)
   "Quickly execute COMMAND with ARGS."
