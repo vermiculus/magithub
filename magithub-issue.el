@@ -103,17 +103,21 @@ Returns a plist with the following properties:
                         'pull-request 'issue)
               :title title
               :url url)
-      (error "There was an error parsing an issue string: %S" s))))
+      (magithub-error
+       "failed to parse issue"
+       "There was an error parsing issues."))))
 
 (defun magithub-issue-list ()
   "Return a list of issues for the current repository."
   (magithub-cache :issues
     '(with-temp-message "Retrieving issue list..."
-       (sort
-        (mapcar #'magithub-issue--process-line
+       (magithub-issue-list--internal))))
+
+(defun magithub-issue-list--internal ()
+  (sort (mapcar #'magithub-issue--process-line
                 (magithub--command-output "issue"))
         (lambda (a b) (< (plist-get a :number)
-                         (plist-get b :number)))))))
+                         (plist-get b :number)))))
 
 (defun magithub-issue--insert (issue)
   "Insert an `issue' as a Magit section into the buffer."
@@ -139,21 +143,30 @@ If `issue' is nil, open the repository's issues page."
        (plist-get issue :url)
      (car (magithub--command-output "browse" '("--url-only" "--" "issues"))))))
 
+(defun magithub-issue-refresh ()
+  (interactive)
+  (magithub-cache-clear :issues)
+  (when (derived-mode-p major-mode 'magit-status-mode)
+    (magit-refresh)))
+
 (defvar magit-magithub-issue-section-map
   (let ((map (make-sparse-keymap)))
     (define-key map [remap magit-visit-thing] #'magithub-issue-browse)
+    (define-key map [remap magit-refresh] #'magithub-issue-refresh)
     map)
   "Keymap for `magithub-issue' sections.")
 
 (defvar magit-magithub-issue-list-section-map
   (let ((map (make-sparse-keymap)))
     (define-key map [remap magit-visit-thing] #'magithub-issue-browse)
+    (define-key map [remap magit-refresh] #'magithub-issue-refresh)
     map)
   "Keymap for `magithub-issue-list' sections.")
 
 (defun magithub-issue--insert-section ()
   "Insert GitHub issues if appropriate."
-  (when (magithub-github-repository-p)
+  (when (and (magithub-github-repository-p)
+             (executable-find magithub-hub-executable))
     (let* ((issues (magithub-issue-list)))
       (magit-insert-section (magithub-issue-list)
         (magit-insert-heading "Issues and Pull Requests")

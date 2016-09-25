@@ -33,6 +33,13 @@
         (s-prefix? "https://github.com/" url)
         (s-prefix? "git://github.com/" url))))
 
+(defun magithub--api-available-p ()
+  "Non-nil if the API is available."
+  (let ((magit-git-executable "ping")
+        (magit-pre-call-git-hook nil)
+        (magit-git-global-arguments nil))
+    (= 0 (magit-git-exit-code "-c 1" "api.github.com"))))
+
 (defun magithub--completing-read-multiple (prompt collection)
   "Using PROMPT, get a list of elements in COLLECTION.
 This function continues until all candidates have been entered or
@@ -63,6 +70,9 @@ allowed."
 (defvar magithub-debug-mode nil
   "When non-nil, echo hub commands before they're executed.")
 
+(defvar magithub-hub-error nil
+  "When non-nil, this is a message for when hub fails.")
+
 (defmacro magithub-with-hub (&rest body)
   `(let ((magit-git-executable magithub-hub-executable)
          (magit-pre-call-git-hook nil)
@@ -76,7 +86,8 @@ allowed."
     (user-error "Hub hasn't been initialized yet; aborting"))
   (when magithub-debug-mode
     (message "Calling hub with args: %S %S" command args))
-  (magithub-with-hub (funcall magit-function command args)))
+  (with-timeout (5 (error "Took too long!  %s%S" command args))
+    (magithub-with-hub (funcall magit-function command args))))
 
 (defun magithub--command (command &optional args)
   "Run COMMAND synchronously using `magithub-hub-executable'."
@@ -90,11 +101,49 @@ Ensure GIT_EDITOR is set up appropriately."
 (defun magithub--command-output (command &optional args)
   "Run COMMAND synchronously using `magithub-hub-executable'
 and returns its output as a list of lines."
-  (magithub-with-hub (magit-git-lines command args)))
+  (magithub--hub-command #'magit-git-lines command args))
 
 (defun magithub--command-quick (command &optional args)
   "Quickly execute COMMAND with ARGS."
   (ignore (magithub--command-output command args)))
+
+(defun magithub--meta-new-issue ()
+  "Open a new Magithub issue.
+See /.github/ISSUE_TEMPLATE.md in this repository."
+  (interactive)
+  (browse-url "https://github.com/vermiculus/magithub/issues/new"))
+
+(defun magithub--meta-help ()
+  "Opens Magithub help."
+  (interactive)
+  (browse-url "https://gitter.im/vermiculus/magithub"))
+
+(defun magithub-error (err-message tag &optional trace)
+  "Report a Magithub error."
+  (setq trace (or trace (with-output-to-string (backtrace))))
+  (when (y-or-n-p (concat tag "  Report?  (A bug report will be placed in your clipboard.)"))
+    (with-current-buffer-window
+     (get-buffer-create "*magithub issue*")
+     #'display-buffer-pop-up-window nil
+     (when (fboundp 'markdown-mode) (markdown-mode))
+     (insert
+      (kill-new
+       (format
+        "## Automated error report
+
+### Description
+
+%s
+
+### Backtrace
+
+```
+%s```
+"
+        (read-string "Briefly describe what you were doing: ")
+        trace))))
+    (magithub--meta-new-issue))
+  (error err-message))
 
 (provide 'magithub-core)
 ;;; magithub-core.el ends here

@@ -33,10 +33,11 @@
 
 (defun magithub-maybe-insert-ci-status-header ()
   "If this is a GitHub repository, insert the CI status header."
-  (when (magithub-github-repository-p)
+  (when (and (magithub-github-repository-p)
+             (executable-find magithub-hub-executable))
     (magithub-insert-ci-status-header)))
 
-(defun magithub-ci-status (&optional ignore-ci-skips)
+(defun magithub-ci-status ()
   "One of 'success, 'error, 'failure, 'pending, or 'no-status."
   (let ((same-commit
          (string-equal (magit-rev-parse "HEAD")
@@ -46,7 +47,7 @@
     (if (eq (magithub-cache-value :ci-status) 'success)
         'success
       (magithub-cache :ci-status
-        `(magithub-ci-status--internal ,ignore-ci-skips)))))
+        '(magithub-ci-status--internal)))))
 
 (defun magithub-ci-status-current-commit (&optional new-value)
   "The commit our cached value corresponds to."
@@ -58,13 +59,20 @@
   "One of 'success, 'error, 'failure, 'pending, or 'no-status."
   (with-temp-message "Updating CI status..."
     (let* ((last-commit (when ignore-ci-skips (magithub-ci-status--last-commit)))
-           (output (car (magithub--command-output "ci-status" last-commit)))
-           (output (replace-regexp-in-string "\s" "-" output))
-           (status (intern output)))
-      (if (and (not ignore-ci-skips) (eq status 'no-status))
-          (magithub-ci-status--internal t)
-        (magithub-ci-status-current-commit (magit-rev-parse "HEAD"))
-        status))))
+           (output (car (magithub--command-output "ci-status" last-commit))))
+      (if output
+          (let* ((output (replace-regexp-in-string "\s" "-" output))
+                 (status (intern output)))
+            (if (and (not ignore-ci-skips) (eq status 'no-status))
+                (magithub-ci-status--internal t)
+              (magithub-ci-status-current-commit (magit-rev-parse "HEAD"))
+              status))
+        (beep)
+        (setq magithub-hub-error
+              (message
+               (concat "Hub didn't have any output for \"ci-status\"!\n"
+                       "Consider submitting an issue to github/hub.")))
+        'internal-error))))
 
 (defun magithub-ci-status--last-commit ()
   "Find the commit considered to have the current CI status.
@@ -93,9 +101,14 @@ See the following resources:
 (defvar magithub-ci-status-alist
   '((no-status . "None")
     (error . "Error")
+    (internal-error . magithub-ci--hub-error-string)
     (failure . "Failure")
     (pending . "Pending")
     (success . "Success")))
+
+(defun magithub-ci--hub-error-string ()
+  "Internal error string."
+  (format "Internal error!\n%s" magithub-hub-error))
 
 (defface magithub-ci-no-status
   '((((class color)) :inherit magit-dimmed))
@@ -156,11 +169,15 @@ Sets up magithub.ci.url if necessary."
 (defun magithub-insert-ci-status-header ()
   (let* ((status (magithub-ci-status))
          (face   (intern (format "magithub-ci-%s"
-                                 (symbol-name status)))))
+                                 (symbol-name status))))
+         (status-val (cdr (assq status magithub-ci-status-alist))))
     (magit-insert-section (magithub-ci-status)
       (insert (format "%-10s" "CI: "))
       (insert (propertize
-               (cdr (assq status magithub-ci-status-alist))
+               (cond
+                ((stringp status-val) status-val)
+                ((functionp status-val) (funcall status-val))
+                (t (format "%S" status-val)))
                'face (if (facep face) face 'magithub-ci-unknown)))
       (insert ?\n))))
 
@@ -168,7 +185,9 @@ Sets up magithub.ci.url if necessary."
   (interactive)
   (if (memq #'magithub-maybe-insert-ci-status-header magit-status-headers-hook)
       (remove-hook 'magit-status-headers-hook #'magithub-maybe-insert-ci-status-header)
-    (add-hook 'magit-status-headers-hook #'magithub-maybe-insert-ci-status-header t))
+    (if (executable-find magithub-hub-executable)
+        (add-hook 'magit-status-headers-hook #'magithub-maybe-insert-ci-status-header t)
+      (message "Magithub: (magithub-toggle-ci-status-header) `hub' isn't installed, so I can't insert the CI header")))
   (if (derived-mode-p major-mode 'magit-status-mode)
       (magit-refresh)))
 
