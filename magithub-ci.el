@@ -188,8 +188,9 @@ Sets up magithub.ci.url if necessary."
     (if (executable-find magithub-hub-executable)
         (add-hook 'magit-status-headers-hook #'magithub-maybe-insert-ci-status-header t)
       (message "Magithub: (magithub-toggle-ci-status-header) `hub' isn't installed, so I can't insert the CI header")))
-  (if (derived-mode-p major-mode 'magit-status-mode)
-      (magit-refresh)))
+  (when (and (derived-mode-p major-mode 'magit-status-mode)
+             (magit-toplevel))
+    (magit-refresh)))
 
 (magithub-toggle-ci-status-header)
 
