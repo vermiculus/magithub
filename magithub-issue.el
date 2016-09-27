@@ -83,7 +83,6 @@ Returns a plist with the following properties:
   (let (number title url)
     (if (ignore-errors
           (with-temp-buffer
-            (display-buffer (current-buffer))
             (insert s)
             (goto-char 0)
             (search-forward "]")
