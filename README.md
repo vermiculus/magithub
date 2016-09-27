@@ -28,12 +28,11 @@ Happy hacking!
 The package can be installed from MELPA.  Otherwise, simply place
 `magithub.el` in your `load-path` and `(require 'magithub)`.
 
-If you use [use-package][gh-use-package], you should instead alter
-your `magit` form to `(use-package magithub)`:
+If you use [use-package][gh-use-package], you should instead use:
 
 ```elisp
-(use-package magit
-  :config (use-package magithub))
+(use-package magithub
+  :after magit)
 ```
 
 For now, Magithub requires the `hub` utility to work -- before trying
