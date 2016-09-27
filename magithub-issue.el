@@ -145,7 +145,7 @@ If `issue' is nil, open the repository's issues page."
 (defun magithub-issue-refresh ()
   (interactive)
   (magithub-cache-clear :issues)
-  (when (derived-mode-p major-mode 'magit-status-mode)
+  (when (derived-mode-p 'magit-status-mode)
     (magit-refresh)))
 
 (defvar magit-magithub-issue-section-map

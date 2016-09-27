@@ -163,7 +163,7 @@ Sets up magithub.ci.url if necessary."
   "Invalidate the CI cache and refresh the buffer."
   (interactive)
   (magithub-cache-clear :ci-status)
-  (when (derived-mode-p major-mode 'magit-status-mode)
+  (when (derived-mode-p 'magit-status-mode)
     (magit-refresh)))
 
 (defun magithub-insert-ci-status-header ()
@@ -188,8 +188,7 @@ Sets up magithub.ci.url if necessary."
     (if (executable-find magithub-hub-executable)
         (add-hook 'magit-status-headers-hook #'magithub-maybe-insert-ci-status-header t)
       (message "Magithub: (magithub-toggle-ci-status-header) `hub' isn't installed, so I can't insert the CI header")))
-  (when (and (derived-mode-p major-mode 'magit-status-mode)
-             (magit-toplevel))
+  (when (derived-mode-p 'magit-status-mode)
     (magit-refresh)))
 
 (magithub-toggle-ci-status-header)
