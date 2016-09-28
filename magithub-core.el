@@ -118,6 +118,37 @@ See /.github/ISSUE_TEMPLATE.md in this repository."
   (interactive)
   (browse-url "https://gitter.im/vermiculus/magithub"))
 
+(defun magithub-enable ()
+  "Enable Magithub for this repository."
+  (interactive)
+  (magit-set "yes" "magithub" "enabled")
+  (when (derived-mode-p 'magit-status-mode)
+    (magit-refresh)))
+
+(defun magithub-disable ()
+  "Disable Magithub for this repository."
+  (interactive)
+  (magit-set "no" "magithub" "enabled")
+  (when (derived-mode-p 'magit-status-mode)
+    (magit-refresh)))
+
+(defun magithub-enabled-p ()
+  "Returns non-nil when Magithub is enabled for this repository."
+  (when (member (magit-get "magithub" "enabled") '("yes" nil)) t))
+
+(defun magithub-enabled-toggle ()
+  "Toggle Magithub"
+  (interactive)
+  (if (magithub-enabled-p)
+      (magithub-disable)
+    (magithub-enable)))
+
+(defun magithub-usable-p ()
+  "Non-nil if Magithub should do its thing."
+  (and (executable-find magithub-hub-executable)
+       (magithub-enabled-p)
+       (magithub-github-repository-p)))
+
 (defun magithub-error (err-message tag &optional trace)
   "Report a Magithub error."
   (setq trace (or trace (with-output-to-string (backtrace))))

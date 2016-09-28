@@ -164,11 +164,10 @@ If `issue' is nil, open the repository's issues page."
 
 (defun magithub-issue--insert-section ()
   "Insert GitHub issues if appropriate."
-  (when (and (magithub-github-repository-p)
-             (executable-find magithub-hub-executable))
+  (when (magithub-usable-p)
     (let* ((issues (magithub-issue-list)))
       (magit-insert-section (magithub-issue-list)
-        (magit-insert-heading "Issues and Pull Requests")
+        (magit-insert-heading "Issues and Pull Requests:")
         (if issues (mapc #'magithub-issue--insert issues)
           (insert "  No issues.\n"))))))
 

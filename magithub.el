@@ -65,6 +65,7 @@
              (?i "Issues" magithub-issues-popup)
              (?p "Submit a pull request" magithub-pull-request-popup)
              "Meta"
+             (?` "Toggle Magithub-Status integration" magithub-enabled-toggle)
              (?g "Refresh all GitHub data" magithub-refresh)
              (?& "Request a feature or report a bug" magithub--meta-new-issue)
              (?h "Ask for help on Gitter" magithub--meta-help)))

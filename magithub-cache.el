@@ -53,14 +53,16 @@ considered outdated.")
     (unless (eq c :no-value)
       (cdr c))))
 
-(defun magithub-cache-clear (cache)
-  "Clear the cache."
-  (remhash cache magithub-cache--cache))
+(defun magithub-cache-clear (&optional cache)
+  "Clear the cache for CACHE.
+If CACHE is nil, the entire cache is cleared."
+  (if cache (remhash cache magithub-cache--cache)
+    (setq magithub-cache--cache (make-hash-table))))
 
 (defun magithub-refresh ()
   "Refresh all GitHub data."
   (interactive)
-  (setq magithub-cache--cache (make-hash-table))
+  (magithub-cache-clear)
   (magit-refresh))
 
 (provide 'magithub-cache)
