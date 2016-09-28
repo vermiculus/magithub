@@ -31,10 +31,34 @@
 (require 'magithub-core)
 (require 'magithub-cache)
 
+(defun magithub-ci-enabled-p ()
+  "Non-nil if CI is enabled for this repository.
+If magithub.ci.enabled is not set, CI is considered to be enabled."
+  (when (member (magit-get "magithub" "ci" "enabled") '(nil "yes")) t))
+(defun magithub-ci-disable ()
+  "Disable CI for this repository."
+  (magit-set "no" "magithub" "ci" "enabled"))
+(defun magithub-ci-enable ()
+  "Enable CI for this repository."
+  (magit-set "yes" "magithub" "ci" "enabled"))
+
 (defun magithub-maybe-insert-ci-status-header ()
   "If this is a GitHub repository, insert the CI status header."
-  (when (magithub-usable-p)
+  (when (and (magithub-ci-enabled-p)
+             (magithub-usable-p))
     (magithub-insert-ci-status-header)))
+
+(defun magithub-ci-toggle ()
+  "Toggle CI integration."
+  (interactive)
+  (if (magithub-ci-enabled-p)
+      (magithub-ci-disable)
+    (magithub-ci-enable))
+  (when (derived-mode-p 'magit-status-mode)
+    (magit-refresh)))
+
+(magit-define-popup-action 'magithub-dispatch-popup
+  ?~ "Toggle CI for this repository" #'magithub-ci-toggle ?`)
 
 (defun magithub-ci-status ()
   "One of 'success, 'error, 'failure, 'pending, or 'no-status."
