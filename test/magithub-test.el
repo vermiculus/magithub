@@ -19,6 +19,7 @@
 (ert-deftest magithub-test-compile-main ()
   (should (byte-compile-file "magithub.el")))
 
+(require 'magithub-cache)
 (ert-deftest magithub-test-cache ()
   (should (equal (magithub-cache-value 1 :test)
                  nil))
@@ -34,9 +35,9 @@
                  '(2 4 6)))
   (should (equal (magithub-cache-value 2 :test-another)
                  nil))
-  (should (equal (magithub-cache 2 :test '(list 'bananas))
-                 '(bananas)))
-  (should (equal (magithub-cache-value 2 :test)
-                 '(bananas))))
+  (should (equal (magithub-cache 2 :test-another 100)
+                 100))
+  (should (equal (magithub-cache-value 2 :test-another)
+                 100)))
 
 ;;; magithub-test.el ends here

@@ -24,6 +24,8 @@
 
 ;;; Code:
 
+(require 'magithub-core)
+
 (defvar magithub-cache--cache ()
   "An alist of hash tables to use as thr cache.
 Entries are of the form (time-entered . value).")
