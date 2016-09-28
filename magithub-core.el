@@ -33,6 +33,10 @@
         (s-prefix? "https://github.com/" url)
         (s-prefix? "git://github.com/" url))))
 
+(defun magithub-repo-id ()
+  "Returns an identifying value for this repository."
+  (magit-get "remote" "origin" "url"))
+
 (defun magithub--api-available-p ()
   "Non-nil if the API is available."
   (let ((magit-git-executable "ping")

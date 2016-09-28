@@ -66,10 +66,11 @@ If magithub.ci.enabled is not set, CI is considered to be enabled."
          (string-equal (magit-rev-parse "HEAD")
                        (magithub-ci-status-current-commit))))
     (unless same-commit
-      (magithub-cache-clear :ci-status))
-    (if (eq (magithub-cache-value :ci-status) 'success)
+      (magithub-cache-clear (magithub-repo-id) :ci-status))
+    (if (eq (magithub-cache-value (magithub-repo-id) :ci-status)
+            'success)
         'success
-      (magithub-cache :ci-status
+      (magithub-cache (magithub-repo-id) :ci-status
         '(magithub-ci-status--internal)))))
 
 (defun magithub-ci-status-current-commit (&optional new-value)
@@ -186,7 +187,7 @@ Sets up magithub.ci.url if necessary."
 (defun magithub-ci-refresh ()
   "Invalidate the CI cache and refresh the buffer."
   (interactive)
-  (magithub-cache-clear :ci-status)
+  (magithub-cache-clear (magithub-repo-id) :ci-status)
   (when (derived-mode-p 'magit-status-mode)
     (magit-refresh)))
 

@@ -108,7 +108,7 @@ Returns a plist with the following properties:
 
 (defun magithub-issue-list ()
   "Return a list of issues for the current repository."
-  (magithub-cache :issues
+  (magithub-cache (magithub-repo-id) :issues
     '(with-temp-message "Retrieving issue list..."
        (magithub-issue-list--internal))))
 
@@ -144,7 +144,7 @@ If `issue' is nil, open the repository's issues page."
 
 (defun magithub-issue-refresh ()
   (interactive)
-  (magithub-cache-clear :issues)
+  (magithub-cache-clear (magithub-repo-id) :issues)
   (when (derived-mode-p 'magit-status-mode)
     (magit-refresh)))
 
