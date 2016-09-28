@@ -167,7 +167,7 @@ If `issue' is nil, open the repository's issues page."
   (when (magithub-usable-p)
     (let* ((issues (magithub-issue-list)))
       (magit-insert-section (magithub-issue-list)
-        (magit-insert-heading "Issues and Pull Requests")
+        (magit-insert-heading "Issues and Pull Requests:")
         (if issues (mapc #'magithub-issue--insert issues)
           (insert "  No issues.\n"))))))
 
