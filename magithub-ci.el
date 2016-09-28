@@ -33,8 +33,7 @@
 
 (defun magithub-maybe-insert-ci-status-header ()
   "If this is a GitHub repository, insert the CI status header."
-  (when (and (magithub-github-repository-p)
-             (executable-find magithub-hub-executable))
+  (when (magithub-usable-p)
     (magithub-insert-ci-status-header)))
 
 (defun magithub-ci-status ()
@@ -71,6 +70,7 @@
         (setq magithub-hub-error
               (message
                (concat "Hub didn't have any output for \"ci-status\"!\n"
+                       "Are you connected to the internet?\n"
                        "Consider submitting an issue to github/hub.")))
         'internal-error))))
 
