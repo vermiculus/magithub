@@ -27,11 +27,10 @@
 (require 'magit)
 
 (defun magithub-github-repository-p ()
-  "Non-nil if \"origin\" points to GitHub."
+  "Non-nil if \"origin\" points to GitHub or a whitelisted domain."
   (let ((url (magit-get "remote" "origin" "url")))
-    (or (s-prefix? "git@github.com:" url)
-        (s-prefix? "https://github.com/" url)
-        (s-prefix? "git://github.com/" url))))
+    (cl-some (lambda (domain) (s-contains? domain url))
+             (cons "github.com" (magit-get-all "hub" "host")))))
 
 (defun magithub-repo-id ()
   "Returns an identifying value for this repository."
