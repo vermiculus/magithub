@@ -178,7 +178,18 @@ If `issue' is nil, open the repository's issues page."
           (insert "  No issues.\n"))))))
 
 ;;; Hook into the status buffer
-(add-hook 'magit-status-sections-hook #'magithub-issue--insert-section t)
+(defun magithub-toggle-issues ()
+  (interactive)
+  (if (memq #'magithub-issue--insert-section magit-status-sections-hook)
+      (remove-hook 'magit-status-sections-hook #'magithub-issue--insert-section)
+    (if (executable-find magithub-hub-executable)
+        (add-hook ' magit-status-sections-hook #'magithub-issue--insert-section t)
+      (message "Magithub: (magithub-toggle-issues) `hub' isn't installed, so I can't insert issues")))
+  (when (derived-mode-p 'magit-status-mode)
+    (magit-refresh))
+  (memq #'magithub-issue--insert-section magit-status-sections-hook))
+
+(magithub-toggle-issues)
 
 (provide 'magithub-issue)
 ;;; magithub-issue.el ends here
