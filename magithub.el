@@ -204,5 +204,33 @@ This function will return nil for matches to
         (magithub-setup-new-issue-buffer)))))
 (add-hook 'find-file-hook #'magithub-check-buffer)
 
+(defun magithub-clone--get-repo ()
+  "Prompt for a user and a repository.
+Returns a list (USER REPOSITORY)."
+  (let ((user (getenv "GITHUB_USER"))
+        (repo-regexp  (rx bos (group (+ (not (any " "))))
+                          "/" (group (+ (not (any " ")))) eos))
+        repo)
+    (while (not (and repo (string-match repo-regexp repo)))
+      (setq repo (read-from-minibuffer
+                  (concat
+                   "Clone GitHub repository "
+                   (if repo "(format is \"user/repo\"; C-g to quit)" "(user/repo)")
+                   ": ")
+                  (when user (concat user "/")))))
+    (list (match-string 1 repo)
+          (match-string 2 repo))))
+
+(defun magithub-clone (user repo)
+  "Clone USER/REPO.
+Banned inside existing GitHub repositories."
+  (interactive (if (magithub-github-repository-p)
+                   (user-error "Already in a GitHub repo")
+                 (magithub-clone--get-repo)))
+  (async-shell-command
+   (format "%s clone %s/%s"
+           magithub-hub-executable
+           user repo)))
+
 (provide 'magithub)
 ;;; magithub.el ends here
