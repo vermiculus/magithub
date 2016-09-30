@@ -123,11 +123,17 @@ Returns a plist with the following properties:
   (when issue
     (magit-insert-section (magithub-issue issue)
       (let ((formats (or magithub-issue-format
-                         (list :number " %3d " :title " %s "))))
+                         (list :number " %3d " :title " %s ")))
+            s)
         (while formats
           (let ((key (car formats)) (fmt (cadr formats)))
-            (insert (format fmt (plist-get issue key))))
-          (setq formats (cddr formats))))
+            (setq s (concat s (format fmt (plist-get issue key)))))
+          (setq formats (cddr formats)))
+        (insert
+         (propertize
+          s 'face
+          (when (eq (plist-get issue :type) 'pull-request)
+            'magit-branch-remote))))
       (insert ?\n))))
 
 (defun magithub-issue-browse (issue)
