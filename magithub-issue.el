@@ -71,7 +71,19 @@ are in DEFAULT are not prompted for again."
     (let* ((default-labels (when default (s-split "," default t))))
       (cl-set-difference (magithub-issue-label-list) default-labels)))))
 
-(defun magithub-issue--process-line (s)
+(defun magithub-issue--sort (issues)
+  "Sort ISSUES by issue number."
+  (sort issues
+        (lambda (a b) (< (plist-get a :number)
+                         (plist-get b :number)))))
+
+(defun magithub-issue--url-type (url)
+  "If URL corresponds to an issue, the symbol `issue'.
+If URL correponds to a pull request, the symbol `pull-request'."
+  (if (string-match-p (rx "/pull/" (+ digit) eos) (second ss))
+      'pull-request 'issue))
+
+(defun magithub-issue--process-line-2.2.8 (s)
   "Process a line S into an issue.
 
 Returns a plist with the following properties:
@@ -98,25 +110,49 @@ Returns a plist with the following properties:
             (setq url (buffer-substring-no-properties (point) (point-max)))
             t))
         (list :number number
-              :type (if (string-match-p (rx "/pull/" (+ digit) eos) url)
-                        'pull-request 'issue)
+              :type (magithub-issue--url-type url)
               :title title
               :url url)
       (magithub-error
        "failed to parse issue"
        "There was an error parsing issues."))))
 
+(defun magithub-issue-list--internal-2.2.8 ()
+  "Backwards compatibility for old versions of hub.
+See `magithub-issue-list--internal'."
+  (magithub-issue--sort
+   (mapcar #'magithub-issue--process-line-2.2.8
+           (magithub--command-output "issue"))))
+
+(defun magithub-issue--process-line (s)
+  "Process a line S into an issue.
+
+Returns a plist with the following properties:
+
+  :number  issue or pull request number
+  :type    either 'pull-request or 'issue
+  :title   the title of the issue or pull request
+  :url     link to issue or pull request"
+  (let ((ss (split-string s ",")))
+    (list
+     :number (string-to-number (first ss))
+     :url (second ss)
+     :title (string-join (cddr ss) ",")
+     :type (magithub-issue--url-type (second ss)))))
+
+(defun magithub-issue-list--internal ()
+  "Return a new list of issues for the current repository."
+  (magithub-issue--sort
+   (mapcar #'magithub-issue--process-line
+           (magithub--command-output "issue" '("--format=%I,%U,%t%n")))))
+
 (defun magithub-issue-list ()
   "Return a list of issues for the current repository."
   (magithub-cache (magithub-repo-id) :issues
     '(with-temp-message "Retrieving issue list..."
-       (magithub-issue-list--internal))))
-
-(defun magithub-issue-list--internal ()
-  (sort (mapcar #'magithub-issue--process-line
-                (magithub--command-output "issue"))
-        (lambda (a b) (< (plist-get a :number)
-                         (plist-get b :number)))))
+       (if (magithub-hub-version-at-least "2.3")
+           (magithub-issue-list--internal)
+         (magithub-issue-list--internal-2.2.8)))))
 
 (defun magithub-issue--insert (issue)
   "Insert an `issue' as a Magit section into the buffer."

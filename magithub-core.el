@@ -111,6 +111,17 @@ and returns its output as a list of lines."
   "Quickly execute COMMAND with ARGS."
   (ignore (magithub--command-output command args)))
 
+(defun magithub-hub-version ()
+  "Return the `hub' version as a string."
+  (-> "--version"
+      magithub--command-output second
+      split-string third
+      (split-string "-") first))
+
+(defun magithub-hub-version-at-least (version-string)
+  "Return t if `hub's version is at least VERSION-STRING."
+  (version<= version-string (magithub-hub-version)))
+
 (defun magithub--meta-new-issue ()
   "Open a new Magithub issue.
 See /.github/ISSUE_TEMPLATE.md in this repository."
@@ -118,7 +129,7 @@ See /.github/ISSUE_TEMPLATE.md in this repository."
   (browse-url "https://github.com/vermiculus/magithub/issues/new"))
 
 (defun magithub--meta-help ()
-  "Opens Magithub help."
+  "Open Magithub help."
   (interactive)
   (browse-url "https://gitter.im/vermiculus/magithub"))
 
