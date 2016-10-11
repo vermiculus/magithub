@@ -31,6 +31,13 @@
 (require 'magithub-core)
 (require 'magithub-cache)
 
+(defconst magithub-ci-status-symbol-alist
+  '(("✔" . success)
+    ("✖" . failure)                     ; also means `error'... gross
+    ("●" . pending))
+  "Because hub 2.3 is silly and does silly things.
+Reference: https://github.com/github/hub/blob/master/commands/ci_status.go#L107")
+
 (defun magithub-ci-enabled-p ()
   "Non-nil if CI is enabled for this repository.
 If magithub.ci.enabled is not set, CI is considered to be enabled."
@@ -79,34 +86,70 @@ If magithub.ci.enabled is not set, CI is considered to be enabled."
     (if new-value (apply #'magit-set new-value keys)
       (apply #'magit-get keys))))
 
+(defun magithub-ci-status--parse-2.2.8 (output)
+  "Backwards compatibility for old versions of hub.
+See `magithub-ci-status--parse'."
+  (let ((matches (rest (s-match (rx bos (group (+ (any alpha space)))
+                                    (? ": " (group (+ (not (any " "))))) eos)
+                                output)))
+        status url)
+    (when matches
+      (when (second matches) (magit-set (second matches) "magithub" "ci" "url"))
+      (list :status (intern (replace-regexp-in-string "\s" "-" (first matches)))
+            :url (second matches)))))
+
 (defun magithub-ci-status--internal (&optional for-commit)
   "One of 'success, 'error, 'failure, 'pending, or 'no-status."
-  (with-temp-message "Updating CI status..."
-    (let* ((current-commit (magit-rev-parse "HEAD"))
-           (last-commit (or for-commit current-commit))
-           (output (car (magithub--command-output "ci-status" `("-v" ,last-commit)))))
-      (if (string-match (rx bos (group (+ (any alpha space)))
-                            (? ": " (group (+ (not (any " "))))) eos)
-                        output)
-          (let (status url)
-            (setq status (intern (replace-regexp-in-string "\s" "-" (match-string 1 output)))
-                  url (match-string 2 output))
-            (when url (magit-set url "magithub" "ci" "url"))
-            (if (and (not for-commit) (eq status 'no-status))
-                (let ((last-commit (magithub-ci-status--last-commit)))
-                  (unless (string-equal current-commit last-commit)
-                    (magithub-ci-status--internal last-commit))
-                  (magithub-ci-status-current-commit current-commit)
-                  status)
-              (magithub-ci-status-current-commit current-commit)
-              status))
-        (beep)
-        (setq magithub-hub-error
-              (message
-               (concat "Hub didn't have any output for \"ci-status\"!\n"
-                       "Are you connected to the internet?\n"
-                       "Consider submitting an issue to github/hub.")))
-        'internal-error))))
+  (let* ((current-commit (magit-rev-parse "HEAD"))
+         (last-commit (or for-commit current-commit))
+         (output (magithub--command-output "ci-status" `("-v" ,last-commit)))
+         (parsed (if (magithub-hub-version-at-least "2.3")
+                     (car (magithub-ci-status--parse output))
+                   (magithub-ci-status--parse-2.2.8 (car output)))))
+    (if parsed
+        (prog1 (plist-get parsed :status)
+          (if (not (or for-commit (plist-get parsed :status)))
+              (let ((last-commit (magithub-ci-status--last-commit)))
+                (unless (string-equal current-commit last-commit)
+                  (magithub-ci-status--internal last-commit))
+                (magithub-ci-status-current-commit current-commit)
+                status)
+            (magithub-ci-status-current-commit current-commit)))
+      (beep)
+      (setq magithub-hub-error
+            (message
+             (concat "Hub didn't have any recognizable output for \"ci-status\"!\n"
+                     "Are you connected to the internet?\n"
+                     "Consider submitting an issue to github/hub.")))
+      'internal-error)))
+
+(defconst magithub-ci-status-regex
+  (rx bos
+      (group any) (* any) "\t"
+      (group (* any)) "\t"
+      (? (group (* any))) eos))
+
+(defun magithub-ci-status--parse (output)
+  (let ((statuses (mapcar #'magithub-ci-status--parse-line output))
+        (get-status (lambda (status) (lambda (s) (eq (plist-get s :status) status)))))
+    (cons
+     (list :check 'overall
+           :status
+           (cond
+            ((-all? (funcall get-status 'success) statuses) 'success)
+            ((-some? (funcall get-status 'error) statuses) 'error)
+            ((-some? (funcall get-status 'failure) statuses) 'failure)))
+     statuses)))
+
+(defun magithub-ci-status--parse-line (line)
+  (let ((status (rest (s-match magithub-ci-status-regex line))))
+    (if status
+        (list :status (cdr (assoc (first status) magithub-ci-status-symbol-alist))
+              :url (third status)
+              :check (second status))
+      (if (string= line "no-status")
+          'no-status
+        (if (string= line "") 'no-output)))))
 
 (defun magithub-ci-status--last-commit ()
   "Find the commit considered to have the current CI status.
