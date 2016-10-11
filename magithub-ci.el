@@ -38,6 +38,15 @@
   "Because hub 2.3 is silly and does silly things.
 Reference: https://github.com/github/hub/blob/master/commands/ci_status.go#L107")
 
+(defconst magithub-ci-status-regex
+  (rx bos
+      (group any) (* any) "\t"
+      (group (* any)) "\t"
+      (? (group (* any))) eos))
+
+(defvar magithub-ci-urls nil
+  "An alist mapping of repositories to CI urls.")
+
 (defun magithub-ci-enabled-p ()
   "Non-nil if CI is enabled for this repository.
 If magithub.ci.enabled is not set, CI is considered to be enabled."
@@ -123,15 +132,6 @@ See `magithub-ci-status--parse'."
                      "Are you connected to the internet?\n"
                      "Consider submitting an issue to github/hub.")))
       'internal-error)))
-
-(defconst magithub-ci-status-regex
-  (rx bos
-      (group any) (* any) "\t"
-      (group (* any)) "\t"
-      (? (group (* any))) eos))
-
-(defvar magithub-ci-urls nil
-  "An alist mapping of repositories to CI urls.")
 
 (defun magithub-ci-status--parse (output)
   "Parse a string OUTPUT into a list of statuses.
