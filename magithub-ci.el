@@ -104,13 +104,13 @@ See also `magithub-repo-id'."
 (defun magithub-ci-status--parse-2.2.8 (output)
   "Backwards compatibility for old versions of hub.
 See `magithub-ci-status--parse'."
-  (let ((matches (rest (s-match (rx bos (group (+ (any alpha space)))
-                                    (? ": " (group (+ (not (any " "))))) eos)
-                                output)))
+  (let ((matches (cdr (s-match (rx bos (group (+ (any alpha space)))
+                                   (? ": " (group (+ (not (any " "))))) eos)
+                               output)))
         status)
     (when matches
-      (setq status (list :status (intern (replace-regexp-in-string "\s" "-" (first matches)))
-                         :url (second matches)))
+      (setq status (list :status (intern (replace-regexp-in-string "\s" "-" (car matches)))
+                         :url (cadr matches)))
       (prog1 status
         (magithub-ci-update-urls (list status))))))
 
@@ -156,11 +156,11 @@ The first status will be an `overall' status."
 
 (defun magithub-ci-status--parse-line (line)
   "Parse a single LINE of status into a status plist."
-  (let ((status (rest (s-match magithub-ci-status-regex line))))
+  (let ((status (cdr (s-match magithub-ci-status-regex line))))
     (if status
-        (list :status (cdr (assoc (first status) magithub-ci-status-symbol-alist))
-              :url (third status)
-              :check (second status))
+        (list :status (cdr (assoc (car status) magithub-ci-status-symbol-alist))
+              :url (car (cddr status))
+              :check (cadr status))
       (if (string= line "no-status")
           'no-status
         (if (string= line "") 'no-output)))))

@@ -135,10 +135,10 @@ Returns a plist with the following properties:
   :url     link to issue or pull request"
   (let ((ss (split-string s ",")))
     (list
-     :number (string-to-number (first ss))
-     :url (second ss)
-     :title (string-join (cddr ss) ",")
-     :type (magithub-issue--url-type (second ss)))))
+     :number (string-to-number (car ss))
+     :url (cadr ss)
+     :title (s-join (cddr ss) ",")
+     :type (magithub-issue--url-type (cadr ss)))))
 
 (defun magithub-issue-list--internal ()
   "Return a new list of issues for the current repository."

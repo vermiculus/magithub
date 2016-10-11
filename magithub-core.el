@@ -25,13 +25,14 @@
 ;;; Code:
 
 (require 'magit)
+(require 'dash)
 
 (defun magithub-github-repository-p ()
   "Non-nil if \"origin\" points to GitHub or a whitelisted domain."
   (let ((url (magit-get "remote" "origin" "url")))
     (when url
-      (cl-some (lambda (domain) (s-contains? domain url))
-               (cons "github.com" (magit-get-all "hub" "host"))))))
+      (-some? (lambda (domain) (s-contains? domain url))
+              (cons "github.com" (magit-get-all "hub" "host"))))))
 
 (defun magithub-repo-id ()
   "Returns an identifying value for this repository."
@@ -114,9 +115,9 @@ and returns its output as a list of lines."
 (defun magithub-hub-version ()
   "Return the `hub' version as a string."
   (-> "--version"
-      magithub--command-output second
-      split-string third
-      (split-string "-") first))
+      magithub--command-output cadr
+      split-string cddr car
+      (split-string "-") car))
 
 (defun magithub-hub-version-at-least (version-string)
   "Return t if `hub's version is at least VERSION-STRING."
