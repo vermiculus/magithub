@@ -136,6 +136,7 @@ See `magithub-ci-status--parse'."
            :status
            (cond
             ((-all? (funcall get-status 'success) statuses) 'success)
+            ((-some? (funcall get-status 'pending) statuses) 'pending)
             ((-some? (funcall get-status 'error) statuses) 'error)
             ((-some? (funcall get-status 'failure) statuses) 'failure)))
      statuses)))
