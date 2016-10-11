@@ -95,19 +95,24 @@ If magithub.ci.enabled is not set, CI is considered to be enabled."
     (if new-value (apply #'magit-set new-value keys)
       (apply #'magit-get keys))))
 
+(defun magithub-ci-update-urls (statuses)
+  "Updates `magithub-ci-urls' according to STATUSES.
+See also `magithub-repo-id'."
+  (setcdr (assoc (magithub-repo-id) magithub-ci-urls)
+          (mapcar (lambda (s) (plist-get s :url)) statuses)))
+
 (defun magithub-ci-status--parse-2.2.8 (output)
   "Backwards compatibility for old versions of hub.
 See `magithub-ci-status--parse'."
   (let ((matches (rest (s-match (rx bos (group (+ (any alpha space)))
                                     (? ": " (group (+ (not (any " "))))) eos)
                                 output)))
-        status url)
+        status)
     (when matches
-      (add-to-list 'magithub-ci-urls
-                   (cons (magithub-repo-id)
-                         (list (second matches))))
-      (list :status (intern (replace-regexp-in-string "\s" "-" (first matches)))
-            :url (second matches)))))
+      (setq status (list :status (intern (replace-regexp-in-string "\s" "-" (first matches)))
+                         :url (second matches)))
+      (prog1 status
+        (magithub-ci-update-urls (list status))))))
 
 (defun magithub-ci-status--internal (&optional for-commit)
   "One of 'success, 'error, 'failure, 'pending, or 'no-status."
@@ -138,9 +143,7 @@ See `magithub-ci-status--parse'."
 The first status will be an `overall' status."
   (let ((statuses (mapcar #'magithub-ci-status--parse-line output))
         (get-status (lambda (status) (lambda (s) (eq (plist-get s :status) status)))))
-    (add-to-list 'magithub-ci-urls
-                 (cons (magithub-repo-id)
-                       (mapcar (lambda (s) (plist-get s :url)) statuses)))
+    (magithub-ci-update-urls statuses)
     (cons
      (list :check 'overall
            :status
