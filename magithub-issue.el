@@ -137,7 +137,7 @@ Returns a plist with the following properties:
     (list
      :number (string-to-number (car ss))
      :url (cadr ss)
-     :title (s-join (cddr ss) ",")
+     :title (s-join "," (cddr ss))
      :type (magithub-issue--url-type (cadr ss)))))
 
 (defun magithub-issue-list--internal ()
