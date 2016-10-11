@@ -107,13 +107,12 @@ See `magithub-ci-status--parse'."
                      (car (magithub-ci-status--parse output))
                    (magithub-ci-status--parse-2.2.8 (car output)))))
     (if parsed
-        (prog1 (plist-get parsed :status)
+        (prog1 (or (plist-get parsed :status) 'no-status)
           (if (not (or for-commit (plist-get parsed :status)))
               (let ((last-commit (magithub-ci-status--last-commit)))
                 (unless (string-equal current-commit last-commit)
                   (magithub-ci-status--internal last-commit))
-                (magithub-ci-status-current-commit current-commit)
-                status)
+                (magithub-ci-status-current-commit current-commit))
             (magithub-ci-status-current-commit current-commit)))
       (beep)
       (setq magithub-hub-error
