@@ -128,9 +128,17 @@ See `magithub-ci-status--parse'."
       (group (* any)) "\t"
       (? (group (* any))) eos))
 
+(defvar magithub-ci-urls nil
+  "An alist mapping of repositories to CI urls.")
+
 (defun magithub-ci-status--parse (output)
+  "Parse a string OUTPUT into a list of statuses.
+The first status will be an `overall' status."
   (let ((statuses (mapcar #'magithub-ci-status--parse-line output))
         (get-status (lambda (status) (lambda (s) (eq (plist-get s :status) status)))))
+    (add-to-list 'magithub-ci-urls
+                 (cons (magithub-repo-id)
+                       (mapcar (lambda (s) (plist-get s :url)) statuses)))
     (cons
      (list :check 'overall
            :status
@@ -142,6 +150,7 @@ See `magithub-ci-status--parse'."
      statuses)))
 
 (defun magithub-ci-status--parse-line (line)
+  "Parse a single LINE of status into a status plist."
   (let ((status (rest (s-match magithub-ci-status-regex line))))
     (if status
         (list :status (cdr (assoc (first status) magithub-ci-status-symbol-alist))
@@ -221,12 +230,16 @@ See the following resources:
   "Browse the CI.
 Sets up magithub.ci.url if necessary."
   (interactive)
-  (let ((var-value (magit-get "magithub" "ci" "url")))
+  (let ((var-value (magit-get "magithub" "ci" "url")) urls)
     (unless var-value
+      (setq urls (cdr (assoc (magithub-repo-id) magithub-ci-urls)))
       (magit-set
-       (setq var-value (read-from-minibuffer "I don't know the CI URL yet -- what is it?  I'll remember: ")
+       (setq var-value (if (= 1 (length urls)) (car urls)
+                         (when urls (completing-read "CI Dashboard URL: " urls)))
              var-value (if (string-equal "" var-value) nil var-value))
        "magithub" "ci" "url"))
+    (unless var-value
+      (user-error "No CI URL detected"))
     (browse-url var-value)))
 
 (defvar magit-magithub-ci-status-section-map
