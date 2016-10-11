@@ -94,7 +94,9 @@ See `magithub-ci-status--parse'."
                                 output)))
         status url)
     (when matches
-      (when (second matches) (magit-set (second matches) "magithub" "ci" "url"))
+      (add-to-list 'magithub-ci-urls
+                   (cons (magithub-repo-id)
+                         (list (second matches))))
       (list :status (intern (replace-regexp-in-string "\s" "-" (first matches)))
             :url (second matches)))))
 
@@ -230,17 +232,12 @@ See the following resources:
   "Browse the CI.
 Sets up magithub.ci.url if necessary."
   (interactive)
-  (let ((var-value (magit-get "magithub" "ci" "url")) urls)
-    (unless var-value
-      (setq urls (cdr (assoc (magithub-repo-id) magithub-ci-urls)))
-      (magit-set
-       (setq var-value (if (= 1 (length urls)) (car urls)
-                         (when urls (completing-read "CI Dashboard URL: " urls)))
-             var-value (if (string-equal "" var-value) nil var-value))
-       "magithub" "ci" "url"))
-    (unless var-value
+  (let* ((urls (cdr (assoc (magithub-repo-id) magithub-ci-urls)))
+         (target-url (if (= 1 (length urls)) (car urls)
+                       (when urls (completing-read "CI Dashboard URL: " urls)))))
+    (when (or (null target-url) (string= "" target-url))
       (user-error "No CI URL detected"))
-    (browse-url var-value)))
+    (browse-url target-url)))
 
 (defvar magit-magithub-ci-status-section-map
   (let ((map (make-sparse-keymap)))
