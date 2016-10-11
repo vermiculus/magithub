@@ -80,7 +80,7 @@ are in DEFAULT are not prompted for again."
 (defun magithub-issue--url-type (url)
   "If URL corresponds to an issue, the symbol `issue'.
 If URL correponds to a pull request, the symbol `pull-request'."
-  (if (string-match-p (rx "/pull/" (+ digit) eos) (second ss))
+  (if (string-match-p (rx "/pull/" (+ digit) eos) url)
       'pull-request 'issue))
 
 (defun magithub-issue--process-line-2.2.8 (s)
