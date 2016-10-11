@@ -98,8 +98,12 @@ If magithub.ci.enabled is not set, CI is considered to be enabled."
 (defun magithub-ci-update-urls (statuses)
   "Updates `magithub-ci-urls' according to STATUSES.
 See also `magithub-repo-id'."
-  (setcdr (assoc (magithub-repo-id) magithub-ci-urls)
-          (mapcar (lambda (s) (plist-get s :url)) statuses)))
+  (let* ((id (magithub-repo-id))
+         (repo-urls (assoc id magithub-ci-urls))
+         (urls (mapcar (lambda (s) (plist-get s :url)) statuses)))
+    (if repo-urls (setcdr repo-urls urls)
+      (add-to-list 'magithub-ci-urls (cons id urls))
+      urls)))
 
 (defun magithub-ci-status--parse-2.2.8 (output)
   "Backwards compatibility for old versions of hub.
