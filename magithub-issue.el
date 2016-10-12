@@ -211,7 +211,7 @@ If `issue' is nil, open the repository's issues page."
       (magit-insert-section (magithub-issue-list)
         (magit-insert-heading "Issues and Pull Requests:")
         (if issues (mapc #'magithub-issue--insert issues)
-          (insert "  No issues.\n"))))))
+          (magit-cancel-section))))))
 
 ;;; Hook into the status buffer
 (defun magithub-toggle-issues ()
