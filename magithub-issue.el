@@ -200,12 +200,19 @@ If `issue' is nil, open the repository's issues page."
     map)
   "Keymap for `magithub-issue-list' sections.")
 
+(defvar magit-magithub-pull-request-list-section-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [remap magit-visit-thing] #'magithub-issue-browse)
+    (define-key map [remap magit-refresh] #'magithub-issue-refresh)
+    map)
+  "Keymap for `magithub-pull-request-list' sections.")
+
 (defun magithub-issue--insert-issue-section ()
   "Insert GitHub issues if appropriate."
   (when (magithub-usable-p)
     (let ((issues (-filter (lambda (i) (eq (plist-get i :type) 'issue))
                            (magithub-issue-list))))
-      (magit-insert-section issue-section (magithub-issue)
+      (magit-insert-section (magithub-issue-list)
         (magit-insert-heading "Issues:")
         (if issues (mapc #'magithub-issue--insert issues)
           (magit-cancel-section))
@@ -216,7 +223,7 @@ If `issue' is nil, open the repository's issues page."
   (when (magithub-usable-p)
     (let ((pull-requests (-filter (lambda (i) (eq (plist-get i :type) 'pull-request))
                                   (magithub-issue-list))))
-      (magit-insert-section pull-request-section (magithub-pull-request)
+      (magit-insert-section (magithub-pull-request-list)
         (magit-insert-heading "Pull Requests:")
         (if pull-requests (mapc #'magithub-issue--insert pull-requests)
           (magit-cancel-section))
