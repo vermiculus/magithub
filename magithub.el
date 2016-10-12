@@ -48,6 +48,7 @@
 (require 'with-editor)
 (require 'cl-lib)
 (require 's)
+(require 'dash)
 
 (require 'magithub-core)
 (require 'magithub-issue)
@@ -197,11 +198,10 @@ This function will return nil for matches to
 
 (defun magithub-check-buffer ()
   "If this is a buffer created by hub, perform setup."
-  (let ((type (magithub--edit-file-type buffer-file-name)))
-    (when type
-      (magithub-setup-edit-buffer)
-      (when (eq type 'issue)
-        (magithub-setup-new-issue-buffer)))))
+  (--when-let (magithub--edit-file-type buffer-file-name)
+    (magithub-setup-edit-buffer)
+    (when (eq it 'issue)
+      (magithub-setup-new-issue-buffer))))
 (add-hook 'find-file-hook #'magithub-check-buffer)
 
 (defun magithub-clone--get-repo ()

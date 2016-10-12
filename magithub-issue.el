@@ -26,6 +26,7 @@
 
 (require 'magit)
 (require 'magit-section)
+(require 'dash)
 
 (require 'magithub-core)
 (require 'magithub-cache)
@@ -210,45 +211,28 @@ If `issue' is nil, open the repository's issues page."
 (defun magithub-issue--insert-issue-section ()
   "Insert GitHub issues if appropriate."
   (when (magithub-usable-p)
-    (let ((issues (-filter (lambda (i) (eq (plist-get i :type) 'issue))
-                           (magithub-issue-list))))
+    (--when-let (-filter (lambda (i) (eq (plist-get i :type) 'issue))
+                         (magithub-issue-list))
       (magit-insert-section (magithub-issue-list)
         (magit-insert-heading "Issues:")
-        (if issues (mapc #'magithub-issue--insert issues)
-          (magit-cancel-section))
+        (mapc #'magithub-issue--insert it)
         (insert ?\n)))))
 
 (defun magithub-issue--insert-pr-section ()
   "Insert GitHub pull requests if appropriate."
   (when (magithub-usable-p)
-    (let ((pull-requests (-filter (lambda (i) (eq (plist-get i :type) 'pull-request))
-                                  (magithub-issue-list))))
+    (--when-let (-filter (lambda (i) (eq (plist-get i :type) 'pull-request))
+                         (magithub-issue-list))
       (magit-insert-section (magithub-pull-request-list)
         (magit-insert-heading "Pull Requests:")
-        (if pull-requests (mapc #'magithub-issue--insert pull-requests)
-          (magit-cancel-section))
+        (mapc #'magithub-issue--insert it)
         (insert ?\n)))))
 
 ;;; Hook into the status buffer
-(defmacro magithub--deftoggle (name section-func s)
-  "Define a section-toggle command."
-  (declare (indent defun))
-  `(defun ,name ()
-     ,(concat "Toggle the " s " section.")
-     (interactive)
-     (if (memq ,section-func magit-status-sections-hook)
-         (remove-hook 'magit-status-sections-hook ,section-func)
-       (if (executable-find magithub-hub-executable)
-           (add-hook 'magit-status-sections-hook ,section-func t)
-         (message ,(concat "`hub' isn't installed, so I can't insert " s))))
-     (when (derived-mode-p 'magit-status-mode)
-       (magit-refresh))
-     (memq ,section-func magit-status-sections-hook)))
-
 (magithub--deftoggle magithub-toggle-issues
-  #'magithub-issue--insert-issue-section "issues")
+  magit-status-sections-hook #'magithub-issue--insert-issue-section "issues")
 (magithub--deftoggle magithub-toggle-pull-requests
-  #'magithub-issue--insert-pr-section "pull requests")
+  magit-status-sections-hook #'magithub-issue--insert-pr-section "pull requests")
 
 (when (executable-find magithub-hub-executable)
   (magithub-toggle-pull-requests)

@@ -29,10 +29,9 @@
 
 (defun magithub-github-repository-p ()
   "Non-nil if \"origin\" points to GitHub or a whitelisted domain."
-  (let ((url (magit-get "remote" "origin" "url")))
-    (when url
-      (-some? (lambda (domain) (s-contains? domain url))
-              (cons "github.com" (magit-get-all "hub" "host"))))))
+  (--when-let (magit-get "remote" "origin" "url")
+    (-some? (lambda (domain) (s-contains? domain it))
+            (cons "github.com" (magit-get-all "hub" "host")))))
 
 (defun magithub-repo-id ()
   "Returns an identifying value for this repository."
@@ -191,6 +190,21 @@ See /.github/ISSUE_TEMPLATE.md in this repository."
         trace))))
     (magithub--meta-new-issue))
   (error err-message))
+
+(defmacro magithub--deftoggle (name hook func s)
+  "Define a section-toggle command."
+  (declare (indent defun))
+  `(defun ,name ()
+     ,(concat "Toggle the " s " section.")
+     (interactive)
+     (if (memq ,func ,hook)
+         (remove-hook ',hook ,func)
+       (if (executable-find magithub-hub-executable)
+           (add-hook ',hook ,func t)
+         (message ,(concat "`hub' isn't installed, so I can't insert " s))))
+     (when (derived-mode-p 'magit-status-mode)
+       (magit-refresh))
+     (memq ,func ,hook)))
 
 (provide 'magithub-core)
 ;;; magithub-core.el ends here

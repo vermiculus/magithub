@@ -27,6 +27,7 @@
 (require 'magit)
 (require 'magit-section)
 (require 'magit-popup)
+(require 'dash)
 
 (require 'magithub-core)
 (require 'magithub-cache)
@@ -108,27 +109,24 @@ See also `magithub-repo-id'."
 (defun magithub-ci-status--parse-2.2.8 (output)
   "Backwards compatibility for old versions of hub.
 See `magithub-ci-status--parse'."
-  (let ((matches (cdr (s-match (rx bos (group (+ (any alpha space)))
-                                   (? ": " (group (+ (not (any " "))))) eos)
-                               output)))
-        status)
-    (when matches
-      (setq status (list :status (intern (replace-regexp-in-string "\s" "-" (car matches)))
-                         :url (cadr matches)))
-      (prog1 status
-        (magithub-ci-update-urls (list status))))))
+  (--when-let (cdr (s-match (rx bos (group (+ (any alpha space)))
+                                (? ": " (group (+ (not (any " "))))) eos)
+                            output))
+    (let ((status (list :status (intern (replace-regexp-in-string "\s" "-" (car it)))
+                        :url (cadr it))))
+      (magithub-ci-update-urls (list status))
+      status)))
 
 (defun magithub-ci-status--internal (&optional for-commit)
   "One of 'success, 'error, 'failure, 'pending, or 'no-status."
   (let* ((current-commit (magit-rev-parse "HEAD"))
          (last-commit (or for-commit current-commit))
-         (output (magithub--command-output "ci-status" `("-v" ,last-commit)))
-         (parsed (if (magithub-hub-version-at-least "2.3")
-                     (car (magithub-ci-status--parse output))
-                   (magithub-ci-status--parse-2.2.8 (car output)))))
-    (if parsed
-        (prog1 (or (plist-get parsed :status) 'no-status)
-          (if (not (or for-commit (plist-get parsed :status)))
+         (output (magithub--command-output "ci-status" `("-v" ,last-commit))))
+    (--if-let (if (magithub-hub-version-at-least "2.3")
+                  (car (magithub-ci-status--parse output))
+                (magithub-ci-status--parse-2.2.8 (car output)))
+        (prog1 (or (plist-get it :status) 'no-status)
+          (if (not (or for-commit (plist-get it :status)))
               (let ((last-commit (magithub-ci-status--last-commit)))
                 (unless (string-equal current-commit last-commit)
                   (magithub-ci-status--internal last-commit))
@@ -160,14 +158,13 @@ The first status will be an `overall' status."
 
 (defun magithub-ci-status--parse-line (line)
   "Parse a single LINE of status into a status plist."
-  (let ((status (cdr (s-match magithub-ci-status-regex line))))
-    (if status
-        (list :status (cdr (assoc (car status) magithub-ci-status-symbol-alist))
-              :url (car (cddr status))
-              :check (cadr status))
-      (if (string= line "no-status")
-          'no-status
-        (if (string= line "") 'no-output)))))
+  (--if-let (cdr (s-match magithub-ci-status-regex line))
+      (list :status (cdr (assoc (car it) magithub-ci-status-symbol-alist))
+            :url (car (cddr it))
+            :check (cadr it))
+    (if (string= line "no-status")
+        'no-status
+      (if (string= line "") 'no-output))))
 
 (defun magithub-ci-status--last-commit ()
   "Find the commit considered to have the current CI status.
@@ -275,17 +272,11 @@ Sets up magithub.ci.url if necessary."
                'face (if (facep face) face 'magithub-ci-unknown)))
       (insert ?\n))))
 
-(defun magithub-toggle-ci-status-header ()
-  (interactive)
-  (if (memq #'magithub-maybe-insert-ci-status-header magit-status-headers-hook)
-      (remove-hook 'magit-status-headers-hook #'magithub-maybe-insert-ci-status-header)
-    (if (executable-find magithub-hub-executable)
-        (add-hook 'magit-status-headers-hook #'magithub-maybe-insert-ci-status-header t)
-      (message "Magithub: (magithub-toggle-ci-status-header) `hub' isn't installed, so I can't insert the CI header")))
-  (when (derived-mode-p 'magit-status-mode)
-    (magit-refresh)))
+(magithub--deftoggle magithub-toggle-ci-status-header
+  magit-status-headers-hook #'magithub-maybe-insert-ci-status-header "the CI header")
 
-(magithub-toggle-ci-status-header)
+(when (executable-find magithub-hub-executable)
+  (magithub-toggle-ci-status-header))
 
 (provide 'magithub-ci)
 ;;; magithub-ci.el ends here
