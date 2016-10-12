@@ -213,19 +213,27 @@ If `issue' is nil, open the repository's issues page."
         (if issues (mapc #'magithub-issue--insert issues)
           (magit-cancel-section))))))
 
-;;; Hook into the status buffer
-(defun magithub-toggle-issues ()
-  (interactive)
-  (if (memq #'magithub-issue--insert-section magit-status-sections-hook)
-      (remove-hook 'magit-status-sections-hook #'magithub-issue--insert-section)
-    (if (executable-find magithub-hub-executable)
-        (add-hook ' magit-status-sections-hook #'magithub-issue--insert-section t)
-      (message "Magithub: (magithub-toggle-issues) `hub' isn't installed, so I can't insert issues")))
-  (when (derived-mode-p 'magit-status-mode)
-    (magit-refresh))
-  (memq #'magithub-issue--insert-section magit-status-sections-hook))
 
-(magithub-toggle-issues)
+;;; Hook into the status buffer
+(defmacro magithub--deftoggle (name section-func s)
+  "Define a section-toggle command."
+  (declare (indent defun))
+  `(defun ,name ()
+     ,(concat "Toggle the " s " section.")
+     (interactive)
+     (if (memq ,section-func magit-status-sections-hook)
+         (remove-hook 'magit-status-sections-hook ,section-func)
+       (if (executable-find magithub-hub-executable)
+           (add-hook 'magit-status-sections-hook ,section-func t)
+         (message ,(concat "`hub' isn't installed, so I can't insert " s))))
+     (when (derived-mode-p 'magit-status-mode)
+       (magit-refresh))
+     (memq ,section-func magit-status-sections-hook)))
+
+(magithub--deftoggle magithub-toggle-issues
+  #'magithub-issue--insert-issue-section "issues")
+(when (executable-find magithub-hub-executable)
+  (magithub-toggle-issues))
 
 (provide 'magithub-issue)
 ;;; magithub-issue.el ends here
