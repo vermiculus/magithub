@@ -157,7 +157,7 @@ Returns a plist with the following properties:
 (defun magithub-issue--insert (issue)
   "Insert an `issue' as a Magit section into the buffer."
   (when issue
-    (magit-insert-section (magithub-issue issue)
+    (magit-insert-section (magithub-issue issue (plist-get issue :number))
       (let ((formats (or magithub-issue-format
                          (list :number " %3d " :title " %s ")))
             s)
