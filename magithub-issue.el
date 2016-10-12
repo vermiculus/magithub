@@ -165,11 +165,7 @@ Returns a plist with the following properties:
           (let ((key (car formats)) (fmt (cadr formats)))
             (setq s (concat s (format fmt (plist-get issue key)))))
           (setq formats (cddr formats)))
-        (insert
-         (propertize
-          s 'face
-          (when (eq (plist-get issue :type) 'pull-request)
-            'magit-branch-remote))))
+        (insert s))
       (insert ?\n))))
 
 (defun magithub-issue-browse (issue)
@@ -204,15 +200,27 @@ If `issue' is nil, open the repository's issues page."
     map)
   "Keymap for `magithub-issue-list' sections.")
 
-(defun magithub-issue--insert-section ()
+(defun magithub-issue--insert-issue-section ()
   "Insert GitHub issues if appropriate."
   (when (magithub-usable-p)
-    (let* ((issues (magithub-issue-list)))
-      (magit-insert-section (magithub-issue-list)
-        (magit-insert-heading "Issues and Pull Requests:")
+    (let ((issues (-filter (lambda (i) (eq (plist-get i :type) 'issue))
+                           (magithub-issue-list))))
+      (magit-insert-section issue-section (magithub-issue)
+        (magit-insert-heading "Issues:")
         (if issues (mapc #'magithub-issue--insert issues)
-          (magit-cancel-section))))))
+          (magit-cancel-section))
+        (insert ?\n)))))
 
+(defun magithub-issue--insert-pr-section ()
+  "Insert GitHub pull requests if appropriate."
+  (when (magithub-usable-p)
+    (let ((pull-requests (-filter (lambda (i) (eq (plist-get i :type) 'pull-request))
+                                  (magithub-issue-list))))
+      (magit-insert-section pull-request-section (magithub-pull-request)
+        (magit-insert-heading "Pull Requests:")
+        (if pull-requests (mapc #'magithub-issue--insert pull-requests)
+          (magit-cancel-section))
+        (insert ?\n)))))
 
 ;;; Hook into the status buffer
 (defmacro magithub--deftoggle (name section-func s)
@@ -232,7 +240,11 @@ If `issue' is nil, open the repository's issues page."
 
 (magithub--deftoggle magithub-toggle-issues
   #'magithub-issue--insert-issue-section "issues")
+(magithub--deftoggle magithub-toggle-pull-requests
+  #'magithub-issue--insert-pr-section "pull requests")
+
 (when (executable-find magithub-hub-executable)
+  (magithub-toggle-pull-requests)
   (magithub-toggle-issues))
 
 (provide 'magithub-issue)
