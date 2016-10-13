@@ -197,9 +197,9 @@ This function will return nil for matches to
 
 (defun magithub-check-buffer ()
   "If this is a buffer created by hub, perform setup."
-  (--when-let (magithub--edit-file-type buffer-file-name)
+  (-when-let (filetype (magithub--edit-file-type buffer-file-name))
     (magithub-setup-edit-buffer)
-    (when (eq it 'issue)
+    (when (eq filetype 'issue)
       (magithub-setup-new-issue-buffer))))
 (add-hook 'find-file-hook #'magithub-check-buffer)
 

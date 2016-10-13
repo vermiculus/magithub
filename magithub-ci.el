@@ -109,11 +109,11 @@ See also `magithub-repo-id'."
 (defun magithub-ci-status--parse-2.2.8 (output)
   "Backwards compatibility for old versions of hub.
 See `magithub-ci-status--parse'."
-  (--when-let (cdr (s-match (rx bos (group (+ (any alpha space)))
-                                (? ": " (group (+ (not (any " "))))) eos)
-                            output))
-    (let ((status (list :status (intern (replace-regexp-in-string "\s" "-" (car it)))
-                        :url (cadr it))))
+  (-when-let (matches (cdr (s-match (rx bos (group (+ (any alpha space)))
+                                        (? ": " (group (+ (not (any " "))))) eos)
+                                    output)))
+    (let ((status (list :status (intern (replace-regexp-in-string "\s" "-" (car matches)))
+                        :url (cadr matches))))
       (magithub-ci-update-urls (list status))
       status)))
 
@@ -122,11 +122,11 @@ See `magithub-ci-status--parse'."
   (let* ((current-commit (magit-rev-parse "HEAD"))
          (last-commit (or for-commit current-commit))
          (output (magithub--command-output "ci-status" `("-v" ,last-commit))))
-    (--if-let (if (magithub-hub-version-at-least "2.3")
-                  (car (magithub-ci-status--parse output))
-                (magithub-ci-status--parse-2.2.8 (car output)))
-        (prog1 (or (plist-get it :status) 'no-status)
-          (if (not (or for-commit (plist-get it :status)))
+    (-if-let (check (if (magithub-hub-version-at-least "2.3")
+                        (car (magithub-ci-status--parse output))
+                      (magithub-ci-status--parse-2.2.8 (car output))))
+        (prog1 (or (plist-get check :status) 'no-status)
+          (if (not (or for-commit (plist-get check :status)))
               (let ((last-commit (magithub-ci-status--last-commit)))
                 (unless (string-equal current-commit last-commit)
                   (magithub-ci-status--internal last-commit))
@@ -158,10 +158,10 @@ The first status will be an `overall' status."
 
 (defun magithub-ci-status--parse-line (line)
   "Parse a single LINE of status into a status plist."
-  (--if-let (cdr (s-match magithub-ci-status-regex line))
-      (list :status (cdr (assoc (car it) magithub-ci-status-symbol-alist))
-            :url (car (cddr it))
-            :check (cadr it))
+  (-if-let (matches (cdr (s-match magithub-ci-status-regex line)))
+      (list :status (cdr (assoc (car matches) magithub-ci-status-symbol-alist))
+            :url (car (cddr matches))
+            :check (cadr matches))
     (if (string= line "no-status")
         'no-status
       (if (string= line "") 'no-output))))

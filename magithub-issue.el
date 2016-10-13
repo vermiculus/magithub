@@ -211,21 +211,21 @@ If `issue' is nil, open the repository's issues page."
 (defun magithub-issue--insert-issue-section ()
   "Insert GitHub issues if appropriate."
   (when (magithub-usable-p)
-    (--when-let (-filter (lambda (i) (eq (plist-get i :type) 'issue))
-                         (magithub-issue-list))
+    (-when-let (issues (-filter (lambda (i) (eq (plist-get i :type) 'issue))
+                                (magithub-issue-list)))
       (magit-insert-section (magithub-issue-list)
         (magit-insert-heading "Issues:")
-        (mapc #'magithub-issue--insert it)
+        (mapc #'magithub-issue--insert issues)
         (insert ?\n)))))
 
 (defun magithub-issue--insert-pr-section ()
   "Insert GitHub pull requests if appropriate."
   (when (magithub-usable-p)
-    (--when-let (-filter (lambda (i) (eq (plist-get i :type) 'pull-request))
-                         (magithub-issue-list))
+    (-when-let (pull-requests (-filter (lambda (i) (eq (plist-get i :type) 'pull-request))
+                                       (magithub-issue-list)))
       (magit-insert-section (magithub-pull-request-list)
         (magit-insert-heading "Pull Requests:")
-        (mapc #'magithub-issue--insert it)
+        (mapc #'magithub-issue--insert pull-requests)
         (insert ?\n)))))
 
 ;;; Hook into the status buffer
