@@ -240,6 +240,14 @@ If `issue' is nil, open the repository's issues page."
         (mapc #'magithub-issue--insert pull-requests)
         (insert ?\n)))))
 
+(defun magithub-repolist-column-issue (_id)
+  "Insert the number of open issues in this repository."
+  (number-to-string (length (magithub-issues))))
+
+(defun magithub-repolist-column-pull-request (_id)
+  "Insert the number of open pull requests in this repository."
+  (number-to-string (length (magithub-pull-requests))))
+
 ;;; Hook into the status buffer
 (magithub--deftoggle magithub-toggle-issues
   magit-status-sections-hook #'magithub-issue--insert-issue-section "issues")
