@@ -118,7 +118,7 @@ Returns a plist with the following properties:
        "failed to parse issue"
        "There was an error parsing issues."))))
 
-(defun magithub-issue-list--internal-2.2.8 ()
+(defun magithub--issue-list--internal-2.2.8 ()
   "Backwards compatibility for old versions of hub.
 See `magithub-issue-list--internal'."
   (magithub-issue--sort
@@ -141,19 +141,19 @@ Returns a plist with the following properties:
      :title (s-join "," (cddr ss))
      :type (magithub-issue--url-type (cadr ss)))))
 
-(defun magithub-issue-list--internal ()
+(defun magithub--issue-list--internal ()
   "Return a new list of issues for the current repository."
   (magithub-issue--sort
    (mapcar #'magithub-issue--process-line
            (magithub--command-output "issue" '("--format=%I,%U,%t%n")))))
 
-(defun magithub-issue-list ()
+(defun magithub--issue-list ()
   "Return a list of issues for the current repository."
   (magithub-cache (magithub-repo-id) :issues
     '(with-temp-message "Retrieving issue list..."
        (if (magithub-hub-version-at-least "2.3")
-           (magithub-issue-list--internal)
-         (magithub-issue-list--internal-2.2.8)))))
+           (magithub--issue-list--internal)
+         (magithub--issue-list--internal-2.2.8)))))
 
 (defun magithub-issue--insert (issue)
   "Insert an `issue' as a Magit section into the buffer."
@@ -182,6 +182,7 @@ If `issue' is nil, open the repository's issues page."
      (car (magithub--command-output "browse" '("--url-only" "--" "issues"))))))
 
 (defun magithub-issue-refresh ()
+  "Refresh issues for this repository."
   (interactive)
   (magithub-cache-clear (magithub-repo-id) :issues)
   (when (derived-mode-p 'magit-status-mode)
@@ -208,11 +209,23 @@ If `issue' is nil, open the repository's issues page."
     map)
   "Keymap for `magithub-pull-request-list' sections.")
 
+(defun magithub--issues-of-type (type)
+  "Filter `magithub--issue-list' for issues of type TYPE."
+  (-filter (lambda (i) (eq (plist-get i :type) type))
+           (magithub--issue-list)))
+
+(defun magithub-issues ()
+  "Return a list of issue objects that are actually issues."
+  (magithub--issues-of-type 'issue))
+
+(defun magithub-pull-requests ()
+  "Return a list of issue objects that are actually pull requests."
+  (magithub--issues-of-type 'pull-request))
+
 (defun magithub-issue--insert-issue-section ()
   "Insert GitHub issues if appropriate."
   (when (magithub-usable-p)
-    (-when-let (issues (-filter (lambda (i) (eq (plist-get i :type) 'issue))
-                                (magithub-issue-list)))
+    (-when-let (issues (magithub-issues))
       (magit-insert-section (magithub-issue-list)
         (magit-insert-heading "Issues:")
         (mapc #'magithub-issue--insert issues)
@@ -221,8 +234,7 @@ If `issue' is nil, open the repository's issues page."
 (defun magithub-issue--insert-pr-section ()
   "Insert GitHub pull requests if appropriate."
   (when (magithub-usable-p)
-    (-when-let (pull-requests (-filter (lambda (i) (eq (plist-get i :type) 'pull-request))
-                                       (magithub-issue-list)))
+    (-when-let (pull-requests (magithub-pull-requests))
       (magit-insert-section (magithub-pull-request-list)
         (magit-insert-heading "Pull Requests:")
         (mapc #'magithub-issue--insert pull-requests)
