@@ -190,17 +190,16 @@ created by hub.
 
 This function will return nil for matches to
 `git-commit-filename-regexp'."
-  (let ((basename (file-name-base path)))
-    (and path
-         (s-suffix? "/.git/" (file-name-directory path))
-         (not (s-matches? git-commit-filename-regexp basename))
-         (cdr (assoc basename magithub--file-types)))))
+  (when (and path (magit-inside-gitdir-p))
+    (let ((basename (file-name-base path)))
+      (and (not (s-matches? git-commit-filename-regexp basename))
+           (cdr (assoc basename magithub--file-types))))))
 
 (defun magithub-check-buffer ()
   "If this is a buffer created by hub, perform setup."
-  (--when-let (magithub--edit-file-type buffer-file-name)
+  (-when-let (filetype (magithub--edit-file-type buffer-file-name))
     (magithub-setup-edit-buffer)
-    (when (eq it 'issue)
+    (when (eq filetype 'issue)
       (magithub-setup-new-issue-buffer))))
 (add-hook 'find-file-hook #'magithub-check-buffer)
 

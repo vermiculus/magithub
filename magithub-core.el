@@ -29,8 +29,8 @@
 
 (defun magithub-github-repository-p ()
   "Non-nil if \"origin\" points to GitHub or a whitelisted domain."
-  (--when-let (magit-get "remote" "origin" "url")
-    (-some? (lambda (domain) (s-contains? domain it))
+  (-when-let (origin (magit-get "remote" "origin" "url"))
+    (-some? (lambda (domain) (s-contains? domain origin))
             (cons "github.com" (magit-get-all "hub" "host")))))
 
 (defun magithub-repo-id ()
