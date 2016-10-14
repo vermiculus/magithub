@@ -206,5 +206,33 @@ See /.github/ISSUE_TEMPLATE.md in this repository."
        (magit-refresh))
      (memq ,func ,hook)))
 
+(defun magithub--zip-case (p e)
+  "Get an appropriate value for element E given property/function P."
+  (cond
+   ((symbolp p) (plist-get e p))
+   ((functionp p) (funcall p e))
+   ((null p) e)
+   (t nil)))
+
+(defun magithub--zip (object-list prop1 prop2)
+  "Process OBJECT-LIST into an alist defined by PROP1 and PROP2.
+
+If a prop is a symbol, that property will be used.
+
+If a prop is a function, it will be called with the
+currentelement of OBJECT-LIST.
+
+If a prop is nil, the entire element is used."
+  (delq nil
+        (-zip-with
+         (lambda (e1 e2)
+           (let ((p1 (magithub--zip-case prop1 e1))
+                 (p2 (magithub--zip-case prop2 e2)))
+             (unless (or (and prop1 (not p1))
+                         (and prop2 (not p2)))
+               (cons (if prop1 p1 e1)
+                     (if prop2 p2 e2)))))
+         object-list object-list)))
+
 (provide 'magithub-core)
 ;;; magithub-core.el ends here

@@ -79,14 +79,12 @@ If magithub.ci.enabled is not set, CI is considered to be enabled."
 
 (defun magithub-ci-status ()
   "One of 'success, 'error, 'failure, 'pending, or 'no-status."
-  (let ((same-commit
-         (string-equal (magit-rev-parse "HEAD")
-                       (magithub-ci-status-current-commit))))
-    (unless same-commit
-      (magithub-cache-clear (magithub-repo-id) :ci-status))
-    (if (eq (magithub-cache-value (magithub-repo-id) :ci-status)
-            'success)
-        'success
+  (unless (string-equal (magit-rev-parse "HEAD")
+                        (magithub-ci-status-current-commit))
+    (magithub-cache-clear (magithub-repo-id) :ci-status))
+  (let ((cached-val (magithub-cache-value (magithub-repo-id) :ci-status)))
+    (if (and (consp cached-val) (eq (plist-get (car cached-val) :status) 'success))
+        cached-val
       (magithub-cache (magithub-repo-id) :ci-status
         '(magithub-ci-status--internal)))))
 
@@ -96,42 +94,32 @@ If magithub.ci.enabled is not set, CI is considered to be enabled."
     (if new-value (apply #'magit-set new-value keys)
       (apply #'magit-get keys))))
 
-(defun magithub-ci-update-urls (statuses)
-  "Updates `magithub-ci-urls' according to STATUSES.
-See also `magithub-repo-id'."
-  (let* ((id (magithub-repo-id))
-         (repo-urls (assoc id magithub-ci-urls))
-         (urls (mapcar (lambda (s) (plist-get s :url)) statuses)))
-    (if repo-urls (setcdr repo-urls urls)
-      (add-to-list 'magithub-ci-urls (cons id urls))
-      urls)))
-
 (defun magithub-ci-status--parse-2.2.8 (output)
   "Backwards compatibility for old versions of hub.
 See `magithub-ci-status--parse'."
   (-when-let (matches (cdr (s-match (rx bos (group (+ (any alpha space)))
                                         (? ": " (group (+ (not (any " "))))) eos)
                                     output)))
-    (let ((status (list :status (intern (replace-regexp-in-string "\s" "-" (car matches)))
-                        :url (cadr matches))))
-      (magithub-ci-update-urls (list status))
-      status)))
+    (list (list :status (intern (replace-regexp-in-string
+                                 "\s" "-" (car matches)))
+                :url (cadr matches)))))
 
 (defun magithub-ci-status--internal (&optional for-commit)
   "One of 'success, 'error, 'failure, 'pending, or 'no-status."
   (let* ((current-commit (magit-rev-parse "HEAD"))
          (last-commit (or for-commit current-commit))
          (output (magithub--command-output "ci-status" `("-v" ,last-commit))))
-    (-if-let (check (if (magithub-hub-version-at-least "2.3")
-                        (car (magithub-ci-status--parse output))
-                      (magithub-ci-status--parse-2.2.8 (car output))))
-        (prog1 (or (plist-get check :status) 'no-status)
-          (if (not (or for-commit (plist-get check :status)))
-              (let ((last-commit (magithub-ci-status--last-commit)))
-                (unless (string-equal current-commit last-commit)
-                  (magithub-ci-status--internal last-commit))
-                (magithub-ci-status-current-commit current-commit))
-            (magithub-ci-status-current-commit current-commit)))
+    (-if-let (checks (if (magithub-hub-version-at-least "2.3")
+                         (magithub-ci-status--parse output)
+                       (magithub-ci-status--parse-2.2.8 (car output))))
+        (let ((overall-status (car checks)))
+          (prog1 (or (and (plist-get overall-status :status) checks) 'no-status)
+            (if (not (or for-commit (plist-get overall-status :status)))
+                (let ((last-commit (magithub-ci-status--last-commit)))
+                  (unless (string-equal current-commit last-commit)
+                    (magithub-ci-status--internal last-commit))
+                  (magithub-ci-status-current-commit current-commit))
+              (magithub-ci-status-current-commit current-commit))))
       (beep)
       (setq magithub-hub-error
             (message
@@ -145,7 +133,6 @@ See `magithub-ci-status--parse'."
 The first status will be an `overall' status."
   (let ((statuses (mapcar #'magithub-ci-status--parse-line output))
         (get-status (lambda (status) (lambda (s) (eq (plist-get s :status) status)))))
-    (magithub-ci-update-urls statuses)
     (cons
      (list :check 'overall
            :status
@@ -236,9 +223,23 @@ See the following resources:
   "Browse the CI.
 Sets up magithub.ci.url if necessary."
   (interactive)
-  (let* ((urls (cdr (assoc (magithub-repo-id) magithub-ci-urls)))
-         (target-url (if (= 1 (length urls)) (car urls)
-                       (when urls (completing-read "CI Dashboard URL: " urls)))))
+  (let* ((checks (magithub-ci-status))
+         (checks-alist
+          (magithub--zip
+           checks
+           (if (magithub-hub-version-at-least "2.3")
+               (lambda (c)
+                 (format "%S: %s"
+                         (plist-get c :status)
+                         (plist-get c :check)))
+             :status)
+           :url))
+         (target-url
+          (if (= 1 (length checks-alist))
+              (cdar checks-alist)
+            (when checks-alist
+              (cdr (assoc (completing-read "CI Service: " checks-alist)
+                          checks-alist))))))
     (when (or (null target-url) (string= "" target-url))
       (user-error "No CI URL detected"))
     (browse-url target-url)))
@@ -258,7 +259,8 @@ Sets up magithub.ci.url if necessary."
     (magit-refresh)))
 
 (defun magithub-insert-ci-status-header ()
-  (let* ((status (magithub-ci-status))
+  (let* ((checks (magithub-ci-status))
+         (status (if (consp checks) (plist-get (car checks) :status) checks))
          (face   (intern (format "magithub-ci-%s"
                                  (symbol-name status))))
          (status-val (cdr (assq status magithub-ci-status-alist))))
@@ -270,6 +272,16 @@ Sets up magithub.ci.url if necessary."
                 ((functionp status-val) (funcall status-val))
                 (t (format "%S" status-val)))
                'face (if (facep face) face 'magithub-ci-unknown)))
+      (when (and (consp checks) (not (eq status 'success)) (< 1 (length checks)))
+        (let* ((successes (-filter (lambda (c) (eq (plist-get c :status) 'success))
+                                   checks))
+               (numsuccesses (length successes))
+               (numchecks (length checks)))
+          (insert
+           (format " %d succeeded; %d did not; %s for details"
+                   numsuccesses
+                   (- numchecks numsuccesses)
+                   (substitute-command-keys "\\[magit-visit-thing]")))))
       (insert ?\n))))
 
 (magithub--deftoggle magithub-toggle-ci-status-header
