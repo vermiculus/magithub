@@ -162,7 +162,8 @@ See /.github/ISSUE_TEMPLATE.md in this repository."
   "Non-nil if Magithub should do its thing."
   (and (executable-find magithub-hub-executable)
        (magithub-enabled-p)
-       (magithub-github-repository-p)))
+       (magithub-github-repository-p)
+       (magithub--api-available-p)))
 
 (defun magithub-error (err-message tag &optional trace)
   "Report a Magithub error."
