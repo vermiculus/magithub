@@ -248,6 +248,43 @@ If `issue' is nil, open the repository's issues page."
   "Insert the number of open pull requests in this repository."
   (number-to-string (length (magithub-pull-requests))))
 
+(defun magithub-pull-request--format-pr-for-read (pr)
+  "Format pull request PR as string suitable for completion."
+  (format "%3d %s" (plist-get pr :number) (plist-get pr :title)))
+
+(defun magithub-pull-request--completing-read-list ()
+  "Return an alist of PR-strings to full pull-request issue objects.
+See `magithub-pull-request--format-pr-for-am'."
+  (-when-let (pr-list (magithub-pull-requests))
+    (-zip-pair
+     (mapcar #'magithub-pull-request--format-pr-for-read pr-list)
+     pr-list)))
+
+(defun magithub-pull-request-at-point ()
+  "The pull request object at point (or nil)."
+  (when (derived-mode-p 'magit-status-mode)
+    (-when-let* ((s (magit-current-section))
+                 (v (magit-section-value s)))
+      (and (listp v)
+           (eq (plist-get v :type) 'pull-request)
+           v))))
+
+(defun magithub-pull-request--completing-read ()
+  "Complete over all open pull requests returning its issue object.
+If point is on a pull-request object, that object is selected by
+default."
+  (let ((prs (magithub-pull-request--completing-read-list)) current-pr)
+    (-when-let (tap (magithub-pull-request-at-point))
+      (when (and (listp tap) (eq (plist-get tap :type) 'pull-request))
+        (setq current-pr (magithub-pull-request--format-pr-for-read tap))))
+    (cdr (assoc (completing-read "Pull request: " prs nil t current-pr) prs))))
+
+(defun magithub-pull-request-checkout (pull-request)
+  "Checkout PULL-REQUEST as a local branch."
+  (interactive (list (magithub-pull-request--completing-read)))
+  (magithub-with-hub
+   (magit-checkout (plist-get pull-request :url))))
+
 ;;; Hook into the status buffer
 (magithub--deftoggle magithub-toggle-issues
   magit-status-sections-hook #'magithub-issue--insert-issue-section "issues")
