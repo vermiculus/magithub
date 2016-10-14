@@ -282,8 +282,14 @@ default."
 (defun magithub-pull-request-checkout (pull-request)
   "Checkout PULL-REQUEST as a local branch."
   (interactive (list (magithub-pull-request--completing-read)))
-  (magithub-with-hub
-   (magit-checkout (plist-get pull-request :url))))
+  (-when-let (url (plist-get pull-request :url))
+    (magithub-with-hub
+     (magit-checkout url))
+    (dolist (var-val `(("URL" . ,url)
+                       ("ID" . ,(plist-get pull-request :number))))
+      (magit-set (cdr var-val)
+                 "branch" (magit-get-current-branch)
+                 (concat "magithubPullRequest" (car var-val))))))
 
 ;;; Hook into the status buffer
 (magithub--deftoggle magithub-toggle-issues
