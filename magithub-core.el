@@ -42,7 +42,7 @@
   (let ((magit-git-executable "ping")
         (magit-pre-call-git-hook nil)
         (magit-git-global-arguments nil))
-    (= 0 (magit-git-exit-code "-c 1" "api.github.com"))))
+    (= 0 (magit-git-exit-code "-c 1" "-n" "api.github.com"))))
 
 (defun magithub--completing-read-multiple (prompt collection)
   "Using PROMPT, get a list of elements in COLLECTION.
