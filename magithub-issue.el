@@ -27,6 +27,7 @@
 (require 'magit)
 (require 'magit-section)
 (require 'dash)
+(require 's)
 
 (require 'magithub-core)
 (require 'magithub-cache)

@@ -26,6 +26,7 @@
 
 (require 'magit)
 (require 'dash)
+(require 's)
 
 (defun magithub-github-repository-p ()
   "Non-nil if \"origin\" points to GitHub or a whitelisted domain."
