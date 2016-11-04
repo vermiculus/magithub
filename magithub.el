@@ -156,7 +156,7 @@ GitHub repository.")
     (magithub--command-with-editor "pull-request" (magithub-pull-request-arguments))))
 
 (defface magithub-issue-warning-face
-  '((((class color)) :foreground "red"))
+  '((((class color)) :inherit warning))
   "Face used to call out warnings in the issue-create buffer."
   :group 'magithub)
 
