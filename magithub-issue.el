@@ -39,12 +39,6 @@
   :options '((?l "Add labels" "--label=" magithub-issue-read-labels))
   :actions '((?c "Create new issue" magithub-issue-new)))
 
-(defvar magithub-issue-format
-  (list :number " %3d "
-        :title " %s ")
-  "These properties will be inserted in the order in which their
-found.  See `magithub-issue--process-line'.")
-
 (defun magithub-issue-new ()
   "Create a new issue on GitHub."
   (interactive)
@@ -156,19 +150,20 @@ Returns a plist with the following properties:
            (magithub--issue-list--internal)
          (magithub--issue-list--internal-2.2.8)))))
 
+(defun magithub-issue--wrap-title (title indent)
+  "Word-wrap string TITLE to `fill-column' with an INDENT."
+  (s-replace
+   "\n" (concat "\n" (make-string indent ?\ ))
+   (s-word-wrap (- fill-column indent) title)))
+
 (defun magithub-issue--insert (issue)
   "Insert an `issue' as a Magit section into the buffer."
   (when issue
     (magit-insert-section (magithub-issue issue)
-      (let ((formats (or magithub-issue-format
-                         (list :number " %3d " :title " %s ")))
-            s)
-        (while formats
-          (let ((key (car formats)) (fmt (cadr formats)))
-            (setq s (concat s (format fmt (plist-get issue key)))))
-          (setq formats (cddr formats)))
-        (insert s))
-      (insert ?\n))))
+      (insert (format " %3d  %s\n"
+                      (plist-get issue :number)
+                      (magithub-issue--wrap-title
+                       (plist-get issue :title) 6))))))
 
 (defun magithub-issue-browse (issue)
   "Visits `issue' in the browser.
