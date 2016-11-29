@@ -108,7 +108,7 @@
   (interactive)
   (unless (magithub-github-repository-p)
     (user-error "Not a GitHub repository"))
-  (magithub--command-quick "browse"))
+  (browse-url (car (magithub--command-output "browse" "-u"))))
 
 (defvar magithub-after-create-messages
   '("Don't be shy!"
