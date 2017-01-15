@@ -26,13 +26,16 @@ Happy hacking!
 ## Installation
 
 The package can be installed from MELPA.  Otherwise, simply place
-`magithub.el` in your `load-path` and `(require 'magithub)`.
+`magithub.el` in your `load-path` and `(require 'magithub)`.  Use the
+function `magithub-feature-autoinject` to add full Magit workflow
+integration.
 
 If you use [use-package][gh-use-package], you should instead use:
 
 ```elisp
 (use-package magithub
-  :after magit)
+  :after magit
+  :config (magithub-feature-autoinject t))
 ```
 
 For now, Magithub requires the `hub` utility to work -- before trying
