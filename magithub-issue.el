@@ -229,7 +229,9 @@ If `issue' is nil, open the repository's issues page."
 
 (defun magithub-issue--insert-pr-section ()
   "Insert GitHub pull requests if appropriate."
-  (magithub-feature-maybe-idle-notify 'merge-pull-request)
+  (magithub-feature-maybe-idle-notify
+   'pull-request-merge
+   'pull-request-checkout)
   (when (magithub-usable-p)
     (-when-let (pull-requests (magithub-pull-requests))
       (magit-insert-section (magithub-pull-request-list)
