@@ -266,7 +266,5 @@ See `magithub-features'."
            (f (lambda () (message m feature))))
       (run-with-idle-timer 1 nil f))))
 
-(magithub-feature-maybe-idle-notify 'merge-pull-requests)
-
 (provide 'magithub)
 ;;; magithub.el ends here

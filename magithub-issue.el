@@ -229,7 +229,7 @@ If `issue' is nil, open the repository's issues page."
 
 (defun magithub-issue--insert-pr-section ()
   "Insert GitHub pull requests if appropriate."
-  (magithub-feature-check 'merge-pull-request)
+  (magithub-feature-maybe-idle-notify 'merge-pull-request)
   (when (magithub-usable-p)
     (-when-let (pull-requests (magithub-pull-requests))
       (magit-insert-section (magithub-pull-request-list)
@@ -297,7 +297,8 @@ pull-request object, that object is selected by default."
   (unless (member pull-request (magithub-pull-requests))
     (user-error "Unknown pull request %S" pull-request))
   (magithub-with-hub
-   (magit-run-git-sequencer "am" args (plist-get pull-request :url))))
+   (magit-run-git-sequencer "am" args (plist-get pull-request :url)))
+  (message "#%d has been applied" (plist-get pull-request :number)))
 
 ;;; Hook into the status buffer
 (magithub--deftoggle magithub-toggle-issues
