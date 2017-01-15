@@ -231,5 +231,42 @@ Banned inside existing GitHub repositories."
            magithub-hub-executable
            user repo)))
 
+(defvar magithub-features nil
+  "An alist of feature-symbols to Booleans.
+See `magithub-feature-list'.")
+
+(defconst magithub-feature-list
+  '(merge-pull-request))
+
+(defun magithub-feature-autoinject (feature)
+  "Configure FEATURE to recommended settings.
+If FEATURE is `all' ot t, all known features will be loaded."
+  (if (memq feature '(t all))
+      (mapc #'magithub-feature-autoinject magithub-feature-list)
+    (cl-case feature
+      (merge-pull-request
+       (magit-define-popup-action 'magit-am-popup
+         ?P "Apply patchess from pull request" #'magithub-pull-request-merge))
+      (t (user-error "unknown feature %S" feature)))
+    (add-to-list 'magithub-features (cons feature t))))
+
+(defun magithub-feature-check (feature)
+  "Check if a Magithub FEATURE has been configured.
+See `magithub-features'."
+  (if (listp magithub-features)
+      (let* ((p (assq feature magithub-features)))
+        (if (consp p) (cdr p)
+          (cdr (assq t magithub-features))))
+    magithub-features))
+
+(defun magithub-feature-maybe-idle-notify (feature)
+  "Notify user if FEATURE is not yet configured."
+  (unless (magithub-feature-check feature)
+    (let* ((m "Magithub feature `%S' has not been configured; see variable `magithub-features' to turn off this message")
+           (f (lambda () (message m feature))))
+      (run-with-idle-timer 1 nil f))))
+
+(magithub-feature-maybe-idle-notify 'merge-pull-requests)
+
 (provide 'magithub)
 ;;; magithub.el ends here
