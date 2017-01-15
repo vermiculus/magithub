@@ -259,12 +259,12 @@ See `magithub-features'."
           (cdr (assq t magithub-features))))
     magithub-features))
 
-(defun magithub-feature-maybe-idle-notify (feature)
-  "Notify user if FEATURE is not yet configured."
-  (unless (magithub-feature-check feature)
-    (let* ((m "Magithub feature `%S' has not been configured; see variable `magithub-features' to turn off this message")
-           (f (lambda () (message m feature))))
-      (run-with-idle-timer 1 nil f))))
+(defun magithub-feature-maybe-idle-notify (&rest features)
+  "Notify user if any of FEATURES are not yet configured."
+  (unless (-all? #'magithub-feature-check features)
+    (let ((m "Magithub features not configured: %S")
+          (s "see variable `magithub-features' to turn off this message"))
+      (run-with-idle-timer 1 nil (lambda () (message (concat m "; " s) features))))))
 
 (provide 'magithub)
 ;;; magithub.el ends here
