@@ -177,6 +177,13 @@ If `issue' is nil, open the repository's issues page."
        (plist-get issue :url)
      (car (magithub--command-output "browse" '("--url-only" "--" "issues"))))))
 
+(defun magithub-pr-merge-locally (issue)
+  "Merges `issue' locally using `hub am -3'."
+  (interactive (list (magit-section-value
+                      (magit-current-section))))
+  (magithub--command-output "am" `("-3" ,(plist-get issue :url)))
+  (magithub-issue-refresh))
+
 (defun magithub-issue-refresh ()
   "Refresh issues for this repository."
   (interactive)

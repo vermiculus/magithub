@@ -65,6 +65,7 @@
              (?f "Fork" magithub-fork-popup)
              (?i "Issues" magithub-issues-popup)
              (?p "Submit a pull request" magithub-pull-request-popup)
+             (?m "Merge a pull request locally" magithub-pr-merge-locally)
              "Meta"
              (?` "Toggle Magithub-Status integration" magithub-enabled-toggle)
              (?g "Refresh all GitHub data" magithub-refresh)
