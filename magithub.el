@@ -244,12 +244,15 @@ If FEATURE is `all' ot t, all known features will be loaded."
   (if (memq feature '(t all))
       (mapc #'magithub-feature-autoinject magithub-feature-list)
     (cl-case feature
+
       (pull-request-merge
        (magit-define-popup-action 'magit-am-popup
          ?P "Apply patchess from pull request" #'magithub-pull-request-merge))
+
       (pull-request-checkout
        (magit-define-popup-action 'magit-branch-popup
-         ?p "Checkout pull request" #'magithub-pull-request-checkout))
+         ?P "Checkout pull request" #'magithub-pull-request-checkout))
+
       (t (user-error "unknown feature %S" feature)))
     (add-to-list 'magithub-features (cons feature t))))
 
