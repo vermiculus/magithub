@@ -233,10 +233,30 @@ Banned inside existing GitHub repositories."
 
 (defvar magithub-features nil
   "An alist of feature-symbols to Booleans.
-See `magithub-feature-list'.")
+When a feature symbol maps to non-nil, that feature is considered
+'loaded'.  Thus, to disable all messages, prepend '(t . t) to
+this list.
+
+Example:
+
+    ((pull-request-merge . t) (other-feature . nil))
+
+signals that `pull-request-merge' is a loaded feature and
+`other-feature' has not been loaded and will not be loaded.
+
+To enable all features, see `magithub-feature-autoinject'.
+
+See `magithub-feature-list' for a list and description of features.")
 
 (defconst magithub-feature-list
-  '(pull-request-merge pull-request-checkout))
+  '(pull-request-merge pull-request-checkout)
+  "All magit-integration features of Magithub.
+
+`pull-request-merge'
+Apply patches from pull request
+
+`pull-request-checkout'
+Checkout pull requests as new branches")
 
 (defun magithub-feature-autoinject (feature)
   "Configure FEATURE to recommended settings.
@@ -247,7 +267,7 @@ If FEATURE is `all' ot t, all known features will be loaded."
 
       (pull-request-merge
        (magit-define-popup-action 'magit-am-popup
-         ?P "Apply patchess from pull request" #'magithub-pull-request-merge))
+         ?P "Apply patches from pull request" #'magithub-pull-request-merge))
 
       (pull-request-checkout
        (magit-define-popup-action 'magit-branch-popup
@@ -270,7 +290,10 @@ See `magithub-features'."
   (unless (-all? #'magithub-feature-check features)
     (let ((m "Magithub features not configured: %S")
           (s "see variable `magithub-features' to turn off this message"))
-      (run-with-idle-timer 1 nil (lambda () (message (concat m "; " s) features))))))
+      (run-with-idle-timer
+       1 nil (lambda ()
+               (message (concat m "; " s) features)
+               (add-to-list 'magithub-features '(t . t) t))))))
 
 (provide 'magithub)
 ;;; magithub.el ends here
