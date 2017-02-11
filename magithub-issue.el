@@ -120,27 +120,81 @@ See `magithub-issue-list--internal'."
    (mapcar #'magithub-issue--process-line-2.2.8
            (magithub--command-output "issue"))))
 
-(defun magithub-issue--process-line (s)
-  "Process a line S into an issue.
-
-Returns a plist with the following properties:
-
-  :number  issue or pull request number
-  :type    either 'pull-request or 'issue
-  :title   the title of the issue or pull request
-  :url     link to issue or pull request"
-  (let ((ss (split-string s ",")))
-    (list
-     :number (string-to-number (car ss))
-     :url (cadr ss)
-     :title (s-join "," (cddr ss))
-     :type (magithub-issue--url-type (cadr ss)))))
-
 (defun magithub--issue-list--internal ()
   "Return a new list of issues for the current repository."
   (magithub-issue--sort
-   (mapcar #'magithub-issue--process-line
-           (magithub--command-output "issue" '("--format=%I,%U,%t%n")))))
+   (magithub--issue-list--get-properties
+    (mapcar #'cadr magithub-issue--format-args))))
+
+(defconst magithub-issue--format-args
+  (let ((csv (lambda (s) (unless (string= s "") (s-split "," s))))
+        (num (lambda (s) (unless (string= s "") (string-to-number s))))
+        (time (lambda (s) (seconds-to-time (string-to-number s)))))
+    `(("I" :number ,num)
+      ("U" :url)
+      ("t" :title)
+      ("L" :labels ,csv)
+      ("au" :author)
+      ("Mn" :milestone ,num)
+      ("Mt" :milestone-title)
+      ("NC" :comment-count ,num)
+      ("b" :body)
+      ("as" :assignees ,csv)
+      ("ct" :created ,time)
+      ("ut" :updated ,time)))
+  "List of format specifiers.
+
+1. Format code for Hub
+2. Property keyword to be used in the plist
+3. Optional response parser function")
+
+(defun magithub--issue-list--get-properties (props)
+  "Make a new request for PROPS (and only PROPS).
+Response will be processed into a list of plists."
+  (let* ((field-delim (char-to-string 1)) ;non-printing char -- safely delimit freetext
+         (issue-delim (char-to-string 2))
+         ;; filter the master list to just the properties we're interested in
+         (format-specs (-remove (lambda (fmt) (not (memq (cadr fmt) props)))
+                                magithub-issue--format-args))
+         ;; reset props to the correct order
+         (props (mapcar #'cadr format-specs))
+         ;; grab transform functions in the correct order
+         (string-or-nil (lambda (s) (if (string= "" s) nil s)))
+         (funcs (mapcar (lambda (fmt) (or (caddr fmt) string-or-nil)) format-specs))
+         ;; build our --format= string
+         (format-string (mapconcat (lambda (f) (concat "%" f))
+                                   (mapcar #'car format-specs)
+                                   field-delim))
+         ;; make request
+         (lines (magithub--command-output
+                 "issue"
+                 (list (format "--format=%s%s" format-string issue-delim))))
+         ;; join lines (for :body)
+         (lines (s-join "\n" lines))
+         ;; and split on the issue delimiter
+         (issues (butlast (s-split issue-delim lines)))
+
+         ;; split into fields
+         (pieces (mapcar (lambda (s) (split-string s field-delim)) issues))
+         ;; zip with our transform functions
+         (pieces (mapcar (lambda (p) (-zip p funcs)) pieces))
+         ;; and apply our transform functions
+         (pieces (mapcar (lambda (i) (mapcar (lambda (p) (funcall (cdr p) (car p))) i)) pieces))
+
+         ;; zip with our properties
+         (zipped (mapcar (lambda (p) (-zip props p)) pieces))
+         ;; simplifying conses to lists -- only necessary until Dash 3.0 (minor performance hit)
+         (zipped (mapcar (lambda (p) (append (mapcar (lambda (c) (if (consp (cdr c)) c (list (car c) (cdr c)))) p))) zipped))
+         ;; removing null values
+         (zipped (delq nil (mapcar (lambda (p) (mapcar (lambda (pair) (when (cadr pair) pair)) p)) zipped)))
+
+         ;; join all our lists into a plist
+         (flat (mapcar (lambda (p) (apply #'append p)) zipped)))
+    ;; determine the type of each issue (PR vs. issue)
+    (mapcar (lambda (p) (if-let ((url (plist-get p :url)))
+                            (append `(:type ,(magithub-issue--url-type url)) p)
+                          p))
+            flat)))
 
 (defun magithub--issue-list ()
   "Return a list of issues for the current repository."
