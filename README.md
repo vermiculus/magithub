@@ -43,6 +43,12 @@ to use Magithub, follow the installation instructions
 at [hub.github.com][hub].  To force `hub` to authenticate, you can use
 `hub browse` in a terminal (inside a GitHub repo).
 
+## Support
+
+I'm gainfully and happily employed with a company that frowns on
+moonlighting, so unfortunately I can't accept any donations myself.
+Instead, [please direct any and all support to Magit itself][magit-donate]!
+
 ## Note
 
 There used to be another `magithub`: [nex3/magithub][old-magithub].
@@ -56,6 +62,7 @@ been defunct for over three years and is likely abandoned, the present
 package's name will not be changing.
 
 [magit]: //www.github.com/magit/magit
+[magit-donate]: https://magit.vc/donate
 [hub]: //hub.github.com
 [gh-use-package]: //github.com/jwiegley/use-package
 [old-magithub]: //github.com/nex3/magithub

@@ -220,24 +220,26 @@ If `issue' is nil, open the repository's issues page."
 
 (defun magithub-issue--insert-issue-section ()
   "Insert GitHub issues if appropriate."
-  (when (magithub-usable-p)
-    (-when-let (issues (magithub-issues))
-      (magit-insert-section (magithub-issue-list)
-        (magit-insert-heading "Issues:")
-        (mapc #'magithub-issue--insert issues)
-        (insert ?\n)))))
+  (magithub-with-proxy (magithub-proxy-default-proxy)
+    (when (magithub-usable-p)
+      (-when-let (issues (magithub-issues))
+        (magit-insert-section (magithub-issue-list)
+          (magit-insert-heading "Issues:")
+          (mapc #'magithub-issue--insert issues)
+          (insert ?\n))))))
 
 (defun magithub-issue--insert-pr-section ()
   "Insert GitHub pull requests if appropriate."
   (magithub-feature-maybe-idle-notify
    'pull-request-merge
    'pull-request-checkout)
-  (when (magithub-usable-p)
-    (-when-let (pull-requests (magithub-pull-requests))
-      (magit-insert-section (magithub-pull-request-list)
-        (magit-insert-heading "Pull Requests:")
-        (mapc #'magithub-issue--insert pull-requests)
-        (insert ?\n)))))
+  (magithub-with-proxy (magithub-proxy-default-proxy)
+    (when (magithub-usable-p)
+      (-when-let (pull-requests (magithub-pull-requests))
+        (magit-insert-section (magithub-pull-request-list)
+          (magit-insert-heading "Pull Requests:")
+          (mapc #'magithub-issue--insert pull-requests)
+          (insert ?\n))))))
 
 (defun magithub-repolist-column-issue (_id)
   "Insert the number of open issues in this repository."

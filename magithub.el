@@ -54,6 +54,7 @@
 (require 'magithub-issue)
 (require 'magithub-cache)
 (require 'magithub-ci)
+(require 'magithub-proxy)
 
 (magit-define-popup magithub-dispatch-popup
   "Popup console for dispatching other Magithub popups."
@@ -65,6 +66,7 @@
              (?f "Fork" magithub-fork-popup)
              (?i "Issues" magithub-issues-popup)
              (?p "Submit a pull request" magithub-pull-request-popup)
+             (?x "Use a proxy repository for issues/PRs" magithub-proxy-set-default)
              "Meta"
              (?` "Toggle Magithub-Status integration" magithub-enabled-toggle)
              (?g "Refresh all GitHub data" magithub-refresh)

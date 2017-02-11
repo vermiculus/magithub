@@ -29,7 +29,7 @@
 (defmacro magithub-with-proxy (remote &rest body)
   "Using REMOTE as `origin', run BODY."
   (declare (indent 1))
-  `(magithub--with-proxy ,remote (lambda () ,@body)))
+  `(magithub--proxy-with-remote ,remote (lambda () ,@body)))
 
 (defconst magithub--proxy-remote-url-config
   '("remote" "origin" "url")
@@ -43,13 +43,36 @@
   "Set the remote of `origin'."
   (apply #'magit-set remote magithub--proxy-remote-url-config))
 
-(defun magithub--with-proxy (remote f)
+(defun magithub--proxy-with-remote (remote f)
   "Using REMOTE as `origin', execute function F.
 F should take no arguments."
-  (let ((real-origin-remote (magithub--proxy-current-remote)))
-    (prog2 (magithub--proxy-set-remote remote)
-        (funcall f)
-      (magithub--proxy-set-remote real-origin-remote))))
+  (if remote
+      (let ((real-origin-remote (magithub--proxy-current-remote)))
+        (prog2 (magithub--proxy-set-remote remote)
+            (condition-case err
+                (funcall f)
+              ;; if F throws errors, make sure to restore the real remote
+              (error (magithub--proxy-set-remote real-origin-remote)
+                     (error err)))
+          (magithub--proxy-set-remote real-origin-remote)))
+    (funcall f)))
+
+(defun magithub-proxy-default-proxy ()
+  "Get the default proxy for this repository."
+  (magit-get "magithub" "proxy"))
+
+(defun magithub-proxy-set-default (remote)
+  "Set REMOTE as the proxy for this repository."
+  (interactive (list (ignore-errors
+                       (magit-read-url
+                        "Please enter the remote url to use for Magithub functionality"
+                        (or (magithub-proxy-default-proxy)
+                            (magithub--proxy-current-remote))))))
+  (if (or (string= remote "")
+          (string= remote (magithub--proxy-current-remote)))
+      (magit-set nil "magithub" "proxy")
+    (magit-set remote "magithub" "proxy"))
+  (magithub-issue-refresh))
 
 (provide 'magithub-proxy)
 ;;; magithub-proxy.el ends here
