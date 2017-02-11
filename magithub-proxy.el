@@ -67,6 +67,7 @@ F should take no arguments."
                        (magit-read-url
                         "Please enter the remote url to use for Magithub functionality"
                         (or (magithub-proxy-default-proxy)
+                            (magit-get "remote" (magit-get "branch" "master" "remote") "url")
                             (magithub--proxy-current-remote))))))
   (if (or (string= remote "")
           (string= remote (magithub--proxy-current-remote)))
