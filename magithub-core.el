@@ -94,6 +94,13 @@ allowed."
   (with-timeout (5 (error "Took too long!  %s%S" command args))
     (magithub-with-hub (funcall magit-function command args))))
 
+(defun magithub--git-raw-output (&rest args)
+  "Execute Git with ARGS, returning its output as string.
+Adapted from `magit-git-lines'."
+  (with-temp-buffer
+    (apply #'magit-git-insert args)
+    (buffer-string)))
+
 (defun magithub--command (command &optional args)
   "Run COMMAND synchronously using `magithub-hub-executable'."
   (magithub--hub-command #'magit-run-git command args))
@@ -103,10 +110,10 @@ allowed."
 Ensure GIT_EDITOR is set up appropriately."
   (magithub--hub-command #'magit-run-git-with-editor command args))
 
-(defun magithub--command-output (command &optional args)
-  "Run COMMAND synchronously using `magithub-hub-executable'
-and returns its output as a list of lines."
-  (magithub--hub-command #'magit-git-lines command args))
+(defun magithub--command-output (command &optional args raw)
+  "Run COMMAND synchronously using `magithub-hub-executable'.
+If not RAW, return output as a list of lines."
+  (magithub--hub-command (if raw #'magithub--git-raw-output #'magit-git-lines) command args))
 
 (defun magithub--command-quick (command &optional args)
   "Quickly execute COMMAND with ARGS."
@@ -222,7 +229,7 @@ See /.github/ISSUE_TEMPLATE.md in this repository."
 If a prop is a symbol, that property will be used.
 
 If a prop is a function, it will be called with the
-currentelement of OBJECT-LIST.
+current element of OBJECT-LIST.
 
 If a prop is nil, the entire element is used."
   (delq nil

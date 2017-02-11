@@ -158,20 +158,20 @@ Response will be processed into a list of plists."
                                 magithub-issue--format-args))
          ;; reset props to the correct order
          (props (mapcar #'cadr format-specs))
+
          ;; grab transform functions in the correct order
          (string-or-nil (lambda (s) (if (string= "" s) nil s)))
          (funcs (mapcar (lambda (fmt) (or (caddr fmt) string-or-nil)) format-specs))
+
          ;; build our --format= string
          (format-string (mapconcat (lambda (f) (concat "%" f))
                                    (mapcar #'car format-specs)
                                    field-delim))
+         (format-string (format "--format=%s%s" format-string issue-delim))
+
          ;; make request
-         (lines (magithub--command-output
-                 "issue"
-                 (list (format "--format=%s%s" format-string issue-delim))))
-         ;; join lines (for :body)
-         (lines (s-join "\n" lines))
-         ;; and split on the issue delimiter
+         (lines (magithub--command-output "issue" (list format-string) t))
+         ;; and split on the issue delimiter (butlast is for the terminal issue-delim)
          (issues (butlast (s-split issue-delim lines)))
 
          ;; split into fields
@@ -182,11 +182,12 @@ Response will be processed into a list of plists."
          (pieces (mapcar (lambda (i) (mapcar (lambda (p) (funcall (cdr p) (car p))) i)) pieces))
 
          ;; zip with our properties
-         (zipped (mapcar (lambda (p) (-zip props p)) pieces))
+         (zipped (mapcar (lambda (p) (-zip props p props)) pieces))
          ;; simplifying conses to lists -- only necessary until Dash 3.0 (minor performance hit)
-         (zipped (mapcar (lambda (p) (append (mapcar (lambda (c) (if (consp (cdr c)) c (list (car c) (cdr c)))) p))) zipped))
+         (zipped (mapcar (lambda (p) (mapcar #'butlast p)) zipped))
          ;; removing null values
-         (zipped (delq nil (mapcar (lambda (p) (mapcar (lambda (pair) (when (cadr pair) pair)) p)) zipped)))
+         (zapnil (lambda (pair) (when (cadr pair) pair)))
+         (zipped (delq nil (mapcar (lambda (p) (mapcar zapnil p)) zipped)))
 
          ;; join all our lists into a plist
          (flat (mapcar (lambda (p) (apply #'append p)) zipped)))
