@@ -255,8 +255,6 @@ Banned inside existing GitHub repositories if
                (t (pop-to-buffer (process-buffer p))
                   (message "unhandled event: %s => %s" (process-command p) event))))))))
 
-(read-directory-name "Destination: " magithub-clone-default-directory "hello")
-
 (defun magithub-clone--finished (user repo dir)
   "After finishing the clone, allow the user to jump to their new repo."
   (when (y-or-n-p (format "%s/%s has finished cloning to %s.  Open? " user repo dir))
