@@ -236,16 +236,19 @@ Banned inside existing GitHub repositories if
                  (let ((args (magithub-clone--get-repo)))
                    (append args (list (read-directory-name
                                        "Destination: "
-                                       magithub-clone-default-directory
+                                       (if (s-ends-with? "/" magithub-clone-default-directory)
+                                           magithub-clone-default-directory
+                                         (concat magithub-clone-default-directory "/"))
+                                       nil nil
                                        (cadr args)))))))
   (unless (file-writable-p dir)
     (user-error "%s does not exist or is not writable" dir))
-  (when (y-or-n-p (format "Clone %s/%s to %s/%s? " user repo dir repo))
+  (when (y-or-n-p (format "Clone %s/%s to %s? " user repo dir))
     (let* ((proc (start-process "*magithub-clone*" "*magithub-clone*"
                                 magithub-hub-executable
                                 "clone"
                                 (format "%s/%s" user repo)
-                                (expand-file-name repo dir))))
+                                dir)))
       (set-process-sentinel
        proc
        (lambda (p event)
@@ -258,7 +261,7 @@ Banned inside existing GitHub repositories if
 (defun magithub-clone--finished (user repo dir)
   "After finishing the clone, allow the user to jump to their new repo."
   (when (y-or-n-p (format "%s/%s has finished cloning to %s.  Open? " user repo dir))
-    (magit-status (s-chop-suffix "/" (expand-file-name repo dir)))))
+    (magit-status (s-chop-suffix "/" dir))))
 
 (defvar magithub-features nil
   "An alist of feature-symbols to Booleans.
