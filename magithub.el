@@ -1,6 +1,6 @@
 ;;; magithub.el --- Magit interfaces for GitHub  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016  Sean Allred
+;; Copyright (C) 2016-2017  Sean Allred
 
 ;; Author: Sean Allred <code@seanallred.com>
 ;; Keywords: git, tools, vc
@@ -222,16 +222,45 @@ Returns a list (USER REPOSITORY)."
     (list (match-string 1 repo)
           (match-string 2 repo))))
 
-(defun magithub-clone (user repo)
+(defcustom magithub-clone-default-directory nil
+  "Default directory to clone to when using `magithub-clone'.
+When nil, the current directory at invocation is used.")
+
+(defun magithub-clone (user repo dir)
   "Clone USER/REPO.
-Banned inside existing GitHub repositories."
-  (interactive (if (magithub-github-repository-p)
+Banned inside existing GitHub repositories if
+`magithub-clone-default-directory' is nil."
+  (interactive (if (and (not magithub-clone-default-directory)
+                        (magithub-github-repository-p))
                    (user-error "Already in a GitHub repo")
-                 (magithub-clone--get-repo)))
-  (async-shell-command
-   (format "%s clone %s/%s"
-           magithub-hub-executable
-           user repo)))
+                 (let ((args (magithub-clone--get-repo)))
+                   (append args (list (read-directory-name
+                                       "Destination: "
+                                       magithub-clone-default-directory
+                                       (cadr args)))))))
+  (unless (file-writable-p dir)
+    (user-error "%s does not exist or is not writable" dir))
+  (when (y-or-n-p (format "Clone %s/%s to %s/%s? " user repo dir repo))
+    (let* ((proc (start-process "*magithub-clone*" "*magithub-clone*"
+                                magithub-hub-executable
+                                "clone"
+                                (format "%s/%s" user repo)
+                                (expand-file-name repo dir))))
+      (set-process-sentinel
+       proc
+       (lambda (p event)
+         (setq event (s-trim event))
+         (cond ((string= event "finished")
+                (run-with-idle-timer 1 nil #'magithub-clone--finished user repo dir))
+               (t (pop-to-buffer (process-buffer p))
+                  (message "unhandled event: %s => %s" (process-command p) event))))))))
+
+(read-directory-name "Destination: " magithub-clone-default-directory "hello")
+
+(defun magithub-clone--finished (user repo dir)
+  "After finishing the clone, allow the user to jump to their new repo."
+  (when (y-or-n-p (format "%s/%s has finished cloning to %s.  Open? " user repo dir))
+    (magit-status (s-chop-suffix "/" (expand-file-name repo dir)))))
 
 (defvar magithub-features nil
   "An alist of feature-symbols to Booleans.
