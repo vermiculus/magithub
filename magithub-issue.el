@@ -31,6 +31,7 @@
 
 (require 'magithub-core)
 (require 'magithub-cache)
+(require 'magithub-proxy)
 
 (magit-define-popup magithub-issues-popup
   "Popup console for creating GitHub issues."
