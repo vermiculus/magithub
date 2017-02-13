@@ -216,10 +216,10 @@ Response will be processed into a list of plists."
   "Insert an `issue' as a Magit section into the buffer."
   (when issue
     (magit-insert-section (magithub-issue issue)
-      (insert (format " %3d  %s\n"
+      (insert (format " %4d  %s\n"
                       (plist-get issue :number)
                       (magithub-issue--wrap-title
-                       (plist-get issue :title) 6))))))
+                       (plist-get issue :title) 7))))))
 
 (defun magithub-issue-browse (issue)
   "Visits `issue' in the browser.
