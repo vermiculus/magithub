@@ -1,6 +1,6 @@
 ;;; magithub-ci.el --- Show CI status as a magit-status header  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016  Sean Allred
+;; Copyright (C) 2016-2017  Sean Allred
 
 ;; Author: Sean Allred <code@seanallred.com>
 ;; Keywords: tools
