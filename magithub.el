@@ -262,7 +262,7 @@ Banned inside existing GitHub repositories if
 (defun magithub-clone--finished (user repo dir)
   "After finishing the clone, allow the user to jump to their new repo."
   (when (y-or-n-p (format "%s/%s has finished cloning to %s.  Open? " user repo dir))
-    (magit-status (s-chop-suffix "/" dir))))
+    (magit-status-internal (s-chop-suffix "/" dir))))
 
 (defvar magithub-features nil
   "An alist of feature-symbols to Booleans.
