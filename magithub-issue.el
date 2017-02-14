@@ -193,7 +193,7 @@ Response will be processed into a list of plists."
          ;; join all our lists into a plist
          (flat (mapcar (lambda (p) (apply #'append p)) zipped)))
     ;; determine the type of each issue (PR vs. issue)
-    (mapcar (lambda (p) (if-let ((url (plist-get p :url)))
+    (mapcar (lambda (p) (-if-let (url (plist-get p :url))
                             (append `(:type ,(magithub-issue--url-type url)) p)
                           p))
             flat)))
