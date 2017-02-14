@@ -224,7 +224,8 @@ Returns a list (USER REPOSITORY)."
 
 (defcustom magithub-clone-default-directory nil
   "Default directory to clone to when using `magithub-clone'.
-When nil, the current directory at invocation is used.")
+When nil, the current directory at invocation is used."
+  :group 'magithub)
 
 (defun magithub-clone (user repo dir)
   "Clone USER/REPO.
