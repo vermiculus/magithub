@@ -243,5 +243,51 @@ If a prop is nil, the entire element is used."
                      (if prop2 p2 e2)))))
          object-list object-list)))
 
+(defconst magithub-feature-list
+  '(pull-request-merge pull-request-checkout)
+  "All magit-integration features of Magithub.
+
+`pull-request-merge'
+Apply patches from pull request
+
+`pull-request-checkout'
+Checkout pull requests as new branches")
+
+(defvar magithub-features nil
+  "An alist of feature-symbols to Booleans.
+When a feature symbol maps to non-nil, that feature is considered
+'loaded'.  Thus, to disable all messages, prepend '(t . t) to
+this list.
+
+Example:
+
+    ((pull-request-merge . t) (other-feature . nil))
+
+signals that `pull-request-merge' is a loaded feature and
+`other-feature' has not been loaded and will not be loaded.
+
+To enable all features, see `magithub-feature-autoinject'.
+
+See `magithub-feature-list' for a list and description of features.")
+
+(defun magithub-feature-check (feature)
+  "Check if a Magithub FEATURE has been configured.
+See `magithub-features'."
+  (if (listp magithub-features)
+      (let* ((p (assq feature magithub-features)))
+        (if (consp p) (cdr p)
+          (cdr (assq t magithub-features))))
+    magithub-features))
+
+(defun magithub-feature-maybe-idle-notify (&rest feature-list)
+  "Notify user if any of FEATURES are not yet configured."
+  (unless (-all? #'magithub-feature-check feature-list)
+    (let ((m "Magithub features not configured: %S")
+          (s "see variable `magithub-features' to turn off this message"))
+      (run-with-idle-timer
+       1 nil (lambda ()
+               (message (concat m "; " s) feature-list)
+               (add-to-list 'feature-list '(t . t) t))))))
+
 (provide 'magithub-core)
 ;;; magithub-core.el ends here

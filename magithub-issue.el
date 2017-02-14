@@ -121,12 +121,6 @@ See `magithub-issue-list--internal'."
    (mapcar #'magithub-issue--process-line-2.2.8
            (magithub--command-output "issue"))))
 
-(defun magithub--issue-list--internal ()
-  "Return a new list of issues for the current repository."
-  (magithub-issue--sort
-   (magithub--issue-list--get-properties
-    (mapcar #'cadr magithub-issue--format-args))))
-
 (defconst magithub-issue--format-args
   (let ((csv (lambda (s) (unless (string= s "") (s-split "," s))))
         (num (lambda (s) (unless (string= s "") (string-to-number s))))
@@ -149,6 +143,12 @@ See `magithub-issue-list--internal'."
 2. Property keyword to be used in the plist
 3. Optional response parser function")
 
+(defun magithub--issue-list--internal ()
+  "Return a new list of issues for the current repository."
+  (magithub-issue--sort
+   (magithub--issue-list--get-properties
+    (mapcar #'cadr magithub-issue--format-args))))
+
 (defun magithub--issue-list--get-properties (props)
   "Make a new request for PROPS (and only PROPS).
 Response will be processed into a list of plists."
@@ -162,7 +162,7 @@ Response will be processed into a list of plists."
 
          ;; grab transform functions in the correct order
          (string-or-nil (lambda (s) (if (string= "" s) nil s)))
-         (funcs (mapcar (lambda (fmt) (or (caddr fmt) string-or-nil)) format-specs))
+         (funcs (mapcar (lambda (fmt) (or (car (cddr fmt)) string-or-nil)) format-specs))
 
          ;; build our --format= string
          (format-string (mapconcat (lambda (f) (concat "%" f))
