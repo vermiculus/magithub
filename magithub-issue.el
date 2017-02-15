@@ -68,11 +68,26 @@ are in DEFAULT are not prompted for again."
     (let* ((default-labels (when default (s-split "," default t))))
       (cl-set-difference (magithub-issue-label-list) default-labels)))))
 
+(defun magithub-issue-sort-ascending (a b)
+  "Lower issue numbers come first."
+  (< (plist-get a :number)
+     (plist-get b :number)))
+
+(defun magithub-issue-sort-descending (a b)
+  "Higher issue numbers come first."
+  (< (plist-get b :number)
+     (plist-get a :number)))
+
+(defcustom magithub-issue-sort-function
+  #'magithub-issue-sort-ascending
+  "Function used for sorting issues and pull requests in the
+status buffer.  Should take two issue-objects as arguments."
+  :type 'function
+  :group 'magithub)
+
 (defun magithub-issue--sort (issues)
-  "Sort ISSUES by issue number."
-  (sort issues
-        (lambda (a b) (< (plist-get a :number)
-                         (plist-get b :number)))))
+  "Sort ISSUES by `magithub-issue-sort-function'."
+  (sort issues magithub-issue-sort-function))
 
 (defun magithub-issue--url-type (url)
   "If URL corresponds to an issue, the symbol `issue'.
