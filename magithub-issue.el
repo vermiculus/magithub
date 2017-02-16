@@ -56,10 +56,11 @@
       (gh-issues-issue-list (gh-issues-api "API") "vermiculus" "magithub"))))
 
 (defun magithub-issue-label-list ()
-  "Return a list of issue labels.
-This is a hard-coded list right now."
-  (list "bug" "duplicate" "enhancement"
-        "help wanted" "invalid" "question" "wontfix"))
+  "Return a list of issue labels."
+  (magithub-with-current-repo user repo
+    (mapcar (lambda (label-obj) (oref label-obj :name))
+            (oref (gh-issues-label-list (gh-issues-api "API") user repo)
+                  data))))
 
 (defun magithub-issue-read-labels (prompt &optional default)
   "Read some issue labels and return a comma-separated string.
