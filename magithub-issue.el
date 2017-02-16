@@ -28,6 +28,7 @@
 (require 'magit-section)
 (require 'dash)
 (require 's)
+(require 'gh)
 
 (require 'magithub-core)
 (require 'magithub-cache)
@@ -47,6 +48,12 @@
     (user-error "Not a GitHub repository"))
   (magithub--command-with-editor
    "issue" (cons "create" (magithub-issues-arguments))))
+
+(defun magithub--issue-list ()
+  "Return a list of issues for the current repository."
+  (with-temp-message "Retrieving issue list..."
+    (magithub-with-current-repo user repo
+      (gh-issues-issue-list (gh-issues-api "API") "vermiculus" "magithub"))))
 
 (defun magithub-issue-label-list ()
   "Return a list of issue labels.
@@ -89,152 +96,21 @@ status buffer.  Should take two issue-objects as arguments."
   "Sort ISSUES by `magithub-issue-sort-function'."
   (sort issues magithub-issue-sort-function))
 
-(defun magithub-issue--url-type (url)
-  "If URL corresponds to an issue, the symbol `issue'.
-If URL correponds to a pull request, the symbol `pull-request'."
-  (if (string-match-p (rx "/pull/" (+ digit) eos) url)
-      'pull-request 'issue))
-
-(defun magithub-issue--process-line-2.2.8 (s)
-  "Process a line S into an issue.
-
-Returns a plist with the following properties:
-
-  :number  issue or pull request number
-  :type    either 'pull-request or 'issue
-  :title   the title of the issue or pull request
-  :url     link to issue or pull request"
-  (let (number title url)
-    (if (ignore-errors
-          (with-temp-buffer
-            (insert s)
-            (goto-char 0)
-            (search-forward "]")
-            (setq number (string-to-number (substring s 0 (point))))
-            (setq title (substring s (point)
-                                   (save-excursion
-                                     (goto-char (point-max))
-                                     (- (search-backward "(") 2))))
-            (goto-char (point-max))
-            (delete-char -2)
-            (search-backward "(")
-            (forward-char 2)
-            (setq url (buffer-substring-no-properties (point) (point-max)))
-            t))
-        (list :number number
-              :type (magithub-issue--url-type url)
-              :title title
-              :url url)
-      (magithub-error
-       "failed to parse issue"
-       "There was an error parsing issues."))))
-
-(defun magithub--issue-list--internal-2.2.8 ()
-  "Backwards compatibility for old versions of hub.
-See `magithub-issue-list--internal'."
-  (magithub-issue--sort
-   (mapcar #'magithub-issue--process-line-2.2.8
-           (magithub--command-output "issue"))))
-
-(defconst magithub-issue--format-args
-  (let ((csv (lambda (s) (unless (string= s "") (s-split "," s))))
-        (num (lambda (s) (unless (string= s "") (string-to-number s))))
-        (time (lambda (s) (seconds-to-time (string-to-number s)))))
-    `(("I" :number ,num)
-      ("U" :url)
-      ("t" :title)
-      ("L" :labels ,csv)
-      ("au" :author)
-      ("Mn" :milestone ,num)
-      ("Mt" :milestone-title)
-      ("NC" :comment-count ,num)
-      ("b" :body)
-      ("as" :assignees ,csv)
-      ("ct" :created ,time)
-      ("ut" :updated ,time)))
-  "List of format specifiers.
-
-1. Format code for Hub
-2. Property keyword to be used in the plist
-3. Optional response parser function")
-
-(defun magithub--issue-list--internal ()
-  "Return a new list of issues for the current repository."
-  (magithub-issue--sort
-   (magithub--issue-list--get-properties
-    (mapcar #'cadr magithub-issue--format-args))))
-
-(defun magithub--issue-list--get-properties (props)
-  "Make a new request for PROPS (and only PROPS).
-Response will be processed into a list of plists."
-  (let* ((field-delim (char-to-string 1)) ;non-printing char -- safely delimit freetext
-         (issue-delim (char-to-string 2))
-         ;; filter the master list to just the properties we're interested in
-         (format-specs (-remove (lambda (fmt) (not (memq (cadr fmt) props)))
-                                magithub-issue--format-args))
-         ;; reset props to the correct order
-         (props (mapcar #'cadr format-specs))
-
-         ;; grab transform functions in the correct order
-         (string-or-nil (lambda (s) (if (string= "" s) nil s)))
-         (funcs (mapcar (lambda (fmt) (or (car (cddr fmt)) string-or-nil)) format-specs))
-
-         ;; build our --format= string
-         (format-string (mapconcat (lambda (f) (concat "%" f))
-                                   (mapcar #'car format-specs)
-                                   field-delim))
-         (format-string (format "--format=%s%s" format-string issue-delim))
-
-         ;; make request
-         (lines (magithub--command-output "issue" (list format-string) t))
-         ;; and split on the issue delimiter (butlast is for the terminal issue-delim)
-         (issues (butlast (s-split issue-delim lines)))
-
-         ;; split into fields
-         (pieces (mapcar (lambda (s) (split-string s field-delim)) issues))
-         ;; zip with our transform functions
-         (pieces (mapcar (lambda (p) (-zip p funcs)) pieces))
-         ;; and apply our transform functions
-         (pieces (mapcar (lambda (i) (mapcar (lambda (p) (funcall (cdr p) (car p))) i)) pieces))
-
-         ;; zip with our properties
-         (zipped (mapcar (lambda (p) (-zip props p props)) pieces))
-         ;; simplifying conses to lists -- only necessary until Dash 3.0 (minor performance hit)
-         (zipped (mapcar (lambda (p) (mapcar #'butlast p)) zipped))
-         ;; removing null values
-         (zapnil (lambda (pair) (when (cadr pair) pair)))
-         (zipped (delq nil (mapcar (lambda (p) (mapcar zapnil p)) zipped)))
-
-         ;; join all our lists into a plist
-         (flat (mapcar (lambda (p) (apply #'append p)) zipped)))
-    ;; determine the type of each issue (PR vs. issue)
-    (mapcar (lambda (p) (-if-let (url (plist-get p :url))
-                            (append `(:type ,(magithub-issue--url-type url)) p)
-                          p))
-            flat)))
-
-(defun magithub--issue-list ()
-  "Return a list of issues for the current repository."
-  (magithub-cache (magithub-repo-id) :issues
-    '(with-temp-message "Retrieving issue list..."
-       (if (magithub-hub-version-at-least "2.3")
-           (magithub--issue-list--internal)
-         (magithub--issue-list--internal-2.2.8)))))
-
 (defun magithub-issue--wrap-title (title indent)
   "Word-wrap string TITLE to `fill-column' with an INDENT."
   (s-replace
    "\n" (concat "\n" (make-string indent ?\ ))
    (s-word-wrap (- fill-column indent) title)))
 
+(defun magithub-issue--format (issue)
+  (with-slots ((number :number) (title :title)) issue
+    (format " %4d  %s\n" number (magithub-issue--wrap-title title 7))))
+
 (defun magithub-issue--insert (issue)
-  "Insert an `issue' as a Magit section into the buffer."
+  "Insert ISSUE as a Magit section into the buffer."
   (when issue
     (magit-insert-section (magithub-issue issue)
-      (insert (format " %4d  %s\n"
-                      (plist-get issue :number)
-                      (magithub-issue--wrap-title
-                       (plist-get issue :title) 7))))))
+      (insert (magithub-issue--format issue)))))
 
 (defun magithub-issue-browse (issue)
   "Visits `issue' in the browser.
@@ -243,15 +119,13 @@ Interactively, this finds the issue at point.
 If `issue' is nil, open the repository's issues page."
   (interactive (list (magit-section-value
                       (magit-current-section))))
-  (browse-url
-   (if (plist-member issue :url)
-       (plist-get issue :url)
-     (car (magithub--command-output "browse" '("--url-only" "--" "issues"))))))
+  (-when-let (url (oref issue :html-url))
+    (browse-url url)))
 
+;;; todo: bring back caching
 (defun magithub-issue-refresh ()
   "Refresh issues for this repository."
   (interactive)
-  (magithub-cache-clear (magithub-repo-id) :issues)
   (when (derived-mode-p 'magit-status-mode)
     (magit-refresh)))
 
@@ -276,41 +150,42 @@ If `issue' is nil, open the repository's issues page."
     map)
   "Keymap for `magithub-pull-request-list' sections.")
 
-(defun magithub--issues-of-type (type)
-  "Filter `magithub--issue-list' for issues of type TYPE."
-  (-filter (lambda (i) (eq (plist-get i :type) type))
-           (magithub--issue-list)))
+(defun magithub-issue--issue-is-pull-p (issue)
+  (oref* issue :pull-request :html-url))
+
+(defun magithub-issue--issue-is-issue-p (issue)
+  (not (magithub-issue--issue-is-pull-p issue)))
 
 (defun magithub-issues ()
   "Return a list of issue objects that are actually issues."
-  (magithub--issues-of-type 'issue))
+  (-filter #'magithub-issue--issue-is-issue-p
+           (oref (magithub--issue-list) :data)))
 
 (defun magithub-pull-requests ()
   "Return a list of issue objects that are actually pull requests."
-  (magithub--issues-of-type 'pull-request))
+  (-filter #'magithub-issue--issue-is-pull-p
+           (oref (magithub--issue-list) :data)))
 
 (defun magithub-issue--insert-issue-section ()
   "Insert GitHub issues if appropriate."
-  (magithub-with-proxy (magithub-proxy-default-proxy)
-    (when (magithub-usable-p)
-      (-when-let (issues (magithub-issues))
-        (magit-insert-section (magithub-issue-list)
-          (magit-insert-heading "Issues:")
-          (mapc #'magithub-issue--insert issues)
-          (insert ?\n))))))
+  (when (magithub-usable-p)
+    (-when-let (issues (magithub-issues))
+      (magit-insert-section (magithub-issue-list)
+        (magit-insert-heading "Issues:")
+        (mapc #'magithub-issue--insert issues)
+        (insert ?\n)))))
 
 (defun magithub-issue--insert-pr-section ()
   "Insert GitHub pull requests if appropriate."
   (magithub-feature-maybe-idle-notify
    'pull-request-merge
    'pull-request-checkout)
-  (magithub-with-proxy (magithub-proxy-default-proxy)
-    (when (magithub-usable-p)
-      (-when-let (pull-requests (magithub-pull-requests))
-        (magit-insert-section (magithub-pull-request-list)
-          (magit-insert-heading "Pull Requests:")
-          (mapc #'magithub-issue--insert pull-requests)
-          (insert ?\n))))))
+  (when (magithub-usable-p)
+    (-when-let (pull-requests (magithub-pull-requests))
+      (magit-insert-section (magithub-pull-request-list)
+        (magit-insert-heading "Pull Requests:")
+        (mapc #'magithub-issue--insert pull-requests)
+        (insert ?\n)))))
 
 (defun magithub-repolist-column-issue (_id)
   "Insert the number of open issues in this repository."

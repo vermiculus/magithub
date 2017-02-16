@@ -289,6 +289,22 @@ See `magithub-features'."
                (message (concat m "; " s) feature-list)
                (add-to-list 'feature-list '(t . t) t))))))
 
+;;; todo: merge upstream
+(defmacro oref* (object &rest slots)
+  "Like `oref', but each slot in SLOTS is applied in sequence.
+
+For example,
+
+  \(oref* obj :inner :property)
+
+is equivalent to
+
+  \(oref \(oref obj :inner) :property)"
+  (while slots
+    (setq object (list 'oref object (car slots))
+          slots (cdr slots)))
+  object)
+
 (defun magithub--url->repo (url)
   "Tries to parse a remote url into a GitHub repository"
   (when (and url (string-match (rx bol (+ any) (or "/" ":")

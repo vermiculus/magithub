@@ -66,7 +66,7 @@
              (?f "Fork" magithub-fork-popup)
              (?i "Issues" magithub-issues-popup)
              (?p "Submit a pull request" magithub-pull-request-popup)
-             (?x "Use a proxy repository for issues/PRs" magithub-proxy-set-default)
+             (?x "Use a proxy repository for issues/PRs" magithub-proxy-set)
              "Meta"
              (?` "Toggle Magithub-Status integration" magithub-enabled-toggle)
              (?g "Refresh all GitHub data" magithub-refresh)
