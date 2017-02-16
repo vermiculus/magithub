@@ -289,5 +289,37 @@ See `magithub-features'."
                (message (concat m "; " s) feature-list)
                (add-to-list 'feature-list '(t . t) t))))))
 
+(defun magithub--url->repo (url)
+  "Tries to parse a remote url into a GitHub repository"
+  (when (and url (string-match (rx bol (+ any) (or "/" ":")
+                                   (group (+ any)) "/" (group (+ any))
+                                   ".git" eol)
+                               url))
+    (list (match-string 1 url)
+          (match-string 2 url))))
+
+(defun magithub-source-remote ()
+  "Tries to determine the correct remote to use for issue-tracking."
+  (or (magit-get "magithub" "proxy")
+      (magit-get-remote (or (magit-get-upstream-branch
+                             (magit-get-current-branch))
+                            "master"))
+      "origin"))
+
+(defun magithub-source-repo ()
+  "Uses the URL of `magithub-source-remote' to parse out repository information.
+Returns output of `magithub--url->repo'."
+  (or (magithub--url->repo (magit-get "remote" (magithub-source-remote) "url"))
+      (magithub-error "failed to parse remote url"
+                      "There was an error parsing the remote's url.")))
+
+(defmacro magithub-with-current-repo (owner-sym repo-sym &rest body)
+  "Bind OWNER-SYM and REPO-SYM to the current owner/repository."
+  (declare (indent 2))
+  `(let* ((,repo-sym (magithub-source-repo))
+          (,owner-sym (car ,repo-sym))
+          (,repo-sym (cadr ,repo-sym)))
+     ,@body))
+
 (provide 'magithub-core)
 ;;; magithub-core.el ends here
