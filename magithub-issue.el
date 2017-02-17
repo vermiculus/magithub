@@ -114,10 +114,9 @@ you do not have push access."
     (magithub-issue-mode)
     (insert (format "Title: %s\nLabels: %s\n\n"
                     title (s-join "," labels)))
-    (magithub-with-current-repo owner repo
-      (setq magithub-issue--info
-            (list :owner owner :repo repo
-                  :title title :labels labels)))
+    (setq magithub-issue--info
+          (list :owner owner :repo repo
+                :title title :labels labels))
     (pop-to-buffer (current-buffer))))
 
 (defun magithub-issue-submit (&rest repo-info)
