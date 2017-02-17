@@ -30,6 +30,7 @@
 (require 's)
 (require 'gh)
 (require 'markdown-mode)
+(require 'uuidgen)
 
 (require 'magithub-core)
 (require 'magithub-cache)
@@ -74,14 +75,17 @@
                   (magithub-issue-dir owner repo))))
     name))
 
-(defun magithub-issue-save-draft ()
+(defvar-local magithub-issue--info nil
+  "Buffer-local variable for issue info")
+
+(defun magithub-issue-save-draft (&rest repo-info)
   "Saves an issue to disk.
 
 Right now, there is no way to automatically resume this draft,
 though this feature is planned."
-  (interactive)
-  (let ((owner (plist-get magithub-issue--info :owner))
-        (repo (plist-get magithub-issue--info :repo)))
+  (interactive magithub-issue--info)
+  (let ((owner (plist-get repo-info :owner))
+        (repo (plist-get repo-info :repo)))
     (save-excursion
       (goto-char 0)
       (insert (format "Owner: %s\nRepository: %s\n" owner repo)))
@@ -89,9 +93,6 @@ though this feature is planned."
                   (magithub-issue-new-filename owner repo)
                   nil nil nil 'excl))
   (message "Issue saved"))
-
-(defvar-local magithub-issue--info nil
-  "Buffer-local variable for issue info")
 
 (defun magithub-issue-new (owner repo title labels)
   "Create a new issue.
@@ -139,12 +140,23 @@ properties.  The default is `magithub-issue--info' (set in
       (setq response (gh-issues-issue-new
                       (gh-issues-api "api")
                       owner repo new-issue))
-      (if (not response)
-          (magithub-error "issue submission failed"
-                          "Failed to submit new issue.")
-        (kill-buffer-and-window)
-        (when (y-or-n-p (format "#%d submitted; open in your browser? " (oref* response data :number)))
-          (magithub-issue-browse (oref response data)))))))
+
+      (unless response
+        (magithub-error "issue submission failed"
+                        "Failed to submit new issue."))
+
+      (kill-buffer-and-window)
+      (when (y-or-n-p (format "#%d submitted; open in your browser? " (oref* response data :number)))
+        (magithub-issue-browse (oref response data))))))
+
+(defun magithub-issue-cancel (&rest repo-info)
+  "Cancel the current issue draft."
+  (interactive magithub-issue--info)
+  (when repo-info
+    (if (y-or-n-p "Save your draft locally? ")
+        (magithub-issue-save-draft repo-info)
+      (when (yes-or-no-p "Your draft will be lost forever; are you sure? ")
+        (kill-buffer-and-window)))))
 
 ;;; todo: make headers read-only
 (defun magithub-issue--parse-new-issue (text)
