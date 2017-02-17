@@ -30,7 +30,6 @@
 (require 's)
 (require 'gh)
 (require 'markdown-mode)
-(require 'uuidgen)
 
 (require 'magithub-core)
 (require 'magithub-cache)
@@ -66,12 +65,13 @@
   (expand-file-name (format "%s/%s/issues" owner repo)
                     magithub-dir))
 
-(defun magithub-issue-new-filename (owner repo)
+(defun magithub-issue-new-filename (owner repo &optional rand-seed)
   "Determine an appropriate filename an issue draft on OWNER/REPO."
   (let ((name ""))
     (while (file-exists-p name)
       (setq name (expand-file-name
-                  (with-temp-buffer (uuidgen nil) (buffer-string))
+                  (md5 (format "%S%S%S%S%S" rand-seed (current-time)
+                               (emacs-uptime) (emacs-pid) (random)))
                   (magithub-issue-dir owner repo))))
     name))
 
@@ -90,7 +90,7 @@ though this feature is planned."
       (goto-char 0)
       (insert (format "Owner: %s\nRepository: %s\n" owner repo)))
     (write-region (point-min) (point-max)
-                  (magithub-issue-new-filename owner repo)
+                  (magithub-issue-new-filename owner repo (buffer-string))
                   nil nil nil 'excl))
   (message "Issue saved"))
 
