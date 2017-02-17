@@ -29,6 +29,7 @@
 (require 'dash)
 (require 's)
 (require 'gh)
+(require 'markdown-mode)
 
 (require 'magithub-core)
 (require 'magithub-cache)
@@ -41,26 +42,135 @@
   :options '((?l "Add labels" "--label=" magithub-issue-read-labels))
   :actions '((?c "Create new issue" magithub-issue-new)))
 
-(defun magithub-issue-new ()
-  "Create a new issue on GitHub."
+(define-derived-mode magithub-issue-mode gfm-mode
+  "Magithub Issue"
+  "Major-mode for creating issues and pull requests for GitHub"
+  :group 'magithub
+  (use-local-map magithub-issue-mode-map))
+
+(defvar magithub-issue-mode-map
+  (let ((m (make-sparse-keymap)))
+    (define-key m (kbd "C-c C-c C-c") #'magithub-issue-submit)
+    (define-key m (kbd "C-c C-c C-k") #'magithub-issue-cancel)
+    (define-key m [remap save-buffer] #'magithub-issue-save-draft)
+    m)
+  "Keymap used for `magithub-issue-mode'.")
+
+(defconst magithub-dir
+  (expand-file-name "magithub" user-emacs-directory)
+  "Data directory.")
+
+(defun magithub-issue-dir (owner repo)
+  "Data directory for OWNER/REPO."
+  (expand-file-name (format "%s/%s/issues" owner repo)
+                    magithub-dir))
+
+(defun magithub-issue-new-filename (owner repo)
+  "Determine an appropriate filename an issue draft on OWNER/REPO."
+  (let ((name ""))
+    (while (file-exists-p name)
+      (setq name (expand-file-name
+                  (with-temp-buffer (uuidgen nil) (buffer-string))
+                  (magithub-issue-dir owner repo))))
+    name))
+
+(defun magithub-issue-save-draft ()
+  "Saves an issue to disk.
+
+Right now, there is no way to automatically resume this draft,
+though this feature is planned."
   (interactive)
-  (unless (magithub-github-repository-p)
-    (user-error "Not a GitHub repository"))
-  (magithub--command-with-editor
-   "issue" (cons "create" (magithub-issues-arguments))))
+  (let ((owner (plist-get magithub-issue--info :owner))
+        (repo (plist-get magithub-issue--info :repo)))
+    (save-excursion
+      (goto-char 0)
+      (insert (format "Owner: %s\nRepository: %s\n" owner repo)))
+    (write-region (point-min) (point-max)
+                  (magithub-issue-new-filename owner repo)
+                  nil nil nil 'excl))
+  (message "Issue saved"))
+
+(defvar-local magithub-issue--info nil
+  "Buffer-local variable for issue info")
+
+(defun magithub-issue-new (owner repo title labels)
+  "Create a new issue.
+
+OWNER and REPO identifies the target repository for the new
+issue.  Interactively, this is determined by
+`magithub-source-repo'.
+
+TITLE is the title of the new issue.
+
+LABELS is a list of string labels to give to the new issue.  Note
+that these are ignored when creating issues on repositories where
+you do not have push access."
+  (interactive (append (magithub-source-repo t)
+                       (list
+                        (read-string "Issue title: ")
+                        (magithub-issue-read-labels-list "Issue labels: "))))
+  (with-current-buffer (generate-new-buffer "*magithub issue*")
+    (magithub-issue-mode)
+    (insert (format "Title: %s\nLabels: %s\n\n"
+                    title (s-join "," labels)))
+    (magithub-with-current-repo owner repo
+      (setq magithub-issue--info
+            (list :owner owner :repo repo
+                  :title title :labels labels)))
+    (pop-to-buffer (current-buffer))))
+
+(defun magithub-issue-submit (&rest repo-info)
+  "Submit a new issue to this repository.
+
+REPO-INFO should be a plist with :owner and :repo string
+properties.  The default is `magithub-issue--info' (set in
+`magithub-issue-new')."
+  (interactive magithub-issue--info)
+  (unless repo-info
+    (magithub-error "no issue" "No issue information available."))
+  (let ((new-issue
+         (magithub-issue--parse-new-issue
+          (buffer-substring-no-properties
+           (point-min) (point-max))))
+        (owner (plist-get repo-info :owner))
+        (repo (plist-get repo-info :repo))
+        response)
+    (when (yes-or-no-p (format "Submit this new issue to %s/%s? " owner repo))
+      (setq response (gh-issues-issue-new
+                      (gh-issues-api "api")
+                      owner repo new-issue))
+      (if (not response)
+          (magithub-error "issue submission failed"
+                          "Failed to submit new issue.")
+        (kill-buffer-and-window)
+        (when (y-or-n-p (format "#%d submitted; open in your browser? " (oref* response data :number)))
+          (magithub-issue-browse (oref response data)))))))
+
+;;; todo: make headers read-only
+(defun magithub-issue--parse-new-issue (text)
+  "Parse TEXT and return a gh-issues-issue object.
+
+TEXT is assumed to be of the following format:
+
+    Title: My issue title
+    Labels: bug,enhancement,...
+
+    Start of issue body."
+  (let* ((parts (s-split-up-to "\n\n" text 1))
+         (header (mapcar (lambda (s) (apply #'cons (s-split-up-to ": " s 1)))
+                         (s-split "\n" (car parts))))
+         (body (cadr parts)))
+    (make-instance 'gh-issues-issue
+                   :title (cdr (assoc "Title" header))
+                   :labels (mapcar (lambda (n) (make-instance 'gh-issues-label :name (s-trim n)))
+                                   (s-split "," (cdr (assoc "Labels" header))))
+                   :body body)))
 
 (defun magithub--issue-list ()
   "Return a list of issues for the current repository."
   (with-temp-message "Retrieving issue list..."
     (magithub-with-current-repo user repo
-      (gh-issues-issue-list (gh-issues-api "API") "vermiculus" "magithub"))))
-
-(defun magithub-issue-label-list ()
-  "Return a list of issue labels."
-  (magithub-with-current-repo user repo
-    (mapcar (lambda (label-obj) (oref label-obj :name))
-            (oref (gh-issues-label-list (gh-issues-api "API") user repo)
-                  data))))
+      (gh-issues-issue-list (gh-issues-api "API") user repo))))
 
 (defun magithub-issue-read-labels (prompt &optional default)
   "Read some issue labels and return a comma-separated string.
@@ -68,13 +178,26 @@ Available issues are provided by `magithub-issue-label-list'.
 
 DEFAULT is a comma-separated list of issues -- those issues that
 are in DEFAULT are not prompted for again."
-  ;; todo: probably need to add DEFAULT to the top here
-  (s-join
-   ","
-   (magithub--completing-read-multiple
-    (format "%s... %s" prompt "Issue labels (or \"\" to quit): ")
-    (let* ((default-labels (when default (s-split "," default t))))
-      (cl-set-difference (magithub-issue-label-list) default-labels)))))
+  (->> (when default (s-split "," default t))
+       (magithub-issue-read-labels-list prompt)
+       (s-join ",")))
+
+(defun magithub-issue-read-labels-list (prompt &optional default)
+  "Read some issue labels and return a list of strings.
+Available issues are provided by `magithub-issue-label-list'.
+
+DEFAULT is a list of pre-selected labels.  These labels are not
+prompted for again."
+  (magithub--completing-read-multiple
+   (format "%s... %s" prompt "Issue labels (or \"\" to quit): ")
+   (cl-set-difference (magithub-issue-label-list) default)))
+
+(defun magithub-issue-label-list ()
+  "Return a list of issue labels."
+  (magithub-with-current-repo user repo
+    (mapcar (lambda (label-obj) (oref label-obj :name))
+            (oref (gh-issues-label-list (gh-issues-api "API") user repo)
+                  data))))
 
 (defun magithub-issue-sort-ascending (a b)
   "Lower issue numbers come first."

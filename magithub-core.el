@@ -322,12 +322,24 @@ is equivalent to
                             "master"))
       "origin"))
 
-(defun magithub-source-repo ()
+(defun magithub-source-repo (&optional required)
   "Uses the URL of `magithub-source-remote' to parse out repository information.
-Returns output of `magithub--url->repo'."
-  (or (magithub--url->repo (magit-get "remote" (magithub-source-remote) "url"))
-      (magithub-error "failed to parse remote url"
-                      "There was an error parsing the remote's url.")))
+Returns output of `magithub--url->repo'.
+
+If REQUIRED is non-nil, we are required to return a valid
+repository.  If this is not possible, an error is raised."
+  (let* ((url (magit-get "remote" (magithub-source-remote) "url"))
+         (repo (magithub--url->repo url)))
+    (if repo repo
+      (when required
+        (user-error (if (not url)
+                        (if (file-exists-p ".git")
+                            "No repository url for remote `%s'"
+                          "No repository here")
+                      (s-join "\n"
+                              '("There was an error parsing the remote's url (%s=%s)."
+                                "Are you sure this is a GitHub repository?")))
+                    (magithub-source-remote) url)))))
 
 (defmacro magithub-with-current-repo (owner-sym repo-sym &rest body)
   "Bind OWNER-SYM and REPO-SYM to the current owner/repository."
