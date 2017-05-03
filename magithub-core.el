@@ -306,13 +306,13 @@ is equivalent to
   object)
 
 (defun magithub--url->repo (url)
-  "Tries to parse a remote url into a GitHub repository"
+  "Tries to parse a remote url into a GitHub repository object"
   (when (and url (string-match (rx bol (+ any) (or "/" ":")
                                    (group (+ any)) "/" (group (+ any))
                                    ".git" eol)
                                url))
-    (list (match-string 1 url)
-          (match-string 2 url))))
+    `((owner (login . ,(match-string 1 url)))
+      (name . ,(match-string 2 url)))))
 
 (defun magithub-source-remote ()
   "Tries to determine the correct remote to use for issue-tracking."
@@ -332,22 +332,33 @@ repository.  If this is not possible, an error is raised."
          (repo (magithub--url->repo url)))
     (if repo repo
       (when required
-        (user-error (if (not url)
-                        (if (file-exists-p ".git")
-                            "No repository url for remote `%s'"
-                          "No repository here")
-                      (s-join "\n"
-                              '("There was an error parsing the remote's url (%s=%s)."
-                                "Are you sure this is a GitHub repository?")))
-                    (magithub-source-remote) url)))))
+        (user-error
+         (if (not url)
+             (if (file-exists-p ".git")
+                 "No repository url for remote `%s'"
+               "No repository here")
+           (s-join "\n"
+                   '("There was an error parsing the remote's url (%s=%s)."
+                     "Are you sure this is a GitHub repository?")))
+         (magithub-source-remote) url)))))
 
-(defmacro magithub-with-current-repo (owner-sym repo-sym &rest body)
-  "Bind OWNER-SYM and REPO-SYM to the current owner/repository."
-  (declare (indent 2))
-  `(let* ((,repo-sym (magithub-source-repo))
-          (,owner-sym (car ,repo-sym))
-          (,repo-sym (cadr ,repo-sym)))
-     ,@body))
+(defun magithub--section-value ()
+  "The value of the section at point (or nil)."
+  (when (derived-mode-p 'magit-status-mode)
+    (-when-let (s (magit-current-section))
+      (magit-section-value s))))
+
+(defun magithub--satisfies-p (obj preds)
+  (while (and (listp preds)
+              (functionp (car preds))
+              (funcall (car preds) obj))
+    (setq preds (cdr preds)))
+  (null preds))
+
+(defun magithub--section-value-filtered (&rest preds)
+  (let ((obj (magithub--section-value)))
+    (when (magithub--satisfies-p obj preds)
+      obj)))
 
 (provide 'magithub-core)
 ;;; magithub-core.el ends here
