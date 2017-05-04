@@ -26,62 +26,56 @@
 
 (require 'magithub-core)
 
-(defvar magithub-cache--cache ()
-  "An alist of hash tables to use as thr cache.
-Entries are of the form (time-entered . value).")
-
-(defvar magithub-cache-refresh-seconds-plist
-  (list :issues 600 :ci-status 60 t 60)
+(defvar magithub-cache-class-refresh-seconds-alist
+  '((:issues . 600)
+    (:ci-status . 60)
+    (t . 60))
   "The number of seconds that have to pass for GitHub data to be
-considered outdated.")
+considered outdated.
 
-(defun magithub-cache--get-table (repo)
+If no valid entry is found for ")
+
+(defvar magithub-cache--cache
+  (make-hash-table :test 'equal))
+
+(defun magithub-cache--expired-p (saved-time class)
+  (let ((a magithub-cache-class-refresh-seconds-alist))
+    (or (null a)
+        (< (or (alist-get class a)
+               (alist-get t a 0))
+           (time-to-seconds (time-since saved-time))))))
+
+(defun magithub-cache (expiry-class form &optional message)
+  "The cached value for CACHE (set to (eval DEFAULT) if necessary)."
   (declare (indent defun))
-  (let ((table (cdr (assoc repo magithub-cache--cache))))
-    (unless table
-      (add-to-list 'magithub-cache--cache (cons repo (make-hash-table)))
-      (setq table (cdr (assoc repo magithub-cache--cache))))
-    table))
+  (let* ((not-there (cl-gensym))
+         (cache (cons (magithub-source-repo) form))
+         (cached-value (gethash cache magithub-cache--cache not-there)))
+    (cdr
+     (if (or (eq cached-value not-there)
+             (magithub-cache--expired-p (car cached-value) expiry-class))
+         (let ((current-time (current-time))
+               (v (with-temp-message message
+                    (eval form))))
+           (puthash cache (cons current-time v) magithub-cache--cache))
+       (when magithub-debug-mode
+         (message "Using cached value for %S (retrieved %s)"
+                  cache (format-time-string "%F %T" (car cached-value))))
+       cached-value))))
 
-(defun magithub-cache--table (table cache default)
-  "The cached value for CACHE (set to DEFAULT if necessary)."
-  (declare (indent defun))
-  (let ((cached-value (gethash cache table :no-value)))
-    (if (or (eq cached-value :no-value)
-            (< (or (plist-get magithub-cache-refresh-seconds-plist cache)
-                   (plist-get magithub-cache-refresh-seconds-plist t))
-               (time-to-seconds (time-since (car cached-value)))))
-        (cdr (puthash cache (cons (current-time) (eval default)) table))
-      (when magithub-debug-mode
-        (message "Using cached value for %S (retrieved %s)"
-                 cache (format-time-string "%F %T" (car cached-value))))
-      (cdr cached-value))))
-
-(defun magithub-cache (repo cache default)
-  (declare (indent defun))
-  (magithub-cache--table (magithub-cache--get-table repo) cache default))
-
-(defun magithub-cache-value--table (table cache)
-  "The cached value for CACHE."
-  (let ((c (gethash cache table :no-value)))
-    (unless (eq c :no-value)
-      (cdr c))))
-
-(defun magithub-cache-value (repo cache)
-  "The cached value for CACHE."
-  (magithub-cache-value--table (magithub-cache--get-table repo) cache))
-
-(defun magithub-cache-clear (repo &optional cache)
-  "Clear the cache for CACHE.
-If CACHE is nil, the entire cache is cleared."
-  (if cache (remhash cache (magithub-cache--get-table repo))
-    (cl-delete repo magithub-cache--cache
-               :key #'car :test #'equal)))
+(defun magithub-cache-invalidate ()
+  "Clear the cache"
+  (let ((r (magithub-source-repo)))
+    (maphash
+     (lambda (k v)
+       (when (equal r (car k))
+         (remhash k magithub-cache--cache)))
+     magithub-cache--cache)))
 
 (defun magithub-refresh ()
   "Refresh all GitHub data."
   (interactive)
-  (magithub-cache-clear (magithub-repo-id))
+  (magithub-cache-invalidate)
   (magit-refresh))
 
 (provide 'magithub-cache)

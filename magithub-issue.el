@@ -34,10 +34,11 @@
 (defun magithub--issue-list (&rest params)
   "Return a list of issues for the current repository."
   (cl-assert (cl-evenp (length params)))
-  (with-temp-message "Retrieving issue list..."
-    (apply #'ghubp-get-repos-owner-repo-issues
-           (magithub-source-repo)
-           params)))
+  (magithub-cache :issues
+    `(ghubp-get-repos-owner-repo-issues
+      ',(magithub-source-repo)
+      ,@params)
+    "Retrieving issue list..."))
 
 (defun magithub-issue--issue-is-pull-p (issue)
   (not (null (alist-get 'pull_request issue))))
