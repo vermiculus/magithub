@@ -183,8 +183,7 @@ See /.github/ISSUE_TEMPLATE.md in this repository."
 
 (defun magithub-usable-p ()
   "Non-nil if Magithub should do its thing."
-  (and (executable-find magithub-hub-executable)
-       (magithub-enabled-p)
+  (and (magithub-enabled-p)
        (magithub-github-repository-p)
        (magithub--api-available-p)))
 
