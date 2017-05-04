@@ -127,5 +127,8 @@ If no valid entry is found for ")
 (add-hook 'magit-status-headers-hook
           #'magithub-maybe-report-offline-mode)
 
+(add-hook 'kill-emacs-hook
+          #'magithub-cache-write-to-disk)
+
 (provide 'magithub-cache)
 ;;; magithub-cache.el ends here
