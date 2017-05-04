@@ -45,6 +45,21 @@
         (magit-git-global-arguments nil))
     (= 0 (magit-git-exit-code "-c 1" "-n" "api.github.com"))))
 
+(defun magithub--completing-read (prompt collection &optional format-function)
+  "Using PROMPT, get a list of elements in COLLECTION.
+This function continues until all candidates have been entered or
+until the user enters a value of \"\".  Duplicate entries are not
+allowed."
+  (let ((collection
+         (magithub--zip
+          collection
+          (or format-function
+              (lambda (o) (format "%S" o)))
+          nil)))
+    (cdr (assoc-string
+          (completing-read prompt collection)
+          collection))))
+
 (defun magithub--completing-read-multiple (prompt collection)
   "Using PROMPT, get a list of elements in COLLECTION.
 This function continues until all candidates have been entered or
@@ -218,9 +233,9 @@ See /.github/ISSUE_TEMPLATE.md in this repository."
 (defun magithub--zip-case (p e)
   "Get an appropriate value for element E given property/function P."
   (cond
-   ((symbolp p) (plist-get e p))
-   ((functionp p) (funcall p e))
    ((null p) e)
+   ((functionp p) (funcall p e))
+   ((symbolp p) (plist-get e p))
    (t nil)))
 
 (defun magithub--zip (object-list prop1 prop2)
