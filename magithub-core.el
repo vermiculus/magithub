@@ -374,5 +374,11 @@ repository.  If this is not possible, an error is raised."
     (when (magithub--satisfies-p obj preds)
       obj)))
 
+(defun magithub-repo-dir (repo)
+  "Data directory for REPO."
+  (let-alist repo
+    (expand-file-name (format "%s/%s" .owner.login .name)
+                      magithub-dir)))
+
 (provide 'magithub-core)
 ;;; magithub-core.el ends here

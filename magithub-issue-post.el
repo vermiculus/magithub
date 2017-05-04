@@ -20,9 +20,7 @@
 
 (defun magithub-issue-dir (repo)
   "Data directory for REPO."
-  (let-alist repo
-    (expand-file-name (format "%s/%s/issues" .owner.login .name)
-                      magithub-dir)))
+  (expand-file-name "issues" (magithub-repo-dir repo)))
 
 (defvar-local magithub-issue--info nil
   "Buffer-local variable for issue info")
