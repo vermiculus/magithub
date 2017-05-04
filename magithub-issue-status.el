@@ -96,8 +96,7 @@ If `issue' is nil, open the repository's issues page."
 (magithub--deftoggle magithub-toggle-pull-requests
   magit-status-sections-hook #'magithub-issue--insert-pr-section "pull requests")
 
-(when (executable-find magithub-hub-executable)
-  (magithub-toggle-pull-requests)
-  (magithub-toggle-issues))
+(magithub-toggle-pull-requests)
+(magithub-toggle-issues)
 
 (provide 'magithub-issue-status)
