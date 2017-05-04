@@ -40,10 +40,12 @@
 
 (defun magithub--api-available-p ()
   "Non-nil if the API is available."
-  (let ((magit-git-executable "ping")
-        (magit-pre-call-git-hook nil)
-        (magit-git-global-arguments nil))
-    (= 0 (magit-git-exit-code "-c 1" "-n" "api.github.com"))))
+  (with-timeout (1 (message "API is not responding quickly; going offline")
+                   (magithub-go-offline))
+    (let ((magit-git-executable "ping")
+          (magit-pre-call-git-hook nil)
+          (magit-git-global-arguments nil))
+      (= 0 (magit-git-exit-code "-c 1" "-n" "api.github.com")))))
 
 (defun magithub--completing-read (prompt collection &optional format-function)
   "Using PROMPT, get a list of elements in COLLECTION.
@@ -184,8 +186,9 @@ See /.github/ISSUE_TEMPLATE.md in this repository."
 (defun magithub-usable-p ()
   "Non-nil if Magithub should do its thing."
   (and (magithub-enabled-p)
-       (magithub-github-repository-p)
-       (magithub--api-available-p)))
+       (or magithub-offline-mode
+           (magithub--api-available-p))
+       (magithub-github-repository-p)))
 
 (defun magithub-error (err-message tag &optional trace)
   "Report a Magithub error."

@@ -26,23 +26,34 @@
 
 (require 'magithub-core)
 
+(defvar magithub-offline-mode nil)
+(defvar magithub-cache-file
+  (expand-file-name "cache" magithub-dir))
+
 (defvar magithub-cache-class-refresh-seconds-alist
   '((:issues . 600)
-    (:ci-status . 60)
-    (t . 60))
+    (:ci-status . 60))
   "The number of seconds that have to pass for GitHub data to be
 considered outdated.
 
 If no valid entry is found for ")
 
 (defvar magithub-cache--cache
-  (make-hash-table :test 'equal))
+  (or (ignore-errors
+        (magithub-cache-read-from-disk))
+      (make-hash-table :test 'equal)))
 
-(defun magithub-cache--expired-p (saved-time class)
+(defun magithub-cache-read-from-disk ()
+  (when (file-readable-p magithub-cache-file)
+    (with-temp-buffer
+      (insert-file-contents magithub-cache-file)
+      (read (current-buffer)))))
+
+(defun magithub-cache--expired-p (saved-time class &optional default)
   (let ((a magithub-cache-class-refresh-seconds-alist))
     (or (null a)
         (< (or (alist-get class a)
-               (alist-get t a 0))
+               (alist-get t a (or default 0)))
            (time-to-seconds (time-since saved-time))))))
 
 (defun magithub-cache (expiry-class form &optional message)
@@ -52,16 +63,16 @@ If no valid entry is found for ")
          (cache (cons (magithub-source-repo) form))
          (cached-value (gethash cache magithub-cache--cache not-there)))
     (cdr
-     (if (or (eq cached-value not-there)
-             (magithub-cache--expired-p (car cached-value) expiry-class))
+     (if (and (not magithub-offline-mode)
+              (or (eq cached-value not-there)
+                  (magithub-cache--expired-p (car cached-value) expiry-class)))
          (let ((current-time (current-time))
                (v (with-temp-message message
                     (eval form))))
-           (puthash cache (cons current-time v) magithub-cache--cache))
-       (when magithub-debug-mode
-         (message "Using cached value for %S (retrieved %s)"
-                  cache (format-time-string "%F %T" (car cached-value))))
-       cached-value))))
+           (prog1 (puthash cache (cons current-time v) magithub-cache--cache)
+             (run-with-idle-timer 10 nil #'magithub-cache-write-to-disk)))
+       (unless (eq not-there cached-value)
+         cached-value)))))
 
 (defun magithub-cache-invalidate ()
   "Clear the cache"
@@ -77,6 +88,44 @@ If no valid entry is found for ")
   (interactive)
   (magithub-cache-invalidate)
   (magit-refresh))
+
+(defun magithub-maybe-report-offline-mode ()
+  (when (and (magithub-usable-p)
+             magithub-offline-mode)
+    (magit-insert-section (magithub)
+      (insert
+       "Magithub is "
+       (propertize
+        "OFFLINE"
+        'face 'font-lock-warning-face)
+       "; you are seeing cached data"))))
+
+(defun magithub-go-offline ()
+  (interactive)
+  (setq magithub-offline-mode t)
+  (when (derived-mode-p 'magit-status-mode)
+    (magit-refresh)))
+(defun magithub-go-online ()
+  (interactive)
+  (setq magithub-offline-mode nil)
+  (when (derived-mode-p 'magit-status-mode)
+    (magit-refresh)))
+
+(defun magithub-cache-write-to-disk ()
+  (maphash
+   (lambda (k v)
+     (when (magithub-cache--expired-p
+            (car v) :pre-write-trim 86400)
+       (remhash k magithub-cache--cache)))
+   magithub-cache--cache)
+  (with-temp-buffer
+    (insert (prin1-to-string magithub-cache--cache))
+    (write-file magithub-cache-file))
+  (message "Magithub: wrote cache to disk"))
+
+;;; If we're offline, display this at the top
+(add-hook 'magit-status-headers-hook
+          #'magithub-maybe-report-offline-mode)
 
 (provide 'magithub-cache)
 ;;; magithub-cache.el ends here
