@@ -27,6 +27,7 @@
 (require 'magit)
 (require 'dash)
 (require 's)
+(require 'subr-x)
 
 (defun magithub-github-repository-p ()
   "Non-nil if \"origin\" points to GitHub or a whitelisted domain."
@@ -37,15 +38,53 @@
 (defun magithub-repo-id ()
   "Returns an identifying value for this repository."
   (magit-get "remote" "origin" "url"))
+(defvar magithub-cache 'expire
+  "Determines how the cache behaves.
+
+If nil, the cache will not be used to read cached data.  It will
+still be updated and written to disk.
+
+If t, *only* the cache will be used.  This constitutes Magithub's
+'offline' mode.
+
+If `expire', the cache will expire with the passage of time
+according to `magithub-cache-class-refresh-seconds-alist'.  This
+is the default behavior.
+
+A fourth value, `hard-refresh-offline', counts towards both
+`magithub-offline-p' and `magithub-cache--always-p'.  It should
+only be let-bound by `magithub-refresh'.")
+
+(defun magithub-offline-p ()
+  (memq magithub-cache '(t hard-refresh-offline)))
+
+(defvar magithub--api-available-p nil
+  "A tiny cache to avoid pinging GitHub multiple times a second.
+
+CAR is a time value; CDR is the cached value.")
 
 (defun magithub--api-available-p ()
-  "Non-nil if the API is available."
-  (with-timeout (1 (message "API is not responding quickly; going offline")
-                   (magithub-go-offline))
-    (let ((magit-git-executable "ping")
-          (magit-pre-call-git-hook nil)
-          (magit-git-global-arguments nil))
-      (= 0 (magit-git-exit-code "-c 1" "-n" "api.github.com")))))
+  "Non-nil if the API is available.
+
+Pings the API a maximum of once every ten seconds."
+  (unless (magithub-offline-p)
+    (if (and (consp magithub--api-available-p)
+             (< (time-to-seconds (time-subtract (current-time) (car magithub--api-available-p))) 10))
+        (prog1 (cdr magithub--api-available-p)
+          (when magithub-debug-mode
+            (message "used cached value for api-available-p")))
+      (cdr
+       (setq magithub--api-available-p
+             (cons (current-time)
+                   (with-timeout (1 (when (y-or-n-p "API is not responding quickly; go offline? ")
+                                      (magithub-go-offline))
+                                    nil)
+                     (when magithub-debug-mode
+                       (message "pinging GitHub for api-available-p"))
+                     (let ((magit-git-executable "ping")
+                           (magit-pre-call-git-hook nil)
+                           (magit-git-global-arguments nil))
+                       (= 0 (magit-git-exit-code "-c 1" "-n" "api.github.com"))))))))))
 
 (defun magithub--completing-read (prompt collection &optional format-function)
   "Using PROMPT, get a list of elements in COLLECTION.

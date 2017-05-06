@@ -26,24 +26,6 @@
 
 (require 'magithub-core)
 
-(defvar magithub-cache 'expire
-  "Determines how the cache behaves.
-
-If nil, the cache will not be used to read cached data.  It will
-still be updated and written to disk.
-
-If t, *only* the cache will be used.  This constitutes Magithub's
-'offline' mode.
-
-If `expire', the cache will expire with the passage of time
-according to `magithub-cache-class-refresh-seconds-alist'.  This
-is the default behavior.
-
-A fourth value, `hard-refresh-offline', counts towards both
-`magithub-offline-p' and `magithub-cache--always-p'.  It should
-only be let-bound by `magithub-refresh'.")
-
-(defun magithub-offline-p            () (memq magithub-cache '(t hard-refresh-offline)))
 (defun magithub-cache--always-eval-p () (memq magithub-cache '(nil hard-refresh-offline)))
 (defun magithub-cache--never-eval-p  () (eq magithub-cache t))
 
