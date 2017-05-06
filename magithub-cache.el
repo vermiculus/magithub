@@ -42,6 +42,9 @@ If no valid entry is found for ")
   (or (ignore-errors
         (magithub-cache-read-from-disk))
       (make-hash-table :test 'equal)))
+(defvar magithub-cache--needs-write nil
+  "when non-nil, the cache will be written to disk next time the
+idle timer runs")
 
 (defun magithub-cache-read-from-disk ()
   (when (file-readable-p magithub-cache-file)
@@ -67,9 +70,14 @@ If no valid entry is found for ")
               (or (eq cached-value not-there)
                   (magithub-cache--expired-p (car cached-value) expiry-class)))
          (let ((current-time (current-time))
-               (v (with-temp-message message
+               (v (with-temp-message
+                      (if magithub-debug-mode
+                          (let ((print-quoted t))
+                            (format "%s -- %S" message form))
+                        message)
                     (eval form))))
            (prog1 (puthash cache (cons current-time v) magithub-cache--cache)
+             (setq magithub-cache--needs-write t)
              (run-with-idle-timer 10 nil #'magithub-cache-write-to-disk)))
        (unless (eq not-there cached-value)
          cached-value)))))
@@ -118,10 +126,12 @@ If no valid entry is found for ")
             (car v) :pre-write-trim 86400)
        (remhash k magithub-cache--cache)))
    magithub-cache--cache)
-  (with-temp-buffer
-    (insert (prin1-to-string magithub-cache--cache))
-    (write-file magithub-cache-file))
-  (message "Magithub: wrote cache to disk"))
+  (when magithub-cache--needs-write
+    (with-temp-buffer
+      (insert (prin1-to-string magithub-cache--cache))
+      (write-file magithub-cache-file))
+    (setq magithub-cache--needs-write nil)
+    (message "Magithub: wrote cache to disk")))
 
 ;;; If we're offline, display this at the top
 (add-hook 'magit-status-headers-hook
