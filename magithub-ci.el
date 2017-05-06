@@ -67,8 +67,7 @@ If magithub.ci.enabled is not set, CI is considered to be enabled."
 (defun magithub-ci-status (ref)
   (magithub-cache :ci-status
     `(ghubp-get-repos-owner-repo-commits-ref-status
-      '((repo . ,(magithub-source-repo))
-        (ref . ,ref)))
+      (magithub-source-repo) ,ref)
     (format "Getting CI status for %s..." (substring ref 0 6))))
 
 (defun magithub-ci-status--last-commit ()
