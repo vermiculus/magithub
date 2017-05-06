@@ -178,17 +178,6 @@ context.  If t, `magithub-source-repo' is used."
     (setq times (sort times #'time-less-p))
     (cons (car times) (car (last times)))))
 
-(defun magithub-go-offline ()
-  (interactive)
-  (setq magithub-cache t)
-  (when (derived-mode-p 'magit-status-mode)
-    (magit-refresh)))
-(defun magithub-go-online ()
-  (interactive)
-  (setq magithub-cache 'expire)
-  (when (derived-mode-p 'magit-status-mode)
-    (magit-refresh)))
-
 (defun magithub-cache-write-to-disk ()
   (maphash
    (lambda (k v)

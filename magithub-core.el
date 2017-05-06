@@ -52,6 +52,18 @@ A fourth value, `hard-refresh-offline', counts towards both
 `magithub-offline-p' and `magithub-cache--always-p'.  It should
 only be let-bound by `magithub-refresh'.")
 
+(defun magithub-go-offline ()
+  (interactive)
+  (setq magithub-cache t)
+  (when (derived-mode-p 'magit-status-mode)
+    (magit-refresh)))
+
+(defun magithub-go-online ()
+  (interactive)
+  (setq magithub-cache 'expire)
+  (when (derived-mode-p 'magit-status-mode)
+    (magit-refresh)))
+
 (defun magithub-offline-p ()
   (memq magithub-cache '(t hard-refresh-offline)))
 
