@@ -99,18 +99,15 @@ status buffer.  Should take two issue-objects as arguments."
   "Complete over all open pull requests returning its issue object.
 If point is on a pull-request object, that object is selected by
 default."
-  (let ((issues (-keep (lambda (i)
-                         (when (magithub--satisfies-p i preds)
-                           (cons (magithub-issue--format-for-read i) i)))
-                       (magithub--issue-list)))
-        (default (when default (magithub-issue--format-for-read default))))
-    (cdr (assoc (completing-read prompt issues nil t default) issues))))
-
-(defun magithub-issue-completing-read-issues (default)
+  (magithub--completing-read prompt (magithub--issue-list)
+                             #'magithub-issue--format-for-read
+                             (apply-partially #'magithub--satisfies-p preds)
+                             t default))
+(defun magithub-issue-completing-read-issues (&optional default)
   (interactive (list (magithub-issue-at-point)))
   (magithub-issue--completing-read
    "Issue: " default (list #'magithub-issue--issue-is-issue-p)))
-(defun magithub-issue-completing-read-pull-requests (default)
+(defun magithub-issue-completing-read-pull-requests (&optional default)
   (interactive (list (magithub-pull-request-at-point)))
   (magithub-issue--completing-read
    "Pull Request: " default (list #'magithub-issue--issue-is-pull-p)))

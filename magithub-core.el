@@ -95,19 +95,19 @@ Pings the API a maximum of once every ten seconds."
                            (magit-git-global-arguments nil))
                        (= 0 (magit-git-exit-code "-c 1" "-n" "api.github.com"))))))))))
 
-(defun magithub--completing-read (prompt collection &optional format-function)
+(defun magithub--completing-read (prompt collection &optional format-function predicate require-match default)
   "Using PROMPT, get a list of elements in COLLECTION.
 This function continues until all candidates have been entered or
 until the user enters a value of \"\".  Duplicate entries are not
 allowed."
   (let ((collection
          (magithub--zip
-          collection
-          (or format-function
-              (lambda (o) (format "%S" o)))
+          (-filter predicate collection)
+          (or format-function (lambda (o) (format "%S" o)))
           nil)))
     (cdr (assoc-string
-          (completing-read prompt collection)
+          (completing-read prompt collection nil require-match
+                           (when default (funcall format-function default)))
           collection))))
 
 (defun magithub--completing-read-multiple (prompt collection)
@@ -411,7 +411,8 @@ repository.  If this is not possible, an error is raised."
     (-when-let (s (magit-current-section))
       (magit-section-value s))))
 
-(defun magithub--satisfies-p (obj preds)
+(defun magithub--satisfies-p (preds obj)
+  "Non-nil when all functions in PREDS are non-nil for OBJ."
   (while (and (listp preds)
               (functionp (car preds))
               (funcall (car preds) obj))
@@ -420,7 +421,7 @@ repository.  If this is not possible, an error is raised."
 
 (defun magithub--section-value-filtered (&rest preds)
   (let ((obj (magithub--section-value)))
-    (when (magithub--satisfies-p obj preds)
+    (when (magithub--satisfies-p preds obj)
       obj)))
 
 (defun magithub-repo-dir (repo)
