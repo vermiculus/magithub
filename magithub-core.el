@@ -35,9 +35,6 @@
     (-some? (lambda (domain) (s-contains? domain origin))
             (cons "github.com" (magit-get-all "hub" "host")))))
 
-(defun magithub-repo-id ()
-  "Returns an identifying value for this repository."
-  (magit-get "remote" "origin" "url"))
 (defvar magithub-cache 'expire
   "Determines how the cache behaves.
 
