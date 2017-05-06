@@ -85,9 +85,8 @@ Pings the API a maximum of once every ten seconds."
       (cdr
        (setq magithub--api-available-p
              (cons (current-time)
-                   (with-timeout (1 (when (y-or-n-p "API is not responding quickly; go offline? ")
-                                      (magithub-go-offline))
-                                    nil)
+                   (with-timeout (1 (ignore (when (y-or-n-p "API is not responding quickly; go offline? ")
+                                              (magithub-go-offline))))
                      (when magithub-debug-mode
                        (message "pinging GitHub for api-available-p"))
                      (let ((magit-git-executable "ping")
