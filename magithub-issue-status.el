@@ -78,8 +78,8 @@
 Interactively, this finds the issue at point.
 
 If `issue' is nil, open the repository's issues page."
-  (interactive (list (magit-section-value
-                      (magit-current-section))))
+  (interactive (list (or (magithub-issue-at-point)
+                         (magithub-issue-completing-read-issues))))
   (-when-let (url (alist-get 'html_url issue))
     (browse-url url)))
 
