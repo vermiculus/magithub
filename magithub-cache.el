@@ -91,11 +91,24 @@ idle timer runs")
          (remhash k magithub-cache--cache)))
      magithub-cache--cache)))
 
-(defun magithub-refresh ()
-  "Refresh all GitHub data."
-  (interactive)
-  (magithub-cache-invalidate)
-  (magit-refresh))
+(defun magithub-cache-invalidate--confirm ()
+  (yes-or-no-p
+   (eval-when-compile
+     (concat "GitHub doesn't seem to be responding; "
+             "are you sure you want to refresh GitHub data? "))))
+
+(defun magithub-refresh (&optional force)
+  "Refresh all GitHub data.  With a prefix argument, invalidate cahce."
+  (interactive "P")
+  (setq force (and force t))           ; force `force' to be a boolean
+  (unless (or (not force)
+              (magithub--api-available-p)
+              (magithub-cache-invalidate--confirm))
+    (user-error "Aborting"))
+  (let ((magithub-offline-mode force)
+        (magithub-cache-class-refresh-seconds-alist force))
+    (magithub-cache-invalidate)
+    (magit-refresh)))
 
 (defun magithub-maybe-report-offline-mode ()
   (when (and (magithub-usable-p)
