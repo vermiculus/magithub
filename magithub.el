@@ -5,7 +5,7 @@
 ;; Author: Sean Allred <code@seanallred.com>
 ;; Keywords: git, tools, vc
 ;; Homepage: https://github.com/vermiculus/magithub
-;; Package-Requires: ((emacs "24.4") (magit "2.8.0") (git-commit "20160821.1338") (with-editor "20160828.1025") (s "20160711.525"))
+;; Package-Requires: ((emacs "24.4") (magit "2.8.0") (git-commit "20160821.1338") (with-editor "20160828.1025") (s "20160711.525") (ghub+ "20161119.2004") (markdown-mode "20161222.1416"))
 ;; Package-Version: 0.1
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -55,6 +55,7 @@
 (require 'magithub-cache)
 (require 'magithub-ci)
 (require 'magithub-proxy)
+(require 'magithub-issue-status)
 
 (magit-define-popup magithub-dispatch-popup
   "Popup console for dispatching other Magithub popups."
@@ -66,7 +67,7 @@
              (?f "Fork" magithub-fork-popup)
              (?i "Issues" magithub-issues-popup)
              (?p "Submit a pull request" magithub-pull-request-popup)
-             (?x "Use a proxy repository for issues/PRs" magithub-proxy-set-default)
+             (?x "Use a proxy repository for issues/PRs" magithub-proxy-set)
              "Meta"
              (?` "Toggle Magithub-Status integration" magithub-enabled-toggle)
              (?g "Refresh all GitHub data" magithub-refresh)
