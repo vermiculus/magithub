@@ -222,7 +222,7 @@ See /.github/ISSUE_TEMPLATE.md in this repository."
 (defun magithub-usable-p ()
   "Non-nil if Magithub should do its thing."
   (and (magithub-enabled-p)
-       (or magithub-offline-mode
+       (or (magithub-offline-p)
            (magithub--api-available-p))
        (magithub-github-repository-p)))
 
