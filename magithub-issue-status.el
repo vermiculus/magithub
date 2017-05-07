@@ -1,6 +1,7 @@
 (require 's)
 (require 'magit)
 (require 'magithub-issue)
+(require 'magithub-label)
 
 (magit-define-popup magithub-issues-popup
   "Popup console for managing GitHub issues."
@@ -36,11 +37,23 @@
     map)
   "Keymap for `magithub-pull-request-list' sections.")
 
-(defun magithub-issue--wrap-title (title indent)
+(defun magithub-issue--wrap-title (title label-string indent)
   "Word-wrap string TITLE to `fill-column' with an INDENT."
-  (s-replace
-   "\n" (concat "\n" (make-string indent ?\ ))
-   (s-word-wrap (- fill-column indent) title)))
+  (with-temp-buffer
+    (insert
+     (s-replace
+      "\n" (concat "\n" (make-string indent ?\ ))
+      (s-word-wrap (- fill-column indent) title)))
+    (goto-char 0)
+    (move-to-column fill-column t)
+    (insert label-string)
+    (buffer-string)))
+
+(defun magithub-issue--label-string (issue)
+  (mapconcat #'magithub-label-propertize
+             (alist-get 'labels issue)
+             " "))
+
 (defun magithub-issue--format (issue justify-number)
   (let-alist issue
     (let ((fmt (format " %%%dd  %%s\n" justify-number)))

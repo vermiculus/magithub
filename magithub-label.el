@@ -28,4 +28,15 @@ are in DEFAULT are not prompted for again."
        (magithub-issue-read-labels-list prompt)
        (s-join ",")))
 
+(defface magithub-label-face
+  '((t :box t))
+  "Face for labels")
+
+(defun magithub-label-propertize (label)
+  "Propertize LABEL according to its color.
+Face inherits from `magithub-label-face'."
+  (let-alist label
+    (propertize .name 'face (list :foreground (concat "#" .color)
+                                  :inherit 'magithub-label-face))))
+
 (provide 'magithub-label)
