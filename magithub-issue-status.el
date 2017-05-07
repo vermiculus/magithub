@@ -43,7 +43,7 @@
     (insert
      (s-replace
       "\n" (concat "\n" (make-string indent ?\ ))
-      (s-word-wrap (- fill-column indent) title)))
+      (s-word-wrap (- fill-column 2) title)))
     (goto-char 0)
     (move-to-column fill-column t)
     (insert label-string)
