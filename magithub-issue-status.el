@@ -41,25 +41,38 @@
   (s-replace
    "\n" (concat "\n" (make-string indent ?\ ))
    (s-word-wrap (- fill-column indent) title)))
-
-(defun magithub-issue--format (issue)
+(defun magithub-issue--format (issue justify-number)
   (let-alist issue
-    (format " %4d  %s\n" .number (magithub-issue--wrap-title .title 7))))
+    (let ((fmt (format " %%%dd  %%s\n" justify-number)))
+      (format fmt
+              .number
+              (magithub-issue--wrap-title
+               .title
+               (magithub-issue--label-string issue)
+               (+ 3 justify-number))))))
 
-(defun magithub-issue--insert (issue)
+(defun magithub-issue--insert (issue justify)
   "Insert ISSUE as a Magit section into the buffer."
   (when issue
     (magit-insert-section (magithub-issue issue)
-      (insert (magithub-issue--format issue)))))
+      (insert (magithub-issue--format issue justify)))))
+
+(defun magithub-issue--format-justify ()
+  (ceiling
+   (log (apply #'max (mapcar (apply-partially #'alist-get 'number)
+                             (magithub--issue-list)))
+        10)))
 
 (defun magithub-issue--insert-issue-section ()
   "Insert GitHub issues if appropriate."
   (when (magithub-usable-p)
     (-when-let (issues (magithub-issues))
-      (magit-insert-section (magithub-issue-list)
-        (magit-insert-heading "Issues:")
-        (mapc #'magithub-issue--insert issues)
-        (insert ?\n)))))
+      (let ((justify (magithub-issue--format-justify)))
+        (magit-insert-section (magithub-issue-list)
+          (magit-insert-heading "Issues:")
+          (mapc (lambda (i) (magithub-issue--insert i justify))
+                issues)
+          (insert ?\n))))))
 
 (defun magithub-issue--insert-pr-section ()
   "Insert GitHub pull requests if appropriate."
@@ -68,10 +81,12 @@
    'pull-request-checkout)
   (when (magithub-usable-p)
     (-when-let (pull-requests (magithub-pull-requests))
-      (magit-insert-section (magithub-pull-request-list)
-        (magit-insert-heading "Pull Requests:")
-        (mapc #'magithub-issue--insert pull-requests)
-        (insert ?\n)))))
+      (let ((justify (magithub-issue--format-justify)))
+        (magit-insert-section (magithub-pull-request-list)
+          (magit-insert-heading "Pull Requests:")
+          (mapc (lambda (i) (magithub-issue--insert i justify))
+                pull-requests)
+          (insert ?\n))))))
 
 (defun magithub-issue-browse (issue)
   "Visits `issue' in the browser.
