@@ -32,7 +32,14 @@
 
 (defvar magit-magithub-pull-request-list-section-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [remap magit-visit-thing] #'magithub-issue-browse)
+    (define-key map [remap magit-visit-thing] #'magithub-pull-browse)
+    (define-key map [remap magit-refresh] #'magithub-issue-refresh)
+    map)
+  "Keymap for `magithub-pull-request-list' sections.")
+
+(defvar magit-magithub-pull-request-section-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [remap magit-visit-thing] #'magithub-pull-browse)
     (define-key map [remap magit-refresh] #'magithub-issue-refresh)
     map)
   "Keymap for `magithub-pull-request-list' sections.")
@@ -64,11 +71,14 @@
                (magithub-issue--label-string issue)
                (+ 3 justify-number))))))
 
-(defun magithub-issue--insert (issue justify)
+(defun magithub-issue--insert (issue justify is-pr)
   "Insert ISSUE as a Magit section into the buffer."
   (when issue
-    (magit-insert-section (magithub-issue issue)
-      (insert (magithub-issue--format issue justify)))))
+    (let ((issue-string (magithub-issue--format issue justify)))
+      (if is-pr (magit-insert-section (magithub-pull-request issue)
+                  (insert issue-string))
+        (magit-insert-section (magithub-issue issue)
+          (insert issue-string))))))
 
 (defun magithub-issue--format-justify ()
   (apply #'max (mapcar (lambda (i) (length (format "%d" (alist-get 'number i))))
@@ -81,7 +91,7 @@
       (let ((justify (magithub-issue--format-justify)))
         (magit-insert-section (magithub-issue-list)
           (magit-insert-heading "Issues:")
-          (mapc (lambda (i) (magithub-issue--insert i justify))
+          (mapc (lambda (i) (magithub-issue--insert i justify nil))
                 issues)
           (insert ?\n))))))
 
@@ -95,18 +105,28 @@
       (let ((justify (magithub-issue--format-justify)))
         (magit-insert-section (magithub-pull-request-list)
           (magit-insert-heading "Pull Requests:")
-          (mapc (lambda (i) (magithub-issue--insert i justify))
+          (mapc (lambda (i) (magithub-issue--insert i justify t))
                 pull-requests)
           (insert ?\n))))))
 
 (defun magithub-issue-browse (issue)
-  "Visits `issue' in the browser.
-Interactively, this finds the issue at point.
-
-If `issue' is nil, open the repository's issues page."
+  "Visits ISSUE in the browser.
+Interactively, this finds the issue at point."
   (interactive (list (or (magithub-issue-at-point)
                          (magithub-issue-completing-read-issues))))
-  (-when-let (url (alist-get 'html_url issue))
+  (magithub-issue--browse issue))
+
+(defun magithub-pull-browse (pr)
+  "Visits PR in the browser.
+Interactively, this finds the pull request at point."
+  (interactive (list (or (magithub-pull-request-at-point)
+                         (magithub-issue-completing-read-pull-requests))))
+  (magithub-issue--browse pr))
+
+(defun magithub-issue--browse (issue-or-pr)
+  "Visits ISSUE-OR-PR in the browser.
+Interactively, this finds the issue at point."
+  (-when-let (url (alist-get 'html_url issue-or-pr))
     (browse-url url)))
 
 (defun magithub-repolist-column-issue (_id)
