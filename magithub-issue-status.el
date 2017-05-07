@@ -71,10 +71,8 @@
       (insert (magithub-issue--format issue justify)))))
 
 (defun magithub-issue--format-justify ()
-  (ceiling
-   (log (apply #'max (mapcar (apply-partially #'alist-get 'number)
-                             (magithub--issue-list)))
-        10)))
+  (apply #'max (mapcar (lambda (i) (length (format "%d" (alist-get 'number i))))
+                       (magithub--issue-list))))
 
 (defun magithub-issue--insert-issue-section ()
   "Insert GitHub issues if appropriate."
