@@ -183,8 +183,7 @@ See the following resources:
     (magit-refresh)))
 
 (defun magithub-insert-ci-status-header ()
-  (let* ((ref (or "1fed26cce41e07b15fc44a3a828669ef79104bbe"
-                  (magithub-ci-status--last-commit)))
+  (let* ((ref (magithub-ci-status--last-commit))
          (checks (magithub-ci-status ref))
          (overall-status (or (cdr (assoc-string (alist-get 'status checks)
                                                 magithub-ci-status-alist))
