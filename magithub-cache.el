@@ -185,12 +185,14 @@ context.  If t, `magithub-source-repo' is used."
             (car v) :pre-write-trim 86400)
        (remhash k magithub-cache--cache)))
    magithub-cache--cache)
-  (when magithub-cache--needs-write
-    (with-temp-buffer
-      (insert (prin1-to-string magithub-cache--cache))
-      (write-file magithub-cache-file))
-    (setq magithub-cache--needs-write nil)
-    (message "Magithub: wrote cache to disk")))
+  (if (active-minibuffer-window)
+      (run-with-idle-timer 10 nil #'magithub-cache-write-to-disk) ;defer
+    (when magithub-cache--needs-write
+      (with-temp-buffer
+        (insert (prin1-to-string magithub-cache--cache))
+        (write-file magithub-cache-file))
+      (setq magithub-cache--needs-write nil)
+      (message "Magithub: wrote cache to disk"))))
 
 ;;; If we're offline, display this at the top
 (add-hook 'magit-status-headers-hook
