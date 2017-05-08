@@ -99,7 +99,7 @@ idle timer runs")
 
 (defun magithub-cache-invalidate--confirm ()
   (yes-or-no-p
-   (concat (if (magithub--api-available-p) "Are"
+   (concat (if (magithub--api-available-p 'ignore-offline-mode) "Are"
              "GitHub doesn't seem to be responding; are")
            " you sure you want to refresh all GitHub data? ")))
 
@@ -108,7 +108,7 @@ idle timer runs")
   (interactive "P")
   (setq force (and force t))           ; force `force' to be a boolean
   (unless (or (not force)
-              (magithub--api-available-p))
+              (magithub--api-available-p 'ignore-offline-mode))
     (user-error "Aborting"))
   (let* ((offline (magithub-offline-p))
          (magithub-cache (cond

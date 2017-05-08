@@ -76,11 +76,11 @@ only be let-bound by `magithub-refresh'.")
 
 CAR is a time value; CDR is the cached value.")
 
-(defun magithub--api-available-p ()
+(defun magithub--api-available-p (&optional ignore-offline-mode)
   "Non-nil if the API is available.
 
 Pings the API a maximum of once every ten seconds."
-  (unless (magithub-offline-p)
+  (unless (and (not ignore-offline-mode) (magithub-offline-p))
     (if (and (consp magithub--api-available-p)
              (< (time-to-seconds (time-subtract (current-time) (car magithub--api-available-p))) 10))
         (prog1 (cdr magithub--api-available-p)
