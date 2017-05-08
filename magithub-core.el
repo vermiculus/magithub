@@ -29,6 +29,10 @@
 (require 's)
 (require 'subr-x)
 
+(defconst magithub-dir
+  (expand-file-name "magithub" user-emacs-directory)
+  "Data directory.")
+
 (defun magithub-github-repository-p ()
   "Non-nil if \"origin\" points to GitHub or a whitelisted domain."
   (-when-let (origin (magit-get "remote" "origin" "url"))

@@ -14,10 +14,6 @@
     m)
   "Keymap used for `magithub-issue-mode'.")
 
-(defconst magithub-dir
-  (expand-file-name "magithub" user-emacs-directory)
-  "Data directory.")
-
 (defun magithub-issue-dir (repo)
   "Data directory for REPO."
   (expand-file-name "issues" (magithub-repo-dir repo)))
