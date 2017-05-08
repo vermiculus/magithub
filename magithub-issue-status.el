@@ -44,32 +44,32 @@
     map)
   "Keymap for `magithub-pull-request-list' sections.")
 
-(defun magithub-issue--wrap-title (title label-string indent)
-  "Word-wrap string TITLE to `fill-column' with an INDENT."
-  (with-temp-buffer
-    (insert
-     (s-replace
-      "\n" (concat "\n" (make-string indent ?\ ))
-      (s-word-wrap (- fill-column 2) title)))
-    (goto-char 0)
-    (move-to-column fill-column t)
-    (insert label-string)
-    (buffer-string)))
-
 (defun magithub-issue--label-string (issue)
-  (mapconcat #'magithub-label-propertize
-             (alist-get 'labels issue)
-             " "))
+  (let-alist issue
+    (mapconcat #'magithub-label-propertize .labels " ")))
 
 (defun magithub-issue--format (issue justify-number)
   (let-alist issue
-    (let ((fmt (format " %%%dd  %%s\n" justify-number)))
-      (format fmt
-              .number
-              (magithub-issue--wrap-title
-               .title
-               (magithub-issue--label-string issue)
-               (+ 3 justify-number))))))
+    (let ((fc fill-column)
+          (indent (make-string (+ 3 justify-number) ?\ )))
+      (with-temp-buffer
+        (save-excursion
+          (insert (format (format " %%%dd  " justify-number) .number))
+          ;; 3 = 1 space before, 2 spaces after number
+          ;; 2 = 2 spaces after title
+          ;; justify-number = width of number
+          (insert (s-word-wrap (- fc 3 justify-number 2) .title)))
+
+        (save-excursion
+          (forward-line)
+          (while (not (eobp))
+            (insert indent)
+            (forward-line)))
+
+        (save-excursion
+          (move-to-column fc t)
+          (insert (magithub-issue--label-string issue)))
+        (concat (s-trim-right (buffer-string)) "\n")))))
 
 (defun magithub-issue--insert (issue justify is-pr)
   "Insert ISSUE as a Magit section into the buffer."
