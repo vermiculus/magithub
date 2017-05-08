@@ -48,18 +48,19 @@
   (let-alist issue
     (mapconcat #'magithub-label-propertize .labels " ")))
 
-(defun magithub-issue--format (issue justify-number type)
+(defun magithub-issue--format (issue justify type)
   (let-alist issue
     (magithub--object-propertize type issue
-      (let ((fc fill-column)
-            (indent (make-string (+ 3 justify-number) ?\ )))
+      (let* ((fc fill-column)
+             (issue-prefix (format (format " %%%dd (%%%dd) "
+                                           (alist-get 'number justify)
+                                           (alist-get 'comments justify))
+                                   .number .comments))
+             (issue-title-width (- fc (length issue-prefix)))
+             (indent (make-string (length issue-prefix) ?\ )))
         (with-temp-buffer
           (save-excursion
-            (insert (format (format " %%%dd  " justify-number) .number))
-            ;; 3 = 1 space before, 2 spaces after number
-            ;; 2 = 2 spaces after title
-            ;; justify-number = width of number
-            (insert (s-word-wrap (- fc 3 justify-number 2) .title)))
+            (insert issue-prefix (s-word-wrap issue-title-width .title)))
 
           (save-excursion
             (forward-line)
@@ -82,8 +83,11 @@
           (insert issue-string))))))
 
 (defun magithub-issue--format-justify ()
-  (apply #'max (mapcar (lambda (i) (length (format "%d" (alist-get 'number i))))
-                       (magithub--issue-list))))
+  (let* ((issue-list (magithub--issue-list))
+         (fn1 (lambda (p i) (length (format "%d" (alist-get p i)))))
+         (fn2 (lambda (p) (apply #'max (mapcar (apply-partially fn1 p) issue-list)))))
+    `((number . ,(funcall fn2 'number))
+      (comments . ,(funcall fn2 'comments)))))
 
 (defun magithub-issue--insert-issue-section ()
   "Insert GitHub issues if appropriate."
