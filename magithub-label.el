@@ -32,11 +32,26 @@ are in DEFAULT are not prompted for again."
   '((t :box t))
   "Face for labels")
 
+(defcustom magithub-label-color-replacement-alist
+  '(("#5319e7" . "orange")
+    ("#128A0C" . "green"))
+  "Make certain label colors easier to see."
+  :group 'magithub)
+
+(defun magithub-label--get-display-color (label)
+  "Gets the display color for LABEL.
+Respects `magithub-label-color-replacement-alist'."
+  (let ((original (concat "#" (alist-get 'color label))))
+    (-if-let (color (assoc-string original magithub-label-color-replacement-alist))
+        (cdr color) original)))
+
 (defun magithub-label-propertize (label)
   "Propertize LABEL according to its color.
-Face inherits from `magithub-label-face'."
-  (let-alist label
-    (propertize .name 'face (list :foreground (concat "#" .color)
-                                  :inherit 'magithub-label-face))))
+The face used is dynamically calculated, but it always inherits
+from `magithub-label-face'.  Customize that to affect all labels."
+  (magithub--object-propertize 'label label
+    (propertize (alist-get 'name label)
+                'face (list :foreground (magithub-label--get-display-color label)
+                            :inherit 'magithub-label-face))))
 
 (provide 'magithub-label)
