@@ -441,5 +441,15 @@ If TYPE is `all', an alist of types to objects is returned."
         alist)
     (get-text-property (point) (magithub--object-text-prop type))))
 
+(defun magithub-get-in-all (props object-list)
+  "Follow property-path PROPS in OBJECT-LIST.
+Returns a list of the property-values."
+  (declare (indent 1))
+  (if (or (null props) (not (consp props)))
+      object-list
+    (magithub-get-in-all (cdr props)
+      (mapcar (lambda (o) (alist-get (car props) o))
+              object-list))))
+
 (provide 'magithub-core)
 ;;; magithub-core.el ends here
