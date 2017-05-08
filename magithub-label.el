@@ -5,8 +5,10 @@
   "Return a list of issue labels."
   (mapcar
    (lambda (label) (alist-get 'name label))
-   (ghubp-get-repos-owner-repo-labels
-    (magithub-source-repo))))
+   (magithub-cache :label
+     '(ghubp-get-repos-owner-repo-labels
+       (magithub-source-repo))
+     "Loading labels...")))
 
 (defun magithub-issue-read-labels-list (prompt &optional default)
   "Read some issue labels and return a list of strings.
