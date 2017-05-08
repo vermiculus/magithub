@@ -48,33 +48,34 @@
   (let-alist issue
     (mapconcat #'magithub-label-propertize .labels " ")))
 
-(defun magithub-issue--format (issue justify-number)
+(defun magithub-issue--format (issue justify-number type)
   (let-alist issue
-    (let ((fc fill-column)
-          (indent (make-string (+ 3 justify-number) ?\ )))
-      (with-temp-buffer
-        (save-excursion
-          (insert (format (format " %%%dd  " justify-number) .number))
-          ;; 3 = 1 space before, 2 spaces after number
-          ;; 2 = 2 spaces after title
-          ;; justify-number = width of number
-          (insert (s-word-wrap (- fc 3 justify-number 2) .title)))
+    (magithub--object-propertize type issue
+      (let ((fc fill-column)
+            (indent (make-string (+ 3 justify-number) ?\ )))
+        (with-temp-buffer
+          (save-excursion
+            (insert (format (format " %%%dd  " justify-number) .number))
+            ;; 3 = 1 space before, 2 spaces after number
+            ;; 2 = 2 spaces after title
+            ;; justify-number = width of number
+            (insert (s-word-wrap (- fc 3 justify-number 2) .title)))
 
-        (save-excursion
-          (forward-line)
-          (while (not (eobp))
-            (insert indent)
-            (forward-line)))
+          (save-excursion
+            (forward-line)
+            (while (not (eobp))
+              (insert indent)
+              (forward-line)))
 
-        (save-excursion
-          (move-to-column fc t)
-          (insert (magithub-issue--label-string issue)))
-        (concat (s-trim-right (buffer-string)) "\n")))))
+          (save-excursion
+            (move-to-column fc t)
+            (insert (magithub-issue--label-string issue)))
+          (concat (s-trim-right (buffer-string)) "\n"))))))
 
 (defun magithub-issue--insert (issue justify is-pr)
   "Insert ISSUE as a Magit section into the buffer."
   (when issue
-    (let ((issue-string (magithub-issue--format issue justify)))
+    (let ((issue-string (magithub-issue--format issue justify (if is-pr 'pull-request 'issue))))
       (if is-pr (magit-insert-section (magithub-pull-request issue)
                   (insert issue-string))
         (magit-insert-section (magithub-issue issue)
@@ -112,14 +113,14 @@
 (defun magithub-issue-browse (issue)
   "Visits ISSUE in the browser.
 Interactively, this finds the issue at point."
-  (interactive (list (or (magithub-issue-at-point)
+  (interactive (list (or (magithub-thing-at-point 'issue)
                          (magithub-issue-completing-read-issues))))
   (magithub-issue--browse issue))
 
 (defun magithub-pull-browse (pr)
   "Visits PR in the browser.
 Interactively, this finds the pull request at point."
-  (interactive (list (or (magithub-pull-request-at-point)
+  (interactive (list (or (magithub-thing-at-point 'pull-request)
                          (magithub-issue-completing-read-pull-requests))))
   (magithub-issue--browse pr))
 

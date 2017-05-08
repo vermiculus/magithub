@@ -355,22 +355,6 @@ See `magithub-features'."
                (message (concat m "; " s) feature-list)
                (add-to-list 'feature-list '(t . t) t))))))
 
-;;; todo: merge upstream
-(defmacro oref* (object &rest slots)
-  "Like `oref', but each slot in SLOTS is applied in sequence.
-
-For example,
-
-  \(oref* obj :inner :property)
-
-is equivalent to
-
-  \(oref \(oref obj :inner) :property)"
-  (while slots
-    (setq object (list 'oref object (car slots))
-          slots (cdr slots)))
-  object)
-
 (defun magithub--url->repo (url)
   "Tries to parse a remote url into a GitHub repository object"
   (when (and url (string-match (rx bol (+ any) (or "/" ":")
@@ -408,12 +392,6 @@ repository.  If this is not possible, an error is raised."
                      "Are you sure this is a GitHub repository?")))
          (magithub-source-remote) url)))))
 
-(defun magithub--section-value ()
-  "The value of the section at point (or nil)."
-  (when (derived-mode-p 'magit-status-mode)
-    (-when-let (s (magit-current-section))
-      (magit-section-value s))))
-
 (defun magithub--satisfies-p (preds obj)
   "Non-nil when all functions in PREDS are non-nil for OBJ."
   (while (and (listp preds)
@@ -422,16 +400,46 @@ repository.  If this is not possible, an error is raised."
     (setq preds (cdr preds)))
   (null preds))
 
-(defun magithub--section-value-filtered (&rest preds)
-  (let ((obj (magithub--section-value)))
-    (when (magithub--satisfies-p preds obj)
-      obj)))
-
 (defun magithub-repo-dir (repo)
   "Data directory for REPO."
   (let-alist repo
     (expand-file-name (format "%s/%s" .owner.login .name)
                       magithub-dir)))
+
+(defconst magithub--object-text-prop-prefix
+  "magithub-object-"
+  "Prefix used for text properties.
+Used for `magithub-thing-at-point' and related functions.")
+
+(defun magithub--object-text-prop (type)
+  "Returns a text property symbol for TYPE."
+  (intern (concat magithub--object-text-prop-prefix (symbol-name type))))
+(defun magithub--object-text-prop-inv (prop)
+  "Returns the type referred to by the text property symbol PROP."
+  (intern (substring (symbol-name prop) (length magithub--object-text-prop-prefix))))
+(defun magithub--object-text-prop-p (prop)
+  "Returns non-nil if PROP is a Magithub object text property."
+  (s-prefix-p magithub--object-text-prop-prefix (symbol-name prop)))
+
+(defun magithub--object-propertize (type object text)
+  "Gives a type-TYPE OBJECT property to TEXT."
+  (declare (indent 2))
+  (propertize text (magithub--object-text-prop type) object))
+
+(defun magithub-thing-at-point (type)
+  "Determine the thing of TYPE at point.
+If TYPE is `all', an alist of types to objects is returned."
+  (if (eq type 'all)
+      (let ((plist (text-properties-at (point))) alist)
+        (while plist
+          (when (magithub--object-text-prop-p (car plist))
+            (thread-first (car plist)
+              (magithub--object-text-prop-inv)
+              (cons (cadr plist))
+              (push alist)))
+          (setq plist (cddr plist)))
+        alist)
+    (get-text-property (point) (magithub--object-text-prop type))))
 
 (provide 'magithub-core)
 ;;; magithub-core.el ends here

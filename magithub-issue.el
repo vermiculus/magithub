@@ -58,16 +58,6 @@
   (-filter #'magithub-issue--issue-is-pull-p
            (magithub--issue-list)))
 
-(defun magithub-issue-at-point ()
-  "The issue object at point (or nil)."
-  (magithub--section-value-filtered
-   #'magithub-issue--issue-is-issue-p))
-
-(defun magithub-pull-request-at-point ()
-  "The pull request object at point (or nil)."
-  (magithub--section-value-filtered
-   #'magithub-issue--issue-is-pull-p))
-
 ;; Sorting
 (defcustom magithub-issue-sort-function
   #'magithub-issue-sort-ascending
@@ -104,11 +94,13 @@ default."
                              (apply-partially #'magithub--satisfies-p preds)
                              t default))
 (defun magithub-issue-completing-read-issues (&optional default)
-  (interactive (list (magithub-issue-at-point)))
+  "Read an issue in the minibuffer with completion."
+  (interactive (list (magithub-thing-at-point 'issue)))
   (magithub-issue--completing-read
    "Issue: " default (list #'magithub-issue--issue-is-issue-p)))
 (defun magithub-issue-completing-read-pull-requests (&optional default)
-  (interactive (list (magithub-pull-request-at-point)))
+  "Read a pull request in the minibuffer with completion."
+  (interactive (list (magithub-thing-at-point 'pull-request)))
   (magithub-issue--completing-read
    "Pull Request: " default (list #'magithub-issue--issue-is-pull-p)))
 

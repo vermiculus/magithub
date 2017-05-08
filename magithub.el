@@ -285,5 +285,13 @@ If FEATURE is `all' ot t, all known features will be loaded."
     (add-to-list 'magithub-features (cons feature t))))
 
 
+(defun magithub-visit-thing (choose-thing)
+  (interactive "P")
+  (let-alist (magithub-thing-at-point 'all)
+    (cond (.label (magithub-label-browse .label))
+          (.issue (magithub-issue-browse .issue))
+          (.pull-request (magithub-pull-browse .pull-request))
+          (t (message "Nothing recognizable at point")))))
+
 (provide 'magithub)
 ;;; magithub.el ends here

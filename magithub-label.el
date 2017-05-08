@@ -32,6 +32,15 @@ are in DEFAULT are not prompted for again."
   '((t :box t))
   "Face for labels")
 
+(defun magithub-label-browse (label)
+  "Visit LABEL with `browse-url'.
+Only GitHub.com is currently supported."
+  (unless (string= ghub-base-url "https://api.github.com")
+    (user-error "Label browsing not yet supported on GitHub Enterprise; pull requests welcome!"))
+  (let-alist (magithub-source-repo)
+    (browse-url (format "https://www.github.com/%s/%s/labels/%s"
+                        .owner.login .name (alist-get 'name label)))))
+
 (defcustom magithub-label-color-replacement-alist
   '(("#5319e7" . "orange")
     ("#128A0C" . "green"))
