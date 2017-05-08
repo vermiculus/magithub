@@ -2,7 +2,7 @@
 (require 'magithub-core)
 
 (defun magithub-label-list ()
-  "Return a list of issue labels."
+  "Return a list of issue and pull-request labels."
   (mapcar
    (lambda (label) (alist-get 'name label))
    (magithub-cache :label
@@ -30,24 +30,29 @@ are in DEFAULT are not prompted for again."
        (magithub-issue-read-labels-list prompt)
        (s-join ",")))
 
-(defface magithub-label-face
-  '((t :box t))
-  "Face for labels")
+(defface magithub-label-face '((t :box t))
+  "The inherited face used for labels.
+Feel free to customize any part of this face, but be aware that
+`:foreground' will be overridden by `magithub-label-propertize'.")
 
 (defun magithub-label-browse (label)
   "Visit LABEL with `browse-url'.
-Only GitHub.com is currently supported."
+Only GitHub.com is currently supported.  In the future, this will
+likely be replaced with a search on issues and pull requests with
+the label LABEL."
   (unless (string= ghub-base-url "https://api.github.com")
     (user-error "Label browsing not yet supported on GitHub Enterprise; pull requests welcome!"))
   (let-alist (magithub-source-repo)
     (browse-url (format "https://www.github.com/%s/%s/labels/%s"
                         .owner.login .name (alist-get 'name label)))))
 
-(defcustom magithub-label-color-replacement-alist
-  '(("#5319e7" . "orange")
-    ("#128A0C" . "green"))
-  "Make certain label colors easier to see."
-  :group 'magithub)
+(defcustom magithub-label-color-replacement-alist nil
+  "Make certain label colors easier to see.
+In your theme, you may find that certain colors are very
+difficult to see.  Customize this list to map GitHub's label
+colors to their Emacs replacements."
+  :group 'magithub
+  :type '(alist :key-type color :value-type color))
 
 (defun magithub-label--get-display-color (label)
   "Gets the display color for LABEL.
