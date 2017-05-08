@@ -53,7 +53,7 @@ Only GitHub.com is currently supported."
   "Gets the display color for LABEL.
 Respects `magithub-label-color-replacement-alist'."
   (let ((original (concat "#" (alist-get 'color label))))
-    (-if-let (color (assoc-string original magithub-label-color-replacement-alist))
+    (-if-let (color (assoc-string original magithub-label-color-replacement-alist t))
         (cdr color) original)))
 
 (defun magithub-label-propertize (label)
