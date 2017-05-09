@@ -105,6 +105,7 @@ default."
    "Pull Request: " default (list #'magithub-issue--issue-is-pull-p)))
 
 (defun magithub-issue-find (number)
+  "Return the issue or pull request with the given NUMBER."
   (-find (lambda (i) (= (alist-get 'number i) number))
          (magithub--issue-list :filter "all" :state "all")))
 
