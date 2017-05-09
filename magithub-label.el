@@ -29,9 +29,9 @@ Available issues are provided by `magithub-issue-label-list'.
 
 DEFAULT is a comma-separated list of issues -- those issues that
 are in DEFAULT are not prompted for again."
-  (->> (when default (s-split "," default t))
-       (magithub-issue-read-labels-list prompt)
-       (s-join ",")))
+  (thread-last (when default (s-split "," default t))
+    (magithub-issue-read-labels-list prompt)
+    (s-join ",")))
 
 (defface magithub-label-face '((t :box t))
   "The inherited face used for labels.
@@ -61,8 +61,9 @@ colors to their Emacs replacements."
   "Gets the display color for LABEL.
 Respects `magithub-label-color-replacement-alist'."
   (let ((original (concat "#" (alist-get 'color label))))
-    (-if-let (color (assoc-string original magithub-label-color-replacement-alist t))
-        (cdr color) original)))
+    (if-let ((color (assoc-string original magithub-label-color-replacement-alist t)))
+        (cdr color)
+      original)))
 
 (defun magithub-label-propertize (label)
   "Propertize LABEL according to its color.

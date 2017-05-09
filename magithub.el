@@ -119,15 +119,55 @@
   "One of these messages will be displayed after you create a
 GitHub repository.")
 
-(defun magithub-create ()
+(defvar magithub-preferred-remote-method 'git_url
+  "Preferred method when cloning or adding remotes.
+One of the following:
+
+  `clone_url' (https://github.com/octocat/Hello-World.git)
+  `git_url'   (git:github.com/octocat/Hello-World.git)
+  `ssh_url'   (git@github.com:octocat/Hello-World.git)")
+(defun magithub-create (repo)
   "Create the current repository on GitHub."
-  (interactive)
-  (message "Creating repository on GitHub...")
-  (magithub--command "create" (magithub-create-arguments))
-  (message "Creating repository on GitHub...done!  %s"
-           (nth (random (length magithub-after-create-messages))
-                magithub-after-create-messages))
-  (magit-push-popup))
+  (interactive (list (unless (magithub-github-repository-p)
+                       `((name . ,(magithub--read-repo-name (ghub--username)))
+                         (description . ,(read-string "Description: "))))))
+  (when (magithub-github-repository-p)
+    (error "Already in a GitHub repository"))
+  (with-temp-message "Creating repository on GitHub..."
+    (setq repo (ghubp-post-user-repos repo)))
+  (magithub--random-message "Creating repository on GitHub...done!")
+  (save-excursion
+    (magit-status-internal default-directory)
+    (magit-remote-add
+     (ghub--username)
+     (alist-get magithub-preferred-remote-method repo))
+    (when (and (magit-staged-files)
+               (y-or-n-p "Staged files exist; commit them?"))
+      (magit-commit-popup))
+    (when-let ((push-branch (magit-get-push-branch)))
+      (unless (equal (magit-rev-name push-branch)
+                     (magit-rev-name "@{upstream}"))
+        (magit-push-popup)))))
+(defun magithub--read-repo-name (for-user)
+  (let* ((for-user "vermiculus")
+         (prompt (format "Repository name: %s/" for-user))
+         (dirnam (file-name-nondirectory (substring default-directory 0 -1)))
+         (valid-regexp (rx bos (+ (any alnum "." "-" "_")) eos))
+         ret)
+    ;; This is not very clever, but it gets the job done.  I'd like to
+    ;; either have instant feedback on what's valid or not allow users
+    ;; to enter invalid names at all.  Could code from Ivy be used?
+    (while (not (s-matches-p valid-regexp (setq ret (read-string prompt nil nil dirnam))))
+      (message "invalid name")
+      (sit-for 1))
+    ret))
+
+(magithub--read-repo-name "vermiculus")
+
+(defun magithub--random-message (&optional prefix)
+  (let ((msg (nth (random (length magithub-after-create-messages))
+                  magithub-after-create-messages)))
+    (if prefix (format "%s  %s" prefix msg) msg)))
 
 (defun magithub-fork ()
   "Fork 'origin' on GitHub."
@@ -137,9 +177,11 @@ GitHub repository.")
   (when (and (s-equals? "master" (magit-get-current-branch))
              (y-or-n-p "Looks like master is checked out.  Create a new branch? "))
     (call-interactively #'magit-branch-spinoff))
-  (message "Forking repository on GitHub...")
-  (magithub--command "fork" (magithub-fork-arguments))
-  (message "Forking repository on GitHub...done"))
+  (let ((repo (magithub-source-repo)))
+    (with-temp-message "Forking repository on GitHub..."
+      (ghubp-post-repos-owner-repo-forks repo))
+    (magithub--random-message
+     (let-alist repo (format "%s/%s forked!" .owner.login .name)))))
 
 (defun magithub-pull-request ()
   "Open a pull request to 'origin' on GitHub."
@@ -200,7 +242,7 @@ This function will return nil for matches to
 
 (defun magithub-check-buffer ()
   "If this is a buffer created by hub, perform setup."
-  (-when-let (filetype (magithub--edit-file-type buffer-file-name))
+  (when-let ((filetype (magithub--edit-file-type buffer-file-name)))
     (magithub-setup-edit-buffer)
     (when (eq filetype 'issue)
       (magithub-setup-new-issue-buffer))))

@@ -5,7 +5,7 @@
   "Checkout PULL-REQUEST as a local branch."
   (interactive (list (magithub-pull-request--completing-read)))
   (let-alist pull-request
-    (-when-let* ((url .html_url) (num .number))
+    (when-let (((url .html_url) (num .number)))
       (magithub-with-hub
        (magit-checkout url))
       (dolist (var-val `(("URL" . ,url)

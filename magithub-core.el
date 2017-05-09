@@ -35,7 +35,7 @@
 
 (defun magithub-github-repository-p ()
   "Non-nil if \"origin\" points to GitHub or a whitelisted domain."
-  (-when-let (origin (magit-get "remote" "origin" "url"))
+  (when-let ((origin (magit-get "remote" "origin" "url")))
     (-some? (lambda (domain) (s-contains? domain origin))
             (cons "github.com" (magit-get-all "hub" "host")))))
 
@@ -185,10 +185,10 @@ If not RAW, return output as a list of lines."
 
 (defun magithub-hub-version ()
   "Return the `hub' version as a string."
-  (-> "--version"
-      magithub--command-output cadr
-      split-string cddr car
-      (split-string "-") car))
+  (thread-first "--version"
+    magithub--command-output cadr
+    split-string cddr car
+    (split-string "-") car))
 
 (defun magithub-hub-version-at-least (version-string)
   "Return t if `hub's version is at least VERSION-STRING."

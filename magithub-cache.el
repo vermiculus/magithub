@@ -138,7 +138,7 @@ the age of the oldest cached information."
         "OFFLINE"
         'face 'font-lock-warning-face)
        "; you are seeing cached data"
-       (-if-let (oldest (car (magithub-cache--age t)))
+       (if-let ((oldest (car (magithub-cache--age t))))
            (format "%s (%s ago)"
                    (format-time-string " as old as %D %r" oldest)
                    (magithub-cache--time-out

@@ -98,7 +98,7 @@
 (defun magithub-issue--insert-issue-section ()
   "Insert GitHub issues if appropriate."
   (when (magithub-usable-p)
-    (-when-let (issues (magithub-issues))
+    (when-let ((issues (magithub-issues)))
       (let ((justify (magithub-issue--format-justify)))
         (magit-insert-section (magithub-issue-list)
           (magit-insert-heading "Issues:")
@@ -112,7 +112,7 @@
    'pull-request-merge
    'pull-request-checkout)
   (when (magithub-usable-p)
-    (-when-let (pull-requests (magithub-pull-requests))
+    (when-let ((pull-requests (magithub-pull-requests)))
       (let ((justify (magithub-issue--format-justify)))
         (magit-insert-section (magithub-pull-request-list)
           (magit-insert-heading "Pull Requests:")
@@ -137,7 +137,7 @@ Interactively, this finds the pull request at point."
 (defun magithub-issue--browse (issue-or-pr)
   "Visits ISSUE-OR-PR in the browser.
 Interactively, this finds the issue at point."
-  (-when-let (url (alist-get 'html_url issue-or-pr))
+  (when-let ((url (alist-get 'html_url issue-or-pr)))
     (browse-url url)))
 
 (defun magithub-repolist-column-issue (_id)
