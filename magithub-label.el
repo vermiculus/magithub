@@ -3,21 +3,25 @@
 
 (defun magithub-label-list ()
   "Return a list of issue and pull-request labels."
-  (magithub-get-in-all '(name)
-    (magithub-cache :label
-      '(ghubp-get-repos-owner-repo-labels
-        (magithub-source-repo))
-      "Loading labels...")))
+  (magithub-cache :label
+    '(ghubp-get-repos-owner-repo-labels
+      (magithub-source-repo))
+    "Loading labels..."))
 
-(defun magithub-issue-read-labels-list (prompt &optional default)
+(defun magithub-label-read-labels (prompt &optional default)
   "Read some issue labels and return a list of strings.
-Available issues are provided by `magithub-issue-label-list'.
+Available issues are provided by `magithub-label-list'.
 
 DEFAULT is a list of pre-selected labels.  These labels are not
 prompted for again."
-  (magithub--completing-read-multiple
-   (format "%s... %s" prompt "Issue labels (or \"\" to quit): ")
-   (cl-set-difference (magithub-issue-label-list) default)))
+  (let ((remaining-labels
+         (cl-set-difference (magithub-label-list) default
+                            :test (lambda (a b)
+                                    (= (alist-get 'name a)
+                                       (alist-get 'name b))))))
+    (magithub--completing-read-multiple
+     prompt remaining-labels
+     (lambda (l) (alist-get 'name l)))))
 
 (defun magithub-issue-read-labels (prompt &optional default)
   "Read some issue labels and return a comma-separated string.
