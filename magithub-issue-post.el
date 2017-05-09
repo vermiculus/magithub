@@ -5,24 +5,76 @@
 (eval-when-compile
   (require 'wid-edit))
 
+(define-derived-mode magithub-issue-post-mode nil
+  "Magithub Issue Post"
+  "Major mode for posting GitHub issues.")
+(define-derived-mode magithub-issue-edit-mode gfm-mode
+  "Magithub Issue Edit"
+  "Major mode for editing GitHub issues.")
+
 (defvar-local magithub-issue--widget-title nil)
 (defvar-local magithub-issue--widget-labels nil)
 (defvar-local magithub-issue--widget-body nil)
 
+(define-key magithub-issue-post-mode-map "b" #'magithub-issue-w-jump-to-body)
+(define-key magithub-issue-edit-mode-map (kbd "C-c C-c C-c") #'kill-buffer-and-window)
+
 (defvar magithub-issue-widget-map
   (let ((m (copy-keymap widget-keymap)))
     (define-key m (kbd "C-c RET") #'magithub-issue-wsubmit)
+    (define-key m "b" #'magithub-issue-w-jump-to-body)
     m))
 
 (defvar magithub-issue-edit-map
   (let ((m (copy-keymap gfm-mode-map)))
     (define-key m (kbd "C-c RET") #'magithub-issue-wsubmit)
+    (define-key m [remap beginning-of-buffer] #'magithub-issue-w-beginning-of-buffer-dwim)
+    (define-key m [remap end-of-buffer] #'magithub-issue-w-end-of-buffer-dwim)
+    (define-key m (kbd "TAB") #'magithub-issue-w-next-widget-dwim)
     m))
+
+(defun magithub-issue-w-beginning-of-buffer-dwim ()
+  (interactive)
+  (let ((start-of-body (magithub-issue--w-start-of-body)))
+    (goto-char
+     (if (= (point) start-of-body)
+         (point-min)
+       start-of-body))))
+(defun magithub-issue-w-end-of-buffer-dwim ()
+  (interactive)
+  (let ((end-of-body (magithub-issue--w-end-of-body)))
+    (goto-char
+     (if (= (point) end-of-body)
+         (point-max)
+       end-of-body))))
+(defun magithub-issue-w-jump-to-body ()
+  (interactive)
+  (goto-char (magithub-issue--w-start-of-body)))
+
+(defun magithub-issue--w-start-of-body ()
+  (save-excursion
+    (goto-char (plist-get (cdr magithub-issue--widget-body) :from))
+    (forward-line)
+    (point)))
+(defun magithub-issue--w-end-of-body ()
+  (save-excursion
+    (goto-char (plist-get (cdr magithub-issue--widget-body) :to))
+    (backward-char 3)
+    (point)))
 
 (defvar magithub-issue-title-map
   (let ((m (copy-keymap magithub-issue-widget-map)))
     (define-key m (kbd "C-j") nil)
     m))
+
+(defun magithub-issue-edit ()
+  (interactive)
+  (let ((start (save-excursion (goto-char (magithub-issue--w-start-of-body)) (point)))
+        (end   (save-excursion (goto-char (magithub-issue--w-end-of-body))   (point))))
+    (with-current-buffer (clone-indirect-buffer "*mgh edit*" t)
+      (remove-overlays)
+      (narrow-to-region start end)
+      (magithub-issue-edit-mode))))
 
 (define-widget 'magithub-issue-title 'editable-field
   "Issue / pull-request title entry"
@@ -38,7 +90,7 @@
   "Issue / pull-request body entry"
   :keymap magithub-issue-edit-map
   :tag "Issue"
-  :format "%t:\n%v \n\n"
+  :format "%t:\n%v\n\n"
   :inline nil)
 
 (defun magithub-issue--new-form (repo issue)
@@ -46,6 +98,7 @@
     (error "issue.body not yet supported; see https://emacs.stackexchange.com/q/32674/2264"))
   (let-alist `((repo . ,repo) (issue . ,issue))
     (with-current-buffer (generate-new-buffer "*magithub issue*")
+      (magithub-issue-post-mode)
       (setq header-line-format (concat "Creating an issue for " .repo.full_name))
 
       (setq magithub-issue--widget-title
@@ -69,8 +122,8 @@
       (widget-insert "\n")
       (use-local-map magithub-issue-widget-map)
       (widget-setup)
-      (goto-char (widget-field-start magithub-issue--widget-title))
-      (current-buffer))))
+      (magithub-issue-w-jump-to-body)
+      (current-buffer)))))
 
 (defun magithub-issue-new (repo title labels)
   (interactive (list (magithub-source-repo nil t) nil nil))
@@ -86,9 +139,9 @@
 (defun magithub-issue-wsubmit (&rest _)
   (interactive)
   (when (yes-or-no-p "Are you sure you want to submit this issue? ")
-    (let ((issue `((title . ,(widget-value magithub-issue--widget-title))
+    (let ((issue `((title . ,(s-trim (widget-value magithub-issue--widget-title)))
                    (labels . ,(widget-value magithub-issue--widget-labels))
-                   (body . ,(widget-value magithub-issue--widget-body)))))
+                   (body . ,(s-trim (widget-value magithub-issue--widget-body))))))
       (magithub-issue-browse
        (ghubp-post-repos-owner-repo-issues (magithub-source-repo) issue)))
     (kill-buffer-and-window)))
