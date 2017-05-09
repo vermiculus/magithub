@@ -49,13 +49,19 @@
     (mapconcat #'magithub-label-propertize .labels " ")))
 
 (defun magithub-issue--format (issue justify type)
-  (let-alist issue
-    (magithub--object-propertize type issue
+  (magithub--object-propertize type issue
+    (let-alist issue
       (let* ((fc fill-column)
-             (issue-prefix (format (format " %%%dd (%%%dd) "
-                                           (alist-get 'number justify)
-                                           (alist-get 'comments justify))
-                                   .number .comments))
+             (issue-format
+              (format " %%%ds %%%ds  "
+                      (alist-get 'number justify)
+                      (+ 2 (alist-get 'comments justify))))
+             (issue-prefix
+              (format issue-format
+                      (number-to-string .number)
+                      (if (= .comments 0) ""
+                        (format "(%d)" .comments))))
+
              (issue-title-width (- fc (length issue-prefix)))
              (indent (make-string (length issue-prefix) ?\ )))
         (with-temp-buffer
