@@ -368,25 +368,33 @@ See `magithub-features'."
                             "master"))
       "origin"))
 
-(defun magithub-source-repo (&optional required)
-  "Uses the URL of `magithub-source-remote' to parse out repository information.
-Returns output of `magithub--url->repo'.
+(defun magithub-source-repo (&optional required full)
+  "Returns a sparse repository object for the current context.
+
+Uses the URL of `magithub-source-remote' to parse out repository
+information.  Returns output of `magithub--url->repo'.
 
 If REQUIRED is non-nil, we are required to return a valid
-repository.  If this is not possible, an error is raised."
-  (let* ((url (magit-get "remote" (magithub-source-remote) "url"))
-         (repo (magithub--url->repo url)))
-    (if repo repo
-      (when required
-        (user-error
-         (if (not url)
-             (if (file-exists-p ".git")
-                 "No repository url for remote `%s'"
-               "No repository here")
-           (s-join "\n"
-                   '("There was an error parsing the remote's url (%s=%s)."
-                     "Are you sure this is a GitHub repository?")))
-         (magithub-source-remote) url)))))
+repository.  If this is not possible, an error is raised.
+
+If FULL is non-nil, grab the full repository object from the
+server."
+  (let ((o (let* ((url (magit-get "remote" (magithub-source-remote) "url"))
+                  (repo (magithub--url->repo url)))
+             (if repo repo
+               (when required
+                 (user-error
+                  (if (not url)
+                      (if (file-exists-p ".git")
+                          "No repository url for remote `%s'"
+                        "No repository here")
+                    (s-join "\n"
+                            '("There was an error parsing the remote's url (%s=%s)."
+                              "Are you sure this is a GitHub repository?")))
+                  (magithub-source-remote) url))))))
+    (if full (magithub-cache :repo-demographics
+               `(ghubp-get-repos-owner-repo ',o))
+      o)))
 
 (defun magithub--satisfies-p (preds obj)
   "Non-nil when all functions in PREDS are non-nil for OBJ."
