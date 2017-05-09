@@ -103,32 +103,28 @@ Pings the API a maximum of once every ten seconds."
 This function continues until all candidates have been entered or
 until the user enters a value of \"\".  Duplicate entries are not
 allowed."
-  (let ((collection
-         (magithub--zip
-          (-filter predicate collection)
-          (or format-function (lambda (o) (format "%S" o)))
-          nil)))
+  (let* ((format-function (or format-function (lambda (o) (format "%S" o))))
+         (collection (if (functionp predicate) (-filter predicate collection) collection))
+         (collection (magithub--zip collection format-function nil)))
     (cdr (assoc-string
           (completing-read prompt collection nil require-match
                            (when default (funcall format-function default)))
           collection))))
 
-(defun magithub--completing-read-multiple (prompt collection)
+(defun magithub--completing-read-multiple (prompt collection &optional format-function predicate require-match default)
   "Using PROMPT, get a list of elements in COLLECTION.
 This function continues until all candidates have been entered or
 until the user enters a value of \"\".  Duplicate entries are not
 allowed."
-  (let (label-list this-label done)
-    (while (not done)
-      (setq collection (remove this-label collection)
-            this-label "")
-      (when collection
-        ;; @todo it would be nice to detect whether or not we are
-        ;; allowed to create labels -- if not, we can require-match
-        (setq this-label (completing-read prompt collection)))
-      (unless (setq done (s-blank? this-label))
-        (push this-label label-list)))
-    label-list))
+  (let ((this t) (coll (copy-tree collection)) ret)
+    (while (and collection this)
+      (setq this (magithub--completing-read
+                  prompt coll format-function
+                  predicate require-match default))
+      (when this
+        (push this ret)
+        (setq coll (delete this coll))))
+    ret))
 
 (defconst magithub-hash-regexp
   (rx bow (= 40 (| digit (any (?A . ?F) (?a . ?f)))) eow)
