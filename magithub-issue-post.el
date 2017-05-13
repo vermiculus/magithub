@@ -153,7 +153,27 @@ properties are respected and prepopulate the form."
          "Cancel"
          #'magithub-issue-wcancel)
       (setq magithub-issue--extra-data '((kind . issue)))
+      (magithub-issue--template-insert "ISSUE_TEMPLATE")
       (switch-to-buffer-other-window (current-buffer)))))
+
+(defun magithub-issue--template-insert (filename)
+  "Inserts template FILENAME into the issue body"
+  (save-excursion
+    (magithub-issue-w-jump-to-body)
+    (when-let ((template (magithub-find-template filename)))
+      (insert-file-contents template))))
+
+(defun magithub-issue--template-find (filename)
+  "Find an appropriate template called FILENAME and returns its absolute path.
+
+See also URL
+`https://github.com/blog/2111-issue-and-pull-request-templates'"
+  (let ((default-directory (magit-toplevel))
+        combinations)
+    (dolist (tryname (list filename (concat filename ".md")))
+      (dolist (trydir (list default-directory (expand-file-name ".github/")))
+        (push (expand-file-name tryname trydir) combinations)))
+    (-find #'file-readable-p combinations)))
 
 (defun magithub-pull-request-new (repo title base head)
   (interactive
@@ -177,6 +197,7 @@ properties are respected and prepopulate the form."
       (setq magithub-issue--extra-data
             `((base . ,base) (head . ,head)
               (kind . pull-request)))
+      (magithub-issue--template-insert "PULL_REQUEST_TEMPLATE")
       (switch-to-buffer-other-window (current-buffer)))))
 
 (defun magithub-issue-wsubmit ()
