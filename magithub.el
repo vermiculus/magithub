@@ -56,6 +56,7 @@
 (require 'magithub-ci)
 (require 'magithub-proxy)
 (require 'magithub-issue-status)
+(require 'magithub-issue-post)
 
 (magit-define-popup magithub-dispatch-popup
   "Popup console for dispatching other Magithub popups."
