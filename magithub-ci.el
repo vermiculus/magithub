@@ -82,7 +82,7 @@ remote counterpart."
           `(ghubp-get-repos-owner-repo-commits-ref-status
             ',(magithub-source-repo) ,ref)
           (format "Getting CI status for %s..."
-                  (if (magit-branch-p ref) ref
+                  (if (magit-branch-p ref) (format "branch `%s'" ref)
                     (s-left ref 6))))
       (ghub-404
        '((state . "error")
