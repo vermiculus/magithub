@@ -34,7 +34,7 @@
 
 (defvar magithub-cache-class-refresh-seconds-alist
   '((:issues . 600)
-    (:ci-status . 60))
+    (:ci-status . 15))
   "The number of seconds that have to pass for GitHub data to be
 considered outdated.
 
