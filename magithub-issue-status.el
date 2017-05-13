@@ -40,7 +40,7 @@ we'll hit the API) if Magithub is offline."
     (define-key map [remap magit-visit-thing] #'magithub-pull-browse)
     (define-key map [remap magit-refresh] #'magithub-issue-refresh)
     map)
-  "Keymap for `magithub-pull-request-list' sections.")
+  "Keymap for `magithub-pull-request' sections.")
 
 (defun magithub-issue--label-string (issue)
   (let-alist issue
