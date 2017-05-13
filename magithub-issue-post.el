@@ -113,7 +113,7 @@ determines the behavior of `magithub-issue-wsubmit'.")
 (define-widget 'magithub-issue-text 'text
   "Issue / pull-request body entry"
   :keymap magithub-issue-edit-map
-  :tag "Issue"
+  :tag "Body"
   :format "%t:\n%v\n\n"
   :inline nil)
 
