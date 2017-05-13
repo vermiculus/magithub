@@ -89,33 +89,6 @@ remote counterpart."
          (total_count . 0)
          (magithub-message . "ref not found on remote"))))))
 
-(defun magithub-ci-status--last-commit ()
-  "Find the commit considered to have the current CI status.
-Right now, this finds the most recent commit without
-
-    [ci skip]
-
-or
-
-    [skip ci]
-
-in the commit message.
-
-This does not account for the fact that the current commit might
-not yet be pushed.
-
-See the following resources:
-
- - https://docs.travis-ci.com/user/customizing-the-build#Skipping-a-build
- - https://circleci.com/docs/skip-a-build/"
-  (let* ((args '("--invert-grep"
-                 "--grep=\\[ci skip\\]"
-                 "--grep=\\[skip ci\\]"
-                 "--format=oneline"
-                 "--max-count=1"))
-         (output (magit-git-lines "log" args)))
-    (car (split-string (car output)))))
-
 (defvar magithub-ci-status-alist
   '((nil       . ((display . "None")    (face . magithub-ci-no-status)))
     ("error"   . ((display . "Error")   (face . magithub-ci-error)))
