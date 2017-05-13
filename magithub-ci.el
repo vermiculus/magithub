@@ -217,8 +217,9 @@ we'll hit the API) if Magithub is offline."
         (magit-insert-heading)
         (magit-insert-section (magithub-ci-status-meta)
           (insert (concat indent
-                          (propertize "Checks for ref: " 'face 'magit-section-heading)
-                          (propertize ref 'face 'magit-branch-local)))
+                          (propertize (concat "Checks for ref: "
+                                              (propertize ref 'face 'magit-branch-local))
+                                      'face 'magit-dimmed)))
           (magit-insert-heading))
         (dolist (status (alist-get 'statuses checks))
           (magit-insert-section (magithub-ci-status
