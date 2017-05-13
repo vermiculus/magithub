@@ -184,7 +184,8 @@ we'll hit the API) if Magithub is offline."
          (indent (make-string 10 ?\ )))
     (when checks
       (magit-insert-section (magithub-ci-status
-                             `(magithub-ci-ref . ,ref))
+                             `(magithub-ci-ref . ,ref)
+                             'collapsed)
         (insert (format "%-10s" "CI: "))
         (insert (magithub-ci--status-header checks))
         (magit-insert-heading)
