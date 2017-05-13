@@ -77,12 +77,17 @@ remote counterpart."
   (if (magit-rebase-in-progress-p)
       ;; avoid rate-limiting ourselves
       (message "Magithub: skipping CI status checks while in rebase")
-    (magithub-cache :ci-status
-      `(ghubp-get-repos-owner-repo-commits-ref-status
-        (magithub-source-repo) ,ref)
-      (format "Getting CI status for %s..."
-              (if (magit-branch-p ref) ref
-                (s-left ref 6))))))
+    (condition-case _
+        (magithub-cache :ci-status
+          `(ghubp-get-repos-owner-repo-commits-ref-status
+            (magithub-source-repo) ,ref)
+          (format "Getting CI status for %s..."
+                  (if (magit-branch-p ref) ref
+                    (s-left ref 6))))
+      (ghub-404
+       '((state . "error")
+         (total_count . 0)
+         (magithub-message . "ref not found on remote"))))))
 
 (defun magithub-ci-status--last-commit ()
   "Find the commit considered to have the current CI status.
@@ -229,7 +234,8 @@ we'll hit the API) if Magithub is offline."
   (pcase (alist-get 'total_count checks)
     (0 (format "%s  (%s)"
                (magithub-ci--status-propertized checks)
-               "it seems checks have not yet begun"))
+               (or (alist-get 'magithub-message checks)
+                   "it seems checks have not yet begun")))
     (1 (magithub-ci--status-propertized checks))
     (_ (let* ((overall-status (alist-get 'state checks))
               (status-spec (magithub-ci--status-spec overall-status))
