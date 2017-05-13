@@ -68,6 +68,7 @@
              (?i "Issues" magithub-issue-new)
              (?p "Submit a pull request" magithub-pull-request-new)
              (?x "Use a proxy repository for issues/PRs" magithub-proxy-set)
+             (?O "Toggle online/offline" magithub-toggle-offline)
              "Meta"
              (?` "Toggle Magithub-Status integration" magithub-enabled-toggle)
              (?g "Refresh all GitHub data" magithub-refresh)

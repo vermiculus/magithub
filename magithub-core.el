@@ -68,6 +68,12 @@ only be let-bound by `magithub-refresh'.")
   (when (derived-mode-p 'magit-status-mode)
     (magit-refresh)))
 
+(defun magithub-toggle-offline ()
+  (interactive)
+  (if (magithub-offline-p)
+      (magithub-go-online)
+    (magithub-go-offline)))
+
 (defun magithub-offline-p ()
   (memq magithub-cache '(t hard-refresh-offline)))
 
