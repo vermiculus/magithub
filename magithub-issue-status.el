@@ -3,12 +3,16 @@
 (require 'magithub-issue)
 (require 'magithub-label)
 
-(defun magithub-issue-refresh ()
-  "Refresh issues for this repository."
-  (interactive)
-  (magithub-cache-without-cache :issues
-    (when (derived-mode-p 'magit-status-mode)
-      (magit-refresh))))
+(defun magithub-issue-refresh (even-if-offline)
+  "Refresh issues for this repository.
+If EVEN-IF-OFFLINE is non-nil, we'll still refresh (that is,
+we'll hit the API) if Magithub is offline."
+  (interactive "P")
+  (let ((magithub-cache (not even-if-offline)))
+    (magithub-cache-without-cache :issues
+      (ignore (magithub--issue-list))))
+  (when (derived-mode-p 'magit-status-mode)
+    (magit-refresh)))
 
 (defvar magit-magithub-issue-section-map
   (let ((map (make-sparse-keymap)))

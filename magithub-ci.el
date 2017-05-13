@@ -189,11 +189,14 @@ See the following resources:
     map)
   "Keymap for `magithub-ci-status' header section.")
 
-(defun magithub-ci-refresh ()
-  "Invalidate the CI cache and refresh the buffer."
-  (interactive)
-  (magithub-cache-without-cache :ci-status
-    (magithub-refresh))
+(defun magithub-ci-refresh (even-if-offline)
+  "Invalidate the CI cache and refresh the buffer.
+If EVEN-IF-OFFLINE is non-nil, we'll still refresh (that is,
+we'll hit the API) if Magithub is offline."
+  (interactive "P")
+  (let ((magithub-cache (not even-if-offline)))
+    (magithub-cache-without-cache :ci-status
+      (ignore (magithub-ci-status (magithub-ci-status--get-default-ref)))))
   (when (derived-mode-p 'magit-status-mode)
     (magit-refresh)))
 
