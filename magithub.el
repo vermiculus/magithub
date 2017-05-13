@@ -119,7 +119,7 @@
   "One of these messages will be displayed after you create a
 GitHub repository.")
 
-(defvar magithub-preferred-remote-method 'git_url
+(defvar magithub-preferred-remote-method 'ssh_url
   "Preferred method when cloning or adding remotes.
 One of the following:
 
