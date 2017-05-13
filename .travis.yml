@@ -2,6 +2,10 @@ language: emacs-lisp
 
 sudo: false
 
+cache:
+  - directories:
+    - "$HOME/emacs"
+
 matrix:
   fast_finish: true
   allow_failures:
