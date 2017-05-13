@@ -8,27 +8,15 @@
 
 (require 'ert)
 
-
+(defmacro magithub-test-cache-with-new-cache (plist &rest body)
+  (declare (indent 1))
+  `(let ((magithub-cache-class-refresh-seconds-alist ',plist)
+         (magithub-cache--cache (make-hash-table)))
+     ,@body))
 
 (require 'magithub-cache)
 (ert-deftest magithub-test-cache ()
-  (should (equal (magithub-cache-value 1 :test)
-                 nil))
-  (should (equal (magithub-cache 1 :test '(list 1 2 3))
-                 '(1 2 3)))
-  (should (equal (magithub-cache-value 1 :test)
-                 '(1 2 3)))
-  (should (equal (magithub-cache-value 2 :test)
-                 nil))
-  (should (equal (magithub-cache 2 :test '(list 2 4 6))
-                 '(2 4 6)))
-  (should (equal (magithub-cache-value 2 :test)
-                 '(2 4 6)))
-  (should (equal (magithub-cache-value 2 :test-another)
-                 nil))
-  (should (equal (magithub-cache 2 :test-another 100)
-                 100))
-  (should (equal (magithub-cache-value 2 :test-another)
-                 100)))
+  (magithub-test-cache-with-new-cache ((:test . 30))
+    (should (equal t (magithub-cache :test t)))))
 
 ;;; magithub-test.el ends here
