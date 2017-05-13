@@ -71,7 +71,9 @@ If magithub.ci.enabled is not set, CI is considered to be enabled."
     (magithub-cache :ci-status
       `(ghubp-get-repos-owner-repo-commits-ref-status
         (magithub-source-repo) ,ref)
-      (format "Getting CI status for %s..." (substring ref 0 6)))))
+      (format "Getting CI status for %s..."
+              (if (magit-branch-p ref) ref
+                (s-left ref 6))))))
 
 (defun magithub-ci-status--last-commit ()
   "Find the commit considered to have the current CI status.
@@ -186,7 +188,9 @@ See the following resources:
     (magit-refresh)))
 
 (defun magithub-insert-ci-status-header ()
-  (let* ((ref (magithub-ci-status--last-commit))
+  (let* ((ref (cdr (magit-split-branch-name (magit-get-push-branch))))
+         ;; above is to handle when local branch's name is different
+         ;; than its remote counterpart
          (checks (magithub-ci-status ref))
          (overall-status (or (cdr (assoc-string (alist-get 'status checks)
                                                 magithub-ci-status-alist))
