@@ -160,8 +160,6 @@ One of the following:
       (sit-for 1))
     ret))
 
-(magithub--read-repo-name "vermiculus")
-
 (defun magithub--random-message (&optional prefix)
   (let ((msg (nth (random (length magithub-after-create-messages))
                   magithub-after-create-messages)))
