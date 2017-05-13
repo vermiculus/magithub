@@ -147,8 +147,7 @@ One of the following:
       (magit-push-popup))))
 
 (defun magithub--read-repo-name (for-user)
-  (let* ((for-user "vermiculus")
-         (prompt (format "Repository name: %s/" for-user))
+  (let* ((prompt (format "Repository name: %s/" for-user))
          (dirnam (file-name-nondirectory (substring default-directory 0 -1)))
          (valid-regexp (rx bos (+ (any alnum "." "-" "_")) eos))
          ret)
