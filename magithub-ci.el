@@ -195,14 +195,17 @@ See the following resources:
       (magit-insert-section (magithub-ci-status
                              `(magithub-ci-ref . ,ref))
         (insert (format "%-10s" "CI: "))
-        (insert (magithub-ci--status-header checks))
+        (insert (if (= 0 (alist-get 'total_count checks))
+                    (propertize "No CI configured for this repository"
+                                'face 'magithub-ci-no-status)
+                  (magithub-ci--status-header checks)))
+        (magit-insert-heading)
         (dolist (status (alist-get 'statuses checks))
-          (insert ?\n)
           (magit-insert-section (magithub-ci-status
                                  `(magithub-ci-url . ,(alist-get 'target_url status)))
-            (insert "  ")
-            (insert (magithub-ci--status-propertized status))))
-        (insert ?\n)))))
+            (insert (make-string 10 ?\ ))
+            (insert (magithub-ci--status-propertized status))
+            (magit-insert-heading)))))))
 
 (defun magithub-ci--status-header (checks)
   (let ((total (alist-get 'total_count checks)))
