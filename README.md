@@ -18,6 +18,7 @@ include:
  - `H f` create forks of existing repositories
  - `H p` submit pull requests upstream
  - `H i` create issues
+ - `L` on an issue (or pull request) updates its labels
  - `RET` on an issue to open that issue in GitHub
  - `RET` on the CI header to open your CI dashboard
 
