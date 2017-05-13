@@ -1,0 +1,1 @@
+(load-file "./magithub.el")
