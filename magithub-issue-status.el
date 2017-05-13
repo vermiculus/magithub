@@ -8,7 +8,7 @@
 If EVEN-IF-OFFLINE is non-nil, we'll still refresh (that is,
 we'll hit the API) if Magithub is offline."
   (interactive "P")
-  (let ((magithub-cache (and (not even-if-offline) 'expire)))
+  (let ((magithub-cache (if even-if-offline nil magithub-cache)))
     (magithub-cache-without-cache :issues
       (ignore (magithub--issue-list))))
   (when (derived-mode-p 'magit-status-mode)
