@@ -194,6 +194,14 @@ context.  If t, `magithub-source-repo' is used."
       (setq magithub-cache--needs-write nil)
       (message "Magithub: wrote cache to disk"))))
 
+(defmacro magithub-cache-without-cache (class &rest body)
+  "For CLASS, execute BODY without using CLASS's caches."
+  (declare (indent 1))
+  `(let ((magithub-cache-class-refresh-seconds-alist
+          (cons (cons ,class 0)
+                magithub-cache-class-refresh-seconds-alist)))
+     ,@body))
+
 ;;; If we're offline, display this at the top
 (add-hook 'magit-status-headers-hook
           #'magithub-maybe-report-offline-mode)
