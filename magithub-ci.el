@@ -64,6 +64,15 @@ If magithub.ci.enabled is not set, CI is considered to be enabled."
 (magit-define-popup-action 'magithub-dispatch-popup
   ?~ "Toggle CI for this repository" #'magithub-ci-toggle ?`)
 
+(defun magithub-ci-status--get-default-ref (&optional branch)
+  "The remote branch name to use for CI status based on BRANCH.
+
+Handles cases where the local branch's name is different than its
+remote counterpart."
+  (cdr (thread-last (or branch (magit-get-current-branch))
+         (magit-get-push-branch)
+         (magit-split-branch-name))))
+
 (defun magithub-ci-status (ref)
   (if (magit-rebase-in-progress-p)
       ;; avoid rate-limiting ourselves
@@ -191,9 +200,7 @@ See the following resources:
     (magit-refresh)))
 
 (defun magithub-insert-ci-status-header ()
-  (let* ((ref (cdr (magit-split-branch-name (magit-get-push-branch))))
-         ;; above is to handle when local branch's name is different
-         ;; than its remote counterpart
+  (let* ((ref (magithub-ci-status--get-default-ref))
          (checks (magithub-ci-status ref))
          (overall-status (or (cdr (assoc-string (alist-get 'status checks)
                                                 magithub-ci-status-alist))
