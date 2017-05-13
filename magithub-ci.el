@@ -250,12 +250,16 @@ we'll hit the API) if Magithub is offline."
 
 (defun magithub-ci--status-propertized (status)
   (let ((status-string (alist-get 'state status))
-        (description   (alist-get 'description status)))
+        (description   (alist-get 'description status))
+        (context       (alist-get 'context status)))
     (let-alist (magithub-ci--status-spec status-string)
       (concat (propertize (or .display status-string)
                           'face .face)
               (when description
-                (format " %s" description))))))
+                (format " %s" description))
+              (when context
+                (propertize (format " %s" context)
+                            'face 'magit-dimmed))))))
 
 (magithub--deftoggle magithub-toggle-ci-status-header
   magit-status-headers-hook #'magithub-maybe-insert-ci-status-header "the CI header")
