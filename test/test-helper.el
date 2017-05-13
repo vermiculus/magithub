@@ -6,4 +6,4 @@
 (let ((d (expand-file-name "magithub" user-emacs-directory)))
   (or (file-exists-p d) (mkdir d)))
 
-(load-file "./magithub-test-compile.el")
+(load-file "./test/magithub-test-compile.el")
