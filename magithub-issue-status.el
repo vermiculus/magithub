@@ -3,12 +3,12 @@
 (require 'magithub-issue)
 (require 'magithub-label)
 
-;;; todo: bring back caching
 (defun magithub-issue-refresh ()
   "Refresh issues for this repository."
   (interactive)
-  (when (derived-mode-p 'magit-status-mode)
-    (magit-refresh)))
+  (magithub-cache-without-cache :issues
+    (when (derived-mode-p 'magit-status-mode)
+      (magit-refresh))))
 
 (defvar magit-magithub-issue-section-map
   (let ((map (make-sparse-keymap)))
