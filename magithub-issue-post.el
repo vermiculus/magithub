@@ -160,7 +160,7 @@ properties are respected and prepopulate the form."
   "Inserts template FILENAME into the issue body"
   (save-excursion
     (magithub-issue-w-jump-to-body)
-    (when-let ((template (magithub-find-template filename)))
+    (when-let ((template (magithub-issue--template-find filename)))
       (insert-file-contents template))))
 
 (defun magithub-issue--template-find (filename)
