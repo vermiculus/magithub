@@ -39,7 +39,10 @@
        end-of-body))))
 (defun magithub-issue-w-jump-to-body ()
   (interactive)
-  (goto-char (magithub-issue--w-start-of-body)))
+  (if (or (not (widget-at))
+          (eq 'checkbox (widget-type (widget-at))))
+      (goto-char (magithub-issue--w-start-of-body))
+    (call-interactively #'self-insert-command)))
 
 (defun magithub-issue--w-start-of-body ()
   (save-excursion
