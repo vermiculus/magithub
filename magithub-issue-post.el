@@ -1,5 +1,4 @@
 (require 'magithub-issue)
-(require 'markdown-mode)                ;for gfm
 (require 'widget)
 
 (eval-when-compile
@@ -7,10 +6,7 @@
 
 (define-derived-mode magithub-issue-post-mode nil
   "Magithub Issue Post"
-  "Major mode for posting GitHub issues.")
-(define-derived-mode magithub-issue-edit-mode gfm-mode
-  "Magithub Issue Edit"
-  "Major mode for editing GitHub issues.")
+  "Major mode for posting GitHub issues and pull requests.")
 
 (defvar-local magithub-issue--extra-data nil)
 (defvar-local magithub-issue--widgets nil
@@ -20,27 +16,12 @@
 (defun magithub-issue--widget-value (key)
   (widget-value (magithub-issue--widget-get key)))
 
-(let ((m magithub-issue-post-mode-map))
-  (define-key m "b" #'magithub-issue-w-jump-to-body)
-  (define-key m (kbd "C-c RET") #'magithub-issue-wsubmit-issue)
-  (define-key m (kbd "C-c C-k") #'magithub-issue-wcancel))
-
-(let ((m magithub-issue-edit-mode-map))
-  (define-key m (kbd "C-c C-c C-c") #'kill-buffer-and-window))
-
-(defvar magithub-issue-widget-map
-  (let ((m (copy-keymap widget-keymap)))
-    (define-key m (kbd "C-c RET") #'magithub-issue-wsubmit-issue)
-    (define-key m "b" #'magithub-issue-w-jump-to-body)
-    m))
-
-(defvar magithub-issue-edit-map
-  (let ((m (copy-keymap gfm-mode-map)))
-    (define-key m (kbd "C-c RET") #'magithub-issue-wsubmit-issue)
-    (define-key m [remap beginning-of-buffer] #'magithub-issue-w-beginning-of-buffer-dwim)
-    (define-key m [remap end-of-buffer] #'magithub-issue-w-end-of-buffer-dwim)
-    (define-key m (kbd "TAB") #'magithub-issue-w-next-widget-dwim)
-    m))
+(setq magithub-issue-post-mode-map
+      (let ((m (copy-keymap widget-keymap)))
+        (define-key m (kbd "C-c RET") #'magithub-issue-wsubmit)
+        (define-key m (kbd "C-c C-k") #'magithub-issue-wcancel)
+        (define-key m "b" #'magithub-issue-w-jump-to-body)
+        m))
 
 (defun magithub-issue-w-beginning-of-buffer-dwim ()
   (interactive)
@@ -80,27 +61,11 @@
       (if (or (<= (point) start) (<= end (point)))
           (call-interactively #'widget-forward)
         (when-let ((func (with-temp-buffer
-                           (magithub-issue-edit-mode)
                            (key-binding keys))))
           (call-interactively func))))))
 
-(defvar magithub-issue-title-map
-  (let ((m (copy-keymap magithub-issue-widget-map)))
-    (define-key m (kbd "C-j") nil)
-    m))
-
-(defun magithub-issue-edit ()
-  (interactive)
-  (let ((start (magithub-issue--w-start-of-body))
-        (end   (magithub-issue--w-end-of-body)))
-    (with-current-buffer (clone-indirect-buffer "*mgh edit*" t)
-      (remove-overlays)
-      (narrow-to-region start end)
-      (magithub-issue-edit-mode))))
-
 (define-widget 'magithub-issue-title 'editable-field
   "Issue / pull-request title entry"
-  :keymap magithub-issue-title-map
   :tag "Title"
   :format "%t: %v \n\n")
 (define-widget 'magithub-issue-labels 'checklist
@@ -110,7 +75,6 @@
   :format "%t:\n%v \n\n")
 (define-widget 'magithub-issue-text 'text
   "Issue / pull-request body entry"
-  :keymap magithub-issue-edit-map
   :tag "Body"
   :format "%t:\n%v\n\n"
   :inline nil)
@@ -135,7 +99,7 @@ properties are respected and prepopulate the form."
       (setq header-line-format
             (substitute-command-keys
              (s-join " | " (list header
-                                 "submit: \\[magithub-issue-wsubmit-issue]"
+                                 "submit: \\[magithub-issue-wsubmit]"
                                  "cancel: \\[magithub-issue-wcancel]"))))
       (push
        (cons 'title (widget-create 'magithub-issue-title
@@ -160,7 +124,6 @@ properties are respected and prepopulate the form."
       (widget-insert "  ")
       (widget-create 'push-button :notify cancel-function cancel-caption)
       (widget-insert "\n")
-      (use-local-map magithub-issue-widget-map)
       (widget-setup)
       (magithub-issue-w-jump-to-body)
       (current-buffer))))
@@ -174,16 +137,19 @@ properties are respected and prepopulate the form."
              (magithub-label-read-labels "Labels: ")))))
 
   (let-alist repo
-    (switch-to-buffer-other-window
-     (magithub-issue--new-form
-      repo `((title . ,title) (labels . ,labels))
-      "*magithub-issue*"
-      (format "Creating an issue for %s" .full_name)
-      .permissions.push
-      "Create new issue"
-      #'magithub-issue-wsubmit-issue
-      "Cancel"
-      #'magithub-issue-wcancel))))
+    (with-current-buffer
+        (magithub-issue--new-form
+         repo `((title . ,title) (labels . ,labels))
+         "*magithub-issue*"
+         (format "Creating an issue for %s" .full_name)
+         .permissions.push
+         "Create new issue"
+         #'magithub-issue-wsubmit-issue
+         "Cancel"
+         #'magithub-issue-wcancel)
+      (setq magithub-issue--extra-data
+            '((kind . issue)))
+      (switch-to-buffer-other-window (current-buffer)))))
 
 (defun magithub-pull-request-new (repo title base head)
   (interactive
@@ -205,12 +171,19 @@ properties are respected and prepopulate the form."
          "Cancel"
          #'magithub-issue-wcancel)
       (setq magithub-issue--extra-data
-            `((base . ,base) (head . ,head)))
+            `((base . ,base) (head . ,head)
+              (kind . pull-request)))
       (switch-to-buffer-other-window (current-buffer)))))
+
+(defun magithub-issue-wsubmit ()
+  (interactive)
+  (call-interactively
+   (pcase (alist-get 'kind magithub-issue--extra-data)
+     ('pull-request #'magithub-issue-wsubmit-pull-request)
+     ('issue #'magithub-issue-wsubmit-issue))))
 
 (defun magithub-issue-wsubmit-issue (&rest _)
   (interactive)
-
   (let ((issue `((title  . ,(s-trim (magithub-issue--widget-value 'title)))
                  (labels . ,(magithub-issue--widget-value 'labels))
                  (body   . ,(s-trim (magithub-issue--widget-value 'body))))))
