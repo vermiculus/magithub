@@ -251,4 +251,4 @@ properties are respected and prepopulate the form."
                 (apply oldfun args)))
             '(:name debug))
 
-(provide 'magithub-issue-widget)
+(provide 'magithub-issue-post)
