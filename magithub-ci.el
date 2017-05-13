@@ -183,7 +183,10 @@ See the following resources:
 (defun magithub-ci-refresh ()
   "Invalidate the CI cache and refresh the buffer."
   (interactive)
-  (magithub-cache-clear)
+  (let ((magithub-cache-class-refresh-seconds-alist
+         (cons (cons :ci-status 0)
+               magithub-cache-class-refresh-seconds-alist)))
+    (magithub-refresh))
   (when (derived-mode-p 'magit-status-mode)
     (magit-refresh)))
 
