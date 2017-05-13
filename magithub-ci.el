@@ -189,11 +189,16 @@ we'll hit the API) if Magithub is offline."
         (insert (format "%-10s" "CI: "))
         (insert (magithub-ci--status-header checks))
         (magit-insert-heading)
-        (magit-insert-section (magithub-ci-status-meta)
-          (insert (concat indent
-                          (propertize (concat "Checks for ref: "
-                                              (propertize ref 'face 'magit-branch-local))
-                                      'face 'magit-dimmed)))
+        (magit-insert-section (magithub-ci-status-meta
+                               `(magithub-ci-ref . ,ref))
+          (insert
+           (propertize
+            (concat
+             indent
+             (propertize (concat "Checks for ref: "
+                                 (propertize ref 'face 'magit-branch-local))
+                         'face 'magit-dimmed))
+            'keymap magit-magithub-ci-status-section-map))
           (magit-insert-heading))
         (dolist (status (alist-get 'statuses checks))
           (magit-insert-section (magithub-ci-status
