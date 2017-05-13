@@ -14,9 +14,7 @@
 
 (defvar-local magithub-issue--extra-data nil)
 (defvar-local magithub-issue--widgets nil
-  "Alist of symbols to widgets.
-Special property `:type' is either `issue' or `pull-request' and
-determines the behavior of `magithub-issue-wsubmit'.")
+  "Alist of symbols to widgets.")
 (defun magithub-issue--widget-get (key)
   (alist-get key magithub-issue--widgets))
 (defun magithub-issue--widget-value (key)
@@ -24,7 +22,7 @@ determines the behavior of `magithub-issue-wsubmit'.")
 
 (let ((m magithub-issue-post-mode-map))
   (define-key m "b" #'magithub-issue-w-jump-to-body)
-  (define-key m (kbd "C-c RET") #'magithub-issue-wsubmit)
+  (define-key m (kbd "C-c RET") #'magithub-issue-wsubmit-issue)
   (define-key m (kbd "C-c C-k") #'magithub-issue-wcancel))
 
 (let ((m magithub-issue-edit-mode-map))
@@ -32,13 +30,13 @@ determines the behavior of `magithub-issue-wsubmit'.")
 
 (defvar magithub-issue-widget-map
   (let ((m (copy-keymap widget-keymap)))
-    (define-key m (kbd "C-c RET") #'magithub-issue-wsubmit)
+    (define-key m (kbd "C-c RET") #'magithub-issue-wsubmit-issue)
     (define-key m "b" #'magithub-issue-w-jump-to-body)
     m))
 
 (defvar magithub-issue-edit-map
   (let ((m (copy-keymap gfm-mode-map)))
-    (define-key m (kbd "C-c RET") #'magithub-issue-wsubmit)
+    (define-key m (kbd "C-c RET") #'magithub-issue-wsubmit-issue)
     (define-key m [remap beginning-of-buffer] #'magithub-issue-w-beginning-of-buffer-dwim)
     (define-key m [remap end-of-buffer] #'magithub-issue-w-end-of-buffer-dwim)
     (define-key m (kbd "TAB") #'magithub-issue-w-next-widget-dwim)
@@ -137,7 +135,7 @@ properties are respected and prepopulate the form."
       (setq header-line-format
             (substitute-command-keys
              (s-join " | " (list header
-                                 "submit: \\[magithub-issue-wsubmit]"
+                                 "submit: \\[magithub-issue-wsubmit-issue]"
                                  "cancel: \\[magithub-issue-wcancel]"))))
       (push
        (cons 'title (widget-create 'magithub-issue-title

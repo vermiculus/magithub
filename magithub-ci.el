@@ -208,9 +208,6 @@ we'll hit the API) if Magithub is offline."
 (defun magithub-insert-ci-status-header ()
   (let* ((ref (magithub-ci-status--get-default-ref))
          (checks (magithub-ci-status ref))
-         (overall-status (or (cdr (assoc-string (alist-get 'status checks)
-                                                magithub-ci-status-alist))
-                             magithub-ci-status--unknown))
          (indent (make-string 10 ?\ )))
     (when checks
       (magit-insert-section (magithub-ci-status

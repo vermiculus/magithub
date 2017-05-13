@@ -23,20 +23,11 @@ prompted for again."
      prompt remaining-labels
      (lambda (l) (alist-get 'name l)))))
 
-(defun magithub-issue-read-labels (prompt &optional default)
-  "Read some issue labels and return a comma-separated string.
-Available issues are provided by `magithub-issue-label-list'.
-
-DEFAULT is a comma-separated list of issues -- those issues that
-are in DEFAULT are not prompted for again."
-  (thread-last (when default (s-split "," default t))
-    (magithub-issue-read-labels-list prompt)
-    (s-join ",")))
-
 (defface magithub-label-face '((t :box t))
   "The inherited face used for labels.
 Feel free to customize any part of this face, but be aware that
-`:foreground' will be overridden by `magithub-label-propertize'.")
+`:foreground' will be overridden by `magithub-label-propertize'."
+  :group 'magithub)
 
 (defun magithub-label-browse (label)
   "Visit LABEL with `browse-url'.

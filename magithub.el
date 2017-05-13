@@ -57,6 +57,7 @@
 (require 'magithub-proxy)
 (require 'magithub-issue-status)
 (require 'magithub-issue-post)
+(require 'magithub-issue-tricks)
 
 (magit-define-popup magithub-dispatch-popup
   "Popup console for dispatching other Magithub popups."
@@ -144,11 +145,9 @@ One of the following:
   (interactive)
   (unless (magithub-github-repository-p)
     (user-error "Not a GitHub repository"))
-  (let ((repo (magithub-source-repo))
-        (fork (with-temp-message "Forking repository on GitHub..."
-                (ghubp-post-repos-owner-repo-forks repo)))
-        (base (magit-get-current-branch)))
-    (let-alist repo (setq repo-user .owner.login))
+  (let* ((repo (magithub-source-repo))
+         (fork (with-temp-message "Forking repository on GitHub..."
+                 (ghubp-post-repos-owner-repo-forks repo))))
     (when (y-or-n-p "Create a spinoff branch? ")
       (call-interactively #'magit-branch-spinoff))
     (magithub--random-message
@@ -230,8 +229,8 @@ If FEATURE is `all' ot t, all known features will be loaded."
     (add-to-list 'magithub-features (cons feature t))))
 
 
-(defun magithub-visit-thing (choose-thing)
-  (interactive "P")
+(defun magithub-visit-thing ()
+  (interactive)
   (let-alist (magithub-thing-at-point 'all)
     (cond (.label (magithub-label-browse .label))
           (.issue (magithub-issue-browse .issue))

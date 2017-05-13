@@ -92,7 +92,7 @@ idle timer runs")
   "Clear the cache"
   (let ((r (magithub-source-repo)))
     (maphash
-     (lambda (k v)
+     (lambda (k _)
        (when (equal r (car k))
          (remhash k magithub-cache--cache)))
      magithub-cache--cache)))
