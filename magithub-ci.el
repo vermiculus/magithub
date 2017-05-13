@@ -199,7 +199,7 @@ See the following resources:
 If EVEN-IF-OFFLINE is non-nil, we'll still refresh (that is,
 we'll hit the API) if Magithub is offline."
   (interactive "P")
-  (let ((magithub-cache (not even-if-offline)))
+  (let ((magithub-cache (and (not even-if-offline) 'expire)))
     (magithub-cache-without-cache :ci-status
       (ignore (magithub-ci-status (magithub-ci-status--get-default-ref)))))
   (when (derived-mode-p 'magit-status-mode)
