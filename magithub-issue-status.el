@@ -28,19 +28,19 @@ we'll hit the API) if Magithub is offline."
     map)
   "Keymap for `magithub-issue-list' sections.")
 
-(defvar magit-magithub-pull-request-list-section-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [remap magit-visit-thing] #'magithub-pull-browse)
-    (define-key map [remap magit-refresh] #'magithub-issue-refresh)
-    map)
-  "Keymap for `magithub-pull-request-list' sections.")
-
 (defvar magit-magithub-pull-request-section-map
   (let ((map (make-sparse-keymap)))
     (define-key map [remap magit-visit-thing] #'magithub-pull-browse)
     (define-key map [remap magit-refresh] #'magithub-issue-refresh)
     map)
   "Keymap for `magithub-pull-request' sections.")
+
+(defvar magit-magithub-pull-request-list-section-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [remap magit-visit-thing] #'magithub-pull-browse)
+    (define-key map [remap magit-refresh] #'magithub-issue-refresh)
+    map)
+  "Keymap for `magithub-pull-request-list' sections.")
 
 (defun magithub-issue--label-string (issue)
   (let-alist issue
