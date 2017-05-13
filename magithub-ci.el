@@ -219,6 +219,9 @@ See the following resources:
 
 (defun magithub-ci--status-header (checks)
   (pcase (alist-get 'total_count checks)
+    (0 (format "%s  (%s)"
+               (magithub-ci--status-propertized checks)
+               "it seems checks have not yet begun"))
     (1 (magithub-ci--status-propertized checks))
     (_ (let* ((overall-status (alist-get 'state checks))
               (status-spec (magithub-ci--status-spec overall-status))
