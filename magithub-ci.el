@@ -200,10 +200,7 @@ See the following resources:
       (magit-insert-section (magithub-ci-status
                              `(magithub-ci-ref . ,ref))
         (insert (format "%-10s" "CI: "))
-        (insert (if (= 0 (alist-get 'total_count checks))
-                    (propertize "No CI configured for this repository"
-                                'face 'magithub-ci-no-status)
-                  (magithub-ci--status-header checks)))
+        (insert (magithub-ci--status-header checks))
         (magit-insert-heading)
         (magit-insert-section (magithub-ci-status-meta)
           (insert (concat indent
