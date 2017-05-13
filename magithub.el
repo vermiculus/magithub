@@ -190,12 +190,13 @@ Banned inside existing GitHub repositories if
   (interactive (if (and (not magithub-clone-default-directory)
                         (magithub-github-repository-p))
                    (user-error "Already in a GitHub repo")
-                 (let-alist (setq repo (magithub-clone--get-repo))
-                   (list repo (read-directory-name
-                               "Destination: "
-                               magithub-clone-default-directory
-                               nil nil
-                               .name)))))
+                 (let ((read-repo (magithub-clone--get-repo)))
+                   (let-alist read-repo
+                     (list read-repo (read-directory-name
+                                      "Destination: "
+                                      magithub-clone-default-directory
+                                      nil nil
+                                      .name))))))
   (unless (file-writable-p dir)
     (user-error "%s does not exist or is not writable" dir))
   (when (y-or-n-p (let-alist repo (format "Clone %s/%s to %s? " .owner.login .name dir)))
