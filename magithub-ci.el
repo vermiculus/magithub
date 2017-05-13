@@ -80,7 +80,7 @@ remote counterpart."
     (condition-case _
         (magithub-cache :ci-status
           `(ghubp-get-repos-owner-repo-commits-ref-status
-            (magithub-source-repo) ,ref)
+            ',(magithub-source-repo) ,ref)
           (format "Getting CI status for %s..."
                   (if (magit-branch-p ref) ref
                     (s-left ref 6))))
