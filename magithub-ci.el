@@ -194,7 +194,8 @@ See the following resources:
          (checks (magithub-ci-status ref))
          (overall-status (or (cdr (assoc-string (alist-get 'status checks)
                                                 magithub-ci-status-alist))
-                             magithub-ci-status--unknown)))
+                             magithub-ci-status--unknown))
+         (indent (make-string 10 ?\ )))
     (when checks
       (magit-insert-section (magithub-ci-status
                              `(magithub-ci-ref . ,ref))
@@ -204,10 +205,15 @@ See the following resources:
                                 'face 'magithub-ci-no-status)
                   (magithub-ci--status-header checks)))
         (magit-insert-heading)
+        (magit-insert-section (magithub-ci-status-meta)
+          (insert (concat indent
+                          (propertize "Checks for ref: " 'face 'magit-section-heading)
+                          (propertize ref 'face 'magit-branch-local)))
+          (magit-insert-heading))
         (dolist (status (alist-get 'statuses checks))
           (magit-insert-section (magithub-ci-status
                                  `(magithub-ci-url . ,(alist-get 'target_url status)))
-            (insert (make-string 10 ?\ ))
+            (insert indent)
             (insert (magithub-ci--status-propertized status))
             (magit-insert-heading)))))))
 
