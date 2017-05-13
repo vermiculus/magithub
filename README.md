@@ -21,6 +21,10 @@ include:
  - `RET` on an issue to open that issue in GitHub
  - `RET` on the CI header to open your CI dashboard
 
+For when you're on the run, you can set `magithub-cache` to `t` to
+activate 'offline mode' (or use `H O` from the status buffer).  This
+will inhibit all API requests and instead rely on cached data.
+
 Happy hacking!
 
 ## Installation
