@@ -129,6 +129,8 @@ properties are respected and prepopulate the form."
       (widget-insert "\n")
       (widget-setup)
       (magithub-issue-w-jump-to-body)
+      ;; GFM-mode doesn't handle line breaks just yet
+      (visual-line-mode 1)
       (current-buffer))))
 
 (defun magithub-issue-new (repo title labels)
@@ -150,8 +152,7 @@ properties are respected and prepopulate the form."
          #'magithub-issue-wsubmit-issue
          "Cancel"
          #'magithub-issue-wcancel)
-      (setq magithub-issue--extra-data
-            '((kind . issue)))
+      (setq magithub-issue--extra-data '((kind . issue)))
       (switch-to-buffer-other-window (current-buffer)))))
 
 (defun magithub-pull-request-new (repo title base head)
