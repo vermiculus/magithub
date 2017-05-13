@@ -3,12 +3,6 @@
 (require 'magithub-issue)
 (require 'magithub-label)
 
-(magit-define-popup magithub-issues-popup
-  "Popup console for managing GitHub issues."
-  'magithub-commands
-  :options '((?l "Add labels" "--label=" magithub-issue-read-labels))
-  :actions '((?c "Create new issue" magithub-issue-new)))
-
 ;;; todo: bring back caching
 (defun magithub-issue-refresh ()
   "Refresh issues for this repository."
