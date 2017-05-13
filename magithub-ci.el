@@ -238,8 +238,7 @@ we'll hit the API) if Magithub is offline."
 (magithub--deftoggle magithub-toggle-ci-status-header
   magit-status-headers-hook #'magithub-maybe-insert-ci-status-header "the CI header")
 
-(when (executable-find magithub-hub-executable)
-  (magithub-toggle-ci-status-header))
+(magithub-toggle-ci-status-header)
 
 (provide 'magithub-ci)
 ;;; magithub-ci.el ends here
