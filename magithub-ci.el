@@ -65,10 +65,13 @@ If magithub.ci.enabled is not set, CI is considered to be enabled."
   ?~ "Toggle CI for this repository" #'magithub-ci-toggle ?`)
 
 (defun magithub-ci-status (ref)
-  (magithub-cache :ci-status
-    `(ghubp-get-repos-owner-repo-commits-ref-status
-      (magithub-source-repo) ,ref)
-    (format "Getting CI status for %s..." (substring ref 0 6))))
+  (if (magit-rebase-in-progress-p)
+      ;; avoid rate-limiting ourselves
+      (message "Magithub: skipping CI status checks while in rebase")
+    (magithub-cache :ci-status
+      `(ghubp-get-repos-owner-repo-commits-ref-status
+        (magithub-source-repo) ,ref)
+      (format "Getting CI status for %s..." (substring ref 0 6)))))
 
 (defun magithub-ci-status--last-commit ()
   "Find the commit considered to have the current CI status.
