@@ -65,4 +65,32 @@ from `magithub-label-face'.  Customize that to affect all labels."
                 'face (list :foreground (magithub-label--get-display-color label)
                             :inherit 'magithub-label-face))))
 
+(defun magithub-color-completing-read (prompt)
+  "Generic completing-read for a color."
+  (let* ((colors (list-colors-duplicates))
+         (len (apply #'max (mapcar (lambda (c) (length (car c))) colors)))
+         (sample (make-string 20 ?\ )))
+    (car
+     (magithub--completing-read
+      prompt colors
+      (lambda (colors)
+        (format (format "%%-%ds  %%s" len) (car colors)
+                (propertize sample 'face `(:background ,(car colors)))))))))
+
+(defun magithub-label-color-replace (label new-color)
+  (interactive
+   (list (magithub-thing-at-point 'label)
+         (magithub-color-completing-read "Replace label color: ")))
+  (let ((label-color (concat "#" (alist-get 'color label))))
+    (if-let ((cell (assoc-string label-color magithub-label-color-replacement-alist)))
+        (setcdr cell new-color)
+      (push (cons label-color new-color)
+            magithub-label-color-replacement-alist)))
+  (when (y-or-n-p "Save customization? ")
+    (customize-save-variable 'magithub-label-color-replacement-alist
+                             magithub-label-color-replacement-alist
+                             "Auto-saved by `magithub-label-color-replace'"))
+  (when (derived-mode-p 'magit-status-mode)
+    (magit-refresh)))
+
 (provide 'magithub-label)
