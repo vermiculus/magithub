@@ -2,15 +2,18 @@ language: emacs-lisp
 
 sudo: false
 
+cache:
+  - directories:
+    - "$HOME/emacs"
+
 matrix:
   fast_finish: true
   allow_failures:
     - env: EMACS_VERSION=snapshot
 
 env:
-  - EMACS_VERSION=24.4
-  - EMACS_VERSION=24.5
   - EMACS_VERSION=25.1
+  - EMACS_VERSION=25.2
   - EMACS_VERSION=snapshot
 
 before_install:

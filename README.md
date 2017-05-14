@@ -9,17 +9,22 @@
 
 Magithub is a collection of interfaces to GitHub.
 
-Integrated into [Magit][magit] workflows, Magithub allows very easy,
-very basic GitHub repository management.  Supported actions from the
-status buffer include:
+Integrated into [Magit][magit] workflows, Magithub allows easy GitHub
+repository management.  Supported actions from the status buffer
+include:
 
- - `H H` opens the current repo in the browser
- - `H c` pushes brand-new local repositories up to GitHub
- - `H f` creates forks of existing repositories
- - `H p` submits pull requests upstream
- - `H i` creates issues
- - `RET` on an issue open that issue in GitHub
- - `RET` on the CI header takes you to your CI dashboard
+ - `H H` open the current repo in the browser
+ - `H c` push brand-new local repositories up to GitHub
+ - `H f` create forks of existing repositories
+ - `H p` submit pull requests upstream
+ - `H i` create issues
+ - `L` on an issue (or pull request) updates its labels
+ - `RET` on an issue to open that issue in GitHub
+ - `RET` on the CI header to open your CI dashboard
+
+For when you're on the run, you can set `magithub-cache` to `t` to
+activate 'offline mode' (or use `H O` from the status buffer).  This
+will inhibit all API requests and instead rely on cached data.
 
 Happy hacking!
 
@@ -38,10 +43,11 @@ If you use [use-package][gh-use-package], you should instead use:
   :config (magithub-feature-autoinject t))
 ```
 
-For now, Magithub requires the `hub` utility to work -- before trying
-to use Magithub, follow the installation instructions
-at [hub.github.com][hub].  To force `hub` to authenticate, you can use
-`hub browse` in a terminal (inside a GitHub repo).
+For some advanced trickery features, Magithub still requires the `hub`
+utility to work -- so before trying to use those features, follow the
+installation instructions at [hub.github.com][hub].  To force `hub` to
+authenticate, you can use `hub browse` in a terminal (inside a GitHub
+repo).
 
 ## Support
 
