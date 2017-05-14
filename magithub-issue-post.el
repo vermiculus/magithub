@@ -210,7 +210,7 @@ See also URL
 (defun magithub-issue-wsubmit-issue (&rest _)
   (interactive)
   (let ((issue `((title  . ,(s-trim (magithub-issue--widget-value 'title)))
-                 (labels . ,(magithub-issue--widget-value 'labels))
+                 (labels . ,(ignore-errors (magithub-issue--widget-value 'labels)))
                  (body   . ,(s-trim (magithub-issue--widget-value 'body))))))
     (when (s-blank-p (alist-get 'title issue))
       (user-error "Title is required"))
