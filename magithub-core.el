@@ -101,6 +101,12 @@ CAR is a time value; CDR is the cached value.")
   "Number of seconds we'll wait for the API to respond."
   :group 'magithub
   :type 'integer)
+(defcustom magithub-api-low-threshold 15
+  "Low threshold for API requests.
+If the number of available API requests drops to or below this
+threshold, you'll be asked if you'd like to go offline."
+  :group 'magithub
+  :type 'integer)
 (defun magithub--api-available-p (&optional ignore-offline-mode)
   "Non-nil if the API is available.
 
@@ -120,7 +126,7 @@ Pings the API a maximum of once every ten seconds."
         (magithub-debug-message "new value retrieved for api-available-p: %S" response)
         (if (numberp remaining)
             (cond
-             ((< 250 remaining) (setq status t))
+             ((< magithub-api-low-threshold remaining) (setq status t))
              ((= 0 remaining) (setq go-offline-message "You're bring rate-limited (no more requests left)"))
              (t (setq go-offline-message (format "Only %d requests left" remaining)
                       status t)))
