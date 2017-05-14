@@ -105,23 +105,30 @@ CAR is a time value; CDR is the cached value.")
   "Non-nil if the API is available.
 
 Pings the API a maximum of once every ten seconds."
+  (magithub-debug-message "checking if the API is available")
   (unless (and (not ignore-offline-mode) (magithub-offline-p))
     (if (and (consp magithub--api-available-p)
              (< (time-to-seconds (time-subtract (current-time) (car magithub--api-available-p))) 10))
         (prog1 (cdr magithub--api-available-p)
-          (when magithub-debug-mode
-            (message "used cached value for api-available-p")))
-      (cdr
-       (setq magithub--api-available-p
-             (cons (current-time)
-                   (with-timeout (1 (ignore (when (y-or-n-p "API is not responding quickly; go offline? ")
-                                              (magithub-go-offline))))
-                     (when magithub-debug-mode
-                       (message "pinging GitHub for api-available-p"))
-                     (let ((magit-git-executable "ping")
-                           (magit-pre-call-git-hook nil)
-                           (magit-git-global-arguments nil))
-                       (= 0 (magit-git-exit-code "-c 1" "-n" "api.github.com"))))))))))
+          (magithub-debug-message "used cached value for api-available-p"))
+      (magithub-debug-message "retrieving new value for api-available-p")
+      (let* ((response (with-timeout (magithub-api-timeout :timeout) (ghub-get "/rate_limit")))
+             (remaining (let-alist response .rate.remaining))
+             status go-offline-message)
+        (magithub-debug-message "new value retrieved for api-available-p: %S" response)
+        (cond
+         ((and (numberp remaining) (< 250 remaining)) (setq status t))
+         ((= 0 remaining) (setq go-offline-message "You're bring rate-limited (no more requests left)"))
+         ((numberp remaining) (setq go-offline-message (format "Only %d requests left" remaining)
+                                    status t))
+         ((eq response :timeout) (setq go-offline-message "API is not responding quickly"))
+         (t (setq go-offline-message "Unknown issue with API access")))
+
+        (setq magithub--api-available-p (cons (current-time) status))
+        (when (and go-offline-message
+                   (y-or-n-p (format "%s; go offline? " go-offline-message)))
+          (magithub-go-offline))
+        status))))
 
 (defun magithub--completing-read (prompt collection &optional format-function predicate require-match default)
   "Using PROMPT, get a list of elements in COLLECTION.
