@@ -43,7 +43,15 @@ If you use [use-package][gh-use-package], you should instead use:
   :config (magithub-feature-autoinject t))
 ```
 
-To authenticate `ghub`, [see its README][ghub].
+To authenticate `ghub`, [see its README][ghub].  However, since its
+authentication approach is still in flux, you might consider setting
+the following variables appropriately until it's stable:
+```elisp
+ghub-base-url     ;; base API url; customize if GitHub Enterprise
+ghub-username     ;; your username
+ghub-token        ;; your personal access token
+```
+See [GitHub's settings][token] for information on how to create tokens.
 
 For some advanced trickery features, Magithub still requires the `hub`
 utility to work -- so before trying to use those features, follow the
@@ -73,6 +81,7 @@ package's name will not be changing.
 [magit-donate]: https://magit.vc/donate
 [ghub]: //github.com/tarsius/ghub
 [hub]: //hub.github.com
+[token]: https://github.com/settings/tokens
 [gh-use-package]: //github.com/jwiegley/use-package
 [old-magithub]: //github.com/nex3/magithub
 [old-magithub-11]: //github.com/nex3/magithub/issues/11
