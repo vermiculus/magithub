@@ -43,6 +43,8 @@ If you use [use-package][gh-use-package], you should instead use:
   :config (magithub-feature-autoinject t))
 ```
 
+To authenticate `ghub`, [see its README][ghub].
+
 For some advanced trickery features, Magithub still requires the `hub`
 utility to work -- so before trying to use those features, follow the
 installation instructions at [hub.github.com][hub].  To force `hub` to
@@ -69,6 +71,7 @@ package's name will not be changing.
 
 [magit]: //www.github.com/magit/magit
 [magit-donate]: https://magit.vc/donate
+[ghub]: //github.com/tarsius/ghub
 [hub]: //hub.github.com
 [gh-use-package]: //github.com/jwiegley/use-package
 [old-magithub]: //github.com/nex3/magithub
