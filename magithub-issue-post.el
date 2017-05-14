@@ -239,12 +239,4 @@ See also URL
   (when (yes-or-no-p "You will lose this buffer completely; are you sure? ")
     (kill-buffer-and-window)))
 
-(advice-add #'ghub--request
-            :around
-            (lambda (oldfun &rest args)
-              (if (memq 'dry-api magithub-debug-mode)
-                  (message "ghub-request(%S)" args)
-                (apply oldfun args)))
-            '(:name debug))
-
 (provide 'magithub-issue-post)

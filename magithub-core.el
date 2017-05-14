@@ -28,6 +28,21 @@
 (require 'dash)
 (require 's)
 (require 'subr-x)
+(require 'ghub)
+
+(defvar magithub-debug-mode nil)
+(defun magithub-debug-message (fmt &rest args)
+  "Print a debug message."
+  (when magithub-debug-mode
+    (let ((print-quoted t))
+      (message "magithub: (%s) %s"
+               (format-time-string "%M:%S.%3N" (current-time))
+               (apply #'format fmt args)))))
+(defun magithub-debug--ghub-request-wrapper (oldfun &rest args)
+  (magithub-debug-message "ghub--request(%S)" args)
+  (unless (and (listp magithub-debug-mode) (memq 'dry-api magithub-debug-mode))
+    (apply oldfun args)))
+(advice-add #'ghub--request :around #'magithub-debug--ghub-request-wrapper)
 
 (defconst magithub-dir
   (expand-file-name "magithub" user-emacs-directory)
@@ -82,6 +97,10 @@ only be let-bound by `magithub-refresh'.")
 
 CAR is a time value; CDR is the cached value.")
 
+(defcustom magithub-api-timeout 1
+  "Number of seconds we'll wait for the API to respond."
+  :group 'magithub
+  :type 'integer)
 (defun magithub--api-available-p (&optional ignore-offline-mode)
   "Non-nil if the API is available.
 
@@ -142,9 +161,6 @@ allowed."
   :package-version '(magithub . "0.1")
   :type 'string)
 
-(defvar magithub-debug-mode nil
-  "When non-nil, echo hub commands before they're executed.")
-
 (defvar magithub-hub-error nil
   "When non-nil, this is a message for when hub fails.")
 
@@ -159,8 +175,7 @@ allowed."
     (user-error "Hub (hub.github.com) not installed; aborting"))
   (unless (file-exists-p "~/.config/hub")
     (user-error "Hub hasn't been initialized yet; aborting"))
-  (when magithub-debug-mode
-    (message "Calling hub with args: %S %S" command args))
+  (magithub-debug-message "Calling hub with args: %S %S" command args)
   (with-timeout (5 (error "Took too long!  %s%S" command args))
     (magithub-with-hub (funcall magit-function command args))))
 

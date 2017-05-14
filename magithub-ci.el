@@ -76,7 +76,7 @@ remote counterpart."
 (defun magithub-ci-status (ref)
   (if (magit-rebase-in-progress-p)
       ;; avoid rate-limiting ourselves
-      (message "Magithub: skipping CI status checks while in rebase")
+      (magithub-debug-message "skipping CI status checks while in rebase")
     (condition-case _
         (magithub-cache :ci-status
           `(ghubp-get-repos-owner-repo-commits-ref-status

@@ -83,9 +83,7 @@ idle timer runs")
              (setq magithub-cache--needs-write t)
              (run-with-idle-timer 10 nil #'magithub-cache-write-to-disk)))
        (unless (eq not-there cached-value)
-         (when magithub-debug-mode
-           (let ((print-quoted t))
-             (message "using cached value for form: %S" form)))
+         (magithub-debug-message "using cached value for form: %S" form)
          cached-value)))))
 
 (defun magithub-cache-invalidate ()
@@ -192,7 +190,7 @@ context.  If t, `magithub-source-repo' is used."
         (insert (prin1-to-string magithub-cache--cache))
         (write-file magithub-cache-file))
       (setq magithub-cache--needs-write nil)
-      (message "Magithub: wrote cache to disk"))))
+      (magithub-debug-message "wrote cache to disk"))))
 
 (defmacro magithub-cache-without-cache (class &rest body)
   "For CLASS, execute BODY without using CLASS's caches."
