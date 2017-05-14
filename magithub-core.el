@@ -112,18 +112,23 @@ Pings the API a maximum of once every ten seconds."
         (prog1 (cdr magithub--api-available-p)
           (magithub-debug-message "used cached value for api-available-p"))
       (magithub-debug-message "retrieving new value for api-available-p")
-      (let* ((response (with-timeout (magithub-api-timeout :timeout) (ghub-get "/rate_limit")))
-             (remaining (let-alist response .rate.remaining))
+      (let* ((response (with-timeout (magithub-api-timeout :timeout)
+                         (or (ignore-errors (ghub-get "/rate_limit"))
+                             :errored-out)))
+             (remaining (and (listp response) (let-alist response .rate.remaining)))
              status go-offline-message)
         (magithub-debug-message "new value retrieved for api-available-p: %S" response)
-        (cond
-         ((and (numberp remaining) (< 250 remaining)) (setq status t))
-         ((= 0 remaining) (setq go-offline-message "You're bring rate-limited (no more requests left)"))
-         ((numberp remaining) (setq go-offline-message (format "Only %d requests left" remaining)
-                                    status t))
-         ((eq response :timeout) (setq go-offline-message "API is not responding quickly"))
-         (t (setq go-offline-message "Unknown issue with API access")))
-
+        (if (numberp remaining)
+            (cond
+             ((< 250 remaining) (setq status t)
+              ((= 0 remaining) (setq go-offline-message "You're bring rate-limited (no more requests left)"))
+              (t (setq go-offline-message (format "Only %d requests left" remaining)
+                       status t))))
+          (setq go-offline-message
+                (alist-get response
+                           '((:timeout . "API is not responding quickly")
+                             (:errored-out . "API call resulted in error"))
+                           "Unknown issue with API access")))
         (setq magithub--api-available-p (cons (current-time) status))
         (when (and go-offline-message
                    (y-or-n-p (format "%s; go offline? " go-offline-message)))
