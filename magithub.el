@@ -60,7 +60,6 @@
 (magit-define-popup magithub-dispatch-popup
   "Popup console for dispatching other Magithub popups."
   'magithub-commands
-  :man-page "hub"
   :actions '("Actions"
              (?H "Browse on GitHub" magithub-browse)
              (?c "Create" magithub-create)
