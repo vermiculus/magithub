@@ -120,10 +120,10 @@ Pings the API a maximum of once every ten seconds."
         (magithub-debug-message "new value retrieved for api-available-p: %S" response)
         (if (numberp remaining)
             (cond
-             ((< 250 remaining) (setq status t)
-              ((= 0 remaining) (setq go-offline-message "You're bring rate-limited (no more requests left)"))
-              (t (setq go-offline-message (format "Only %d requests left" remaining)
-                       status t))))
+             ((< 250 remaining) (setq status t))
+             ((= 0 remaining) (setq go-offline-message "You're bring rate-limited (no more requests left)"))
+             (t (setq go-offline-message (format "Only %d requests left" remaining)
+                      status t)))
           (setq go-offline-message
                 (alist-get response
                            '((:timeout . "API is not responding quickly")
