@@ -69,9 +69,9 @@ If magithub.ci.enabled is not set, CI is considered to be enabled."
 
 Handles cases where the local branch's name is different than its
 remote counterpart."
-  (cdr (thread-last (or branch (magit-get-current-branch))
-         (magit-get-push-branch)
-         (magit-split-branch-name))))
+  (when-let ((push-branch (magit-get-push-branch
+                           (or branch (magit-get-current-branch)))))
+    (cdr (magit-split-branch-name push-branch))))
 
 (defun magithub-ci-status (ref)
   (if (magit-rebase-in-progress-p)
