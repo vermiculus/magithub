@@ -74,20 +74,21 @@ remote counterpart."
     (cdr (magit-split-branch-name push-branch))))
 
 (defun magithub-ci-status (ref)
-  (if (magit-rebase-in-progress-p)
-      ;; avoid rate-limiting ourselves
-      (magithub-debug-message "skipping CI status checks while in rebase")
-    (condition-case _
-        (magithub-cache :ci-status
-          `(ghubp-get-repos-owner-repo-commits-ref-status
-            ',(magithub-source-repo) ,ref)
-          (format "Getting CI status for %s..."
-                  (if (magit-branch-p ref) (format "branch `%s'" ref)
-                    (s-left ref 6))))
-      (ghub-404
-       '((state . "error")
-         (total_count . 0)
-         (magithub-message . "ref not found on remote"))))))
+  (when (stringp ref)
+    (if (magit-rebase-in-progress-p)
+        ;; avoid rate-limiting ourselves
+        (magithub-debug-message "skipping CI status checks while in rebase")
+      (condition-case _
+          (magithub-cache :ci-status
+            `(ghubp-get-repos-owner-repo-commits-ref-status
+              ',(magithub-source-repo) ,ref)
+            (format "Getting CI status for %s..."
+                    (if (magit-branch-p ref) (format "branch `%s'" ref)
+                      (s-left ref 6))))
+        (ghub-404
+         '((state . "error")
+           (total_count . 0)
+           (magithub-message . "ref not found on remote")))))))
 
 (defvar magithub-ci-status-alist
   '((nil       . ((display . "None")    (face . magithub-ci-no-status)))
