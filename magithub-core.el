@@ -32,8 +32,9 @@
 
 (defvar magithub-debug-mode nil)
 (defun magithub-debug-message (fmt &rest args)
-  "Print a debug message."
-  (when magithub-debug-mode
+  "Print a debug message.
+Respects `magithub-debug-mode' and `debug-on-error'."
+  (when (or magithub-debug-mode debug-on-error)
     (let ((print-quoted t))
       (message "magithub: (%s) %s"
                (format-time-string "%M:%S.%3N" (current-time))
