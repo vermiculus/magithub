@@ -23,12 +23,3 @@
  "magithub-label.el"
  "magithub-proxy.el"
  "magithub.el")
-
-(ignore                                 ;
- ' (let ((default-directory (magit-toplevel)))
-     (require 'f)
-     (mapcar #'file-name-nondirectory
-             (f-files default-directory
-                      (lambda (f)
-                        (and (string= "el" (file-name-extension f))
-                             (magit-git-success "ls-files" f "--error-unmatch")))))))
