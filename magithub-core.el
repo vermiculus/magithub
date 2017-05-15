@@ -118,9 +118,10 @@ Pings the API a maximum of once every ten seconds."
         (prog1 (cdr magithub--api-available-p)
           (magithub-debug-message "used cached value for api-available-p"))
       (magithub-debug-message "retrieving new value for api-available-p")
-      (let* ((response (with-timeout (magithub-api-timeout :timeout)
-                         (or (ignore-errors (ghub-get "/rate_limit"))
-                             :errored-out)))
+      (let* (error-data
+             (response (with-timeout (magithub-api-timeout :timeout)
+                         (condition-case err (ghub-get "/rate_limit")
+                           (error (setq error-data err) :errored-out))))
              (remaining (and (listp response) (let-alist response .rate.remaining)))
              status go-offline-message)
         (magithub-debug-message "new value retrieved for api-available-p: %S" response)
@@ -136,6 +137,8 @@ Pings the API a maximum of once every ten seconds."
                              (:errored-out . "API call resulted in error"))
                            "Unknown issue with API access")))
         (setq magithub--api-available-p (cons (current-time) status))
+        (when error-data
+          (magithub-debug-message "%S" error-data))
         (when (and go-offline-message
                    (y-or-n-p (format "%s; go offline? " go-offline-message)))
           (magithub-go-offline))
