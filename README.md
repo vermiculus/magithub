@@ -3,9 +3,10 @@
 # Magithub
 
 [![MELPA Status](http://melpa.milkbox.net/packages/magithub-badge.svg)](http://melpa.milkbox.net/#/magithub)
-[![MELPA Stable Status](http://melpa-stable.milkbox.net/packages/magithub-badge.svg)](http://melpa-stable.milkbox.net/#/magithub)
 [![Build Status](https://travis-ci.org/vermiculus/magithub.svg?branch=master)](https://travis-ci.org/vermiculus/magithub)
-[![Gitter](https://badges.gitter.im/vermiculus/magithub.svg)](https://gitter.im/vermiculus/magithub?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+[![Gitter](https://badges.gitter.im/vermiculus/magithub.svg)](https://gitter.im/vermiculus/magithub)
+[![MELPA Stable Status](http://melpa-stable.milkbox.net/packages/magithub-badge.svg)](http://melpa-stable.milkbox.net/#/magithub)
+[![GitHub Commits](https://img.shields.io/github/commits-since/vermiculus/magithub/0.1.2.svg)]()
 
 Magithub is a collection of interfaces to GitHub.
 
