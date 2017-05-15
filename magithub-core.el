@@ -40,7 +40,7 @@ Respects `magithub-debug-mode' and `debug-on-error'."
                (format-time-string "%M:%S.%3N" (current-time))
                (apply #'format fmt args)))))
 (defun magithub-debug--ghub-request-wrapper (oldfun &rest args)
-  (magithub-debug-message "ghub--request(%S)" args)
+  (magithub-debug-message "ghub--request%S" args)
   (unless (and (listp magithub-debug-mode) (memq 'dry-api magithub-debug-mode))
     (apply oldfun args)))
 (advice-add #'ghub--request :around #'magithub-debug--ghub-request-wrapper)
