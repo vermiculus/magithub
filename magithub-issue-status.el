@@ -47,6 +47,7 @@ we'll hit the API) if Magithub is offline."
 (defun magithub-issue-add-labels (issue labels)
   "Update ISSUE's labels to LABELS."
   (interactive
+   (magithub-verify-manage-labels t)
    (let* ((fmt (lambda (l) (alist-get 'name l)))
           (issue (or (magithub-thing-at-point 'issue)
                      (magithub-thing-at-point 'pull-request)))
