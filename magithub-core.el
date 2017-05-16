@@ -49,6 +49,16 @@ Respects `magithub-debug-mode' and `debug-on-error'."
   (expand-file-name "magithub" user-emacs-directory)
   "Data directory.")
 
+(defmacro magithub-in-data-dir (&rest forms)
+  "Execute forms in `magithub-dir'.
+If `magithub-dir' does not yet exist, it and its parents will be
+created automatically."
+  `(progn
+     (unless (file-directory-p magithub-dir)
+       (mkdir magithub-dir t))
+     (let ((default-directory magithub-dir))
+       ,@forms)))
+
 (defun magithub-github-repository-p ()
   "Non-nil if \"origin\" points to GitHub or a whitelisted domain."
   (when-let ((origin (magit-get "remote" "origin" "url")))

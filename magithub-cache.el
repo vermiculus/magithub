@@ -185,9 +185,10 @@ context.  If t, `magithub-source-repo' is used."
   (if (active-minibuffer-window)
       (run-with-idle-timer 10 nil #'magithub-cache-write-to-disk) ;defer
     (when magithub-cache--needs-write
-      (with-temp-buffer
-        (insert (prin1-to-string magithub-cache--cache))
-        (write-file magithub-cache-file))
+      (magithub-in-data-dir
+       (with-temp-buffer
+         (insert (prin1-to-string magithub-cache--cache))
+         (write-file magithub-cache-file)))
       (setq magithub-cache--needs-write nil)
       (magithub-debug-message "wrote cache to disk"))))
 
