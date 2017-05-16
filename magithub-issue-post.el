@@ -135,7 +135,7 @@ properties are respected and prepopulate the form."
 
 (defun magithub-issue-new (repo title labels)
   (interactive
-   (let-alist (setq repo (magithub-source-repo nil t))
+   (let-alist (setq repo (magithub-source-repo))
      (list repo
            (read-string (format "Issue title (%s): " .full_name))
            (when .permissions.push
