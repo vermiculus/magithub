@@ -405,11 +405,7 @@ See `magithub-features'."
 
 (defun magithub-source-remote ()
   "Tries to determine the correct remote to use for issue-tracking."
-  (let ((curbranch (magit-get-current-branch)))
-    (or (magit-get "magithub" "proxy")
-        (magit-get-upstream-remote curbranch)
-        (magit-get-remote curbranch)
-        "origin")))
+  (or (magit-get "magithub" "proxy") "origin"))
 
 (defun magithub-source-repo (&optional required full)
   "Returns a sparse repository object for the current context.
