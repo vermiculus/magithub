@@ -45,9 +45,15 @@ Respects `magithub-debug-mode' and `debug-on-error'."
     (apply oldfun args)))
 (advice-add #'ghub--request :around #'magithub-debug--ghub-request-wrapper)
 
-(defconst magithub-dir
+(defcustom magithub-dir
   (expand-file-name "magithub" user-emacs-directory)
-  "Data directory.")
+  "Data directory.
+Various Magithub data (such as the cache) will be dumped into the
+root of this directory.
+
+If it does not exist, it will be created."
+  :group 'magithub
+  :type 'directory)
 
 (defmacro magithub-in-data-dir (&rest forms)
   "Execute forms in `magithub-dir'.

@@ -29,8 +29,13 @@
 (defun magithub-cache--always-eval-p () (memq magithub-cache '(nil hard-refresh-offline)))
 (defun magithub-cache--never-eval-p  () (eq magithub-cache t))
 
-(defvar magithub-cache-file
-  (expand-file-name "cache" magithub-dir))
+(defcustom magithub-cache-file
+  "cache"
+  "Use this file for Magithub's persistent cache.
+Unless it's absolute, this filename is relative inside
+`magithub-dir'."
+  :group 'magithub
+  :type 'file)
 
 (defvar magithub-cache-class-refresh-seconds-alist
   '((:issues . 600)
