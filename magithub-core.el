@@ -29,6 +29,7 @@
 (require 's)
 (require 'subr-x)
 (require 'ghub)
+(require 'bug-reference)
 
 (defvar magithub-debug-mode nil)
 (defun magithub-debug-message (fmt &rest args)
@@ -505,6 +506,19 @@ of a signal (e.g., for interactive forms)."
       (if interactive
           (user-error "You're not allowed to manage labels in %s" .full_name)
         (signal 'error `(unauthorized manage-labels ,(progn .full_name)))))))
+
+(defun magithub-bug-reference-mode-on ()
+  "In GitHub repositories, configure `bug-reference-mode'."
+  (interactive)
+  (when-let ((repo (magithub-source-repo)))
+    (bug-reference-mode 1)
+    (setq-local bug-reference-bug-regexp "#\\(?2:[0-9]+\\)")
+    (setq-local bug-reference-url-format
+                (format "%s/issues/%%s" (alist-get 'html_url repo)))))
+
+(eval-after-load "magit"
+  (dolist (hook '(magit-revision-mode-hook git-commit-setup-hook))
+    (add-hook hook #'magithub-bug-reference-mode-on)))
 
 (provide 'magithub-core)
 ;;; magithub-core.el ends here

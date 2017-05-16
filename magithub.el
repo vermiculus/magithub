@@ -229,19 +229,6 @@ If FEATURE is `all' ot t, all known features will be loaded."
       (t (user-error "unknown feature %S" feature)))
     (add-to-list 'magithub-features (cons feature t))))
 
-(defun magithub-bug-reference-mode-on ()
-  "In GitHub repositories, configure `bug-reference-mode'."
-  (interactive)
-  (when-let ((repo (magithub-source-repo)))
-    (bug-reference-mode 1)
-    (setq-local bug-reference-bug-regexp "#\\(?2:[0-9]+\\)")
-    (setq-local bug-reference-url-format
-                (format "%s/issues/%%s" (alist-get 'html_url repo)))))
-
-(eval-after-load "magit"
-  (dolist (hook '(magit-revision-mode-hook git-commit-setup-hook))
-    (add-hook hook #'magithub-bug-reference-mode-on)))
-
 (defun magithub-visit-thing ()
   (interactive)
   (let-alist (magithub-thing-at-point 'all)

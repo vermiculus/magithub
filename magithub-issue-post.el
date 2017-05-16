@@ -1,5 +1,6 @@
 (require 'widget)
 
+(require 'magithub-core)
 (require 'magithub-issue)
 (require 'magithub-issue-status)
 (require 'magithub-label)
