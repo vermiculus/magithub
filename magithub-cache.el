@@ -34,11 +34,11 @@
 
 (defvar magithub-cache-class-refresh-seconds-alist
   '((:issues . 600)
-    (:ci-status . 15))
+    (:ci-status . 15)
+    (:repo-demographics . 86400)
+    (:label . 3600))
   "The number of seconds that have to pass for GitHub data to be
-considered outdated.
-
-If no valid entry is found for ")
+considered outdated.")
 
 (defvar magithub-cache--cache
   (or (ignore-errors
