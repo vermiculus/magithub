@@ -26,6 +26,9 @@
         (define-key m "b" #'magithub-issue-w-jump-to-body)
         m))
 
+(add-hook 'magithub-issue-post-mode-hook
+          #'magithub-bug-reference-mode-on)
+
 (defun magithub-issue-w-beginning-of-buffer-dwim ()
   (interactive)
   (let ((start-of-body (magithub-issue--w-start-of-body)))
