@@ -1,5 +1,8 @@
-(require 'magithub-issue)
 (require 'widget)
+
+(require 'magithub-issue)
+(require 'magithub-issue-status)
+(require 'magithub-label)
 
 (eval-when-compile
   (require 'wid-edit))
