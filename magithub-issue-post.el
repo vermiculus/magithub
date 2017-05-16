@@ -1,11 +1,10 @@
-(require 'widget)
-
 (require 'magithub-core)
 (require 'magithub-issue)
 (require 'magithub-issue-status)
 (require 'magithub-label)
 
-(eval-when-compile
+(require 'widget)
+(eval-and-compile
   (require 'wid-edit))
 
 (define-derived-mode magithub-issue-post-mode nil
