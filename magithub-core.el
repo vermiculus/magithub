@@ -34,7 +34,7 @@
 (defvar magithub-debug-mode nil)
 (defun  magithub-debug-mode (&optional submode)
   (and (listp magithub-debug-mode)
-       (memp submode magithub-debug-mode)))
+       (memq submode magithub-debug-mode)))
 (defun magithub-debug-message (fmt &rest args)
   "Print a debug message.
 Respects `magithub-debug-mode' and `debug-on-error'."
