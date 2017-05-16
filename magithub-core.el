@@ -32,6 +32,9 @@
 (require 'bug-reference)
 
 (defvar magithub-debug-mode nil)
+(defun  magithub-debug-mode (&optional submode)
+  (and (listp magithub-debug-mode)
+       (memp submode magithub-debug-mode)))
 (defun magithub-debug-message (fmt &rest args)
   "Print a debug message.
 Respects `magithub-debug-mode' and `debug-on-error'."
@@ -42,7 +45,7 @@ Respects `magithub-debug-mode' and `debug-on-error'."
                (apply #'format fmt args)))))
 (defun magithub-debug--ghub-request-wrapper (oldfun &rest args)
   (magithub-debug-message "ghub--request%S" args)
-  (unless (and (listp magithub-debug-mode) (memq 'dry-api magithub-debug-mode))
+  (unless (magithub-debug-mode 'dry-api)
     (apply oldfun args)))
 (advice-add #'ghub--request :around #'magithub-debug--ghub-request-wrapper)
 
@@ -142,7 +145,10 @@ Pings the API a maximum of once every ten seconds."
                            (error (setq error-data err) :errored-out))))
              (remaining (and (listp response) (let-alist response .rate.remaining)))
              status go-offline-message)
-        (magithub-debug-message "new value retrieved for api-available-p: %S" response)
+        (magithub-debug-message
+         (concat "new value retrieved for api-available-p"
+                 (when (magithub-debug-mode 'forms)
+                   (format ": %S" response))))
         (if (numberp remaining)
             (cond
              ((< magithub-api-low-threshold remaining) (setq status t))
