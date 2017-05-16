@@ -501,7 +501,7 @@ be signaled.
 If INTERACTIVE is non-nil, a `user-error' will be raised instead
 of a signal (e.g., for interactive forms)."
   (let-alist (magithub-source-repo)
-    (unless .permissions.push
+    (if .permissions.push t
       (if interactive
           (user-error "You're not allowed to manage labels in %s" .full_name)
         (signal 'error `(unauthorized manage-labels ,(progn .full_name)))))))

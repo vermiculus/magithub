@@ -47,17 +47,17 @@ we'll hit the API) if Magithub is offline."
 (defun magithub-issue-add-labels (issue labels)
   "Update ISSUE's labels to LABELS."
   (interactive
-   (magithub-verify-manage-labels t)
-   (let* ((fmt (lambda (l) (alist-get 'name l)))
-          (issue (or (magithub-thing-at-point 'issue)
-                     (magithub-thing-at-point 'pull-request)))
-          (current-labels (alist-get 'labels issue))
-          (to-remove (magithub--completing-read-multiple
-                      "Remove labels: " current-labels fmt)))
-     (setq current-labels (cl-set-difference current-labels to-remove))
-     (list issue (magithub--completing-read-multiple
-                  "Add labels: " (magithub-label-list) fmt
-                  nil nil current-labels))))
+   (when (magithub-verify-manage-labels t)
+     (let* ((fmt (lambda (l) (alist-get 'name l)))
+            (issue (or (magithub-thing-at-point 'issue)
+                       (magithub-thing-at-point 'pull-request)))
+            (current-labels (alist-get 'labels issue))
+            (to-remove (magithub--completing-read-multiple
+                        "Remove labels: " current-labels fmt)))
+       (setq current-labels (cl-set-difference current-labels to-remove))
+       (list issue (magithub--completing-read-multiple
+                    "Add labels: " (magithub-label-list) fmt
+                    nil nil current-labels)))))
   (setcdr (assq 'labels issue) labels)
   (ghubp-patch-repos-owner-repo-issues-number
    (magithub-source-repo) issue `((labels . ,labels)))
