@@ -113,59 +113,66 @@ only be let-bound by `magithub-refresh'.")
 (defun magithub-offline-p ()
   (memq magithub-cache '(t hard-refresh-offline)))
 
-(defvar magithub--api-available-p nil
-  "A tiny cache to avoid pinging GitHub multiple times a second.
-
-CAR is a time value; CDR is the cached value.")
+(defvar magithub--api-last-available (eval-when-compile
+                                       (date-to-time "1/1/1970"))
+  "The last time the API was available.
+Used to avoid pinging GitHub multiple times a second.")
 
 (defcustom magithub-api-timeout 1
   "Number of seconds we'll wait for the API to respond."
   :group 'magithub
   :type 'integer)
+
 (defcustom magithub-api-low-threshold 15
   "Low threshold for API requests.
+This variable is not currently respected; see tarsius/ghub#16.
+
 If the number of available API requests drops to or below this
 threshold, you'll be asked if you'd like to go offline."
   :group 'magithub
   :type 'integer)
+
 (defun magithub--api-available-p (&optional ignore-offline-mode)
   "Non-nil if the API is available.
 
 Pings the API a maximum of once every ten seconds."
   (magithub-debug-message "checking if the API is available")
   (unless (and (not ignore-offline-mode) (magithub-offline-p))
-    (if (and (consp magithub--api-available-p)
-             (< (time-to-seconds (time-subtract (current-time) (car magithub--api-available-p))) 10))
-        (prog1 (cdr magithub--api-available-p)
-          (magithub-debug-message "used cached value for api-available-p"))
-      (magithub-debug-message "retrieving new value for api-available-p")
+    (if (and magithub--api-last-available
+             (< (time-to-seconds (time-subtract (current-time) magithub--api-last-available)) 10))
+        (prog1 magithub--api-last-available
+          (magithub-debug-message "used cached value for api-last-available"))
+
+      (magithub-debug-message "cache expired; retrieving new value for api-last-available")
       (let* (error-data
-             (response (with-timeout (magithub-api-timeout :timeout)
-                         (condition-case err (ghub-get "/rate_limit")
-                           (error (setq error-data err) :errored-out))))
-             (remaining (and (listp response) (let-alist response .rate.remaining)))
-             status go-offline-message)
+             go-offline-message
+             status
+             (response (with-timeout (magithub-api-timeout 'timeout)
+                         (condition-case err (ghub-get "/meta")
+                           (error (setq error-data err) 'errored-out)))))
+
         (magithub-debug-message
-         (concat "new value retrieved for api-available-p"
+         (concat "new value retrieved for api-last-available"
                  (when (magithub-debug-mode 'forms)
                    (format ": %S" response))))
-        (if (numberp remaining)
-            (cond
-             ((< magithub-api-low-threshold remaining) (setq status t))
-             ((= 0 remaining) (setq go-offline-message "You're bring rate-limited (no more requests left)"))
-             (t (setq go-offline-message (format "Only %d requests left" remaining)
-                      status t)))
-          (setq go-offline-message
-                (alist-get response
-                           '((:timeout . "API is not responding quickly")
-                             (:errored-out . "API call resulted in error"))
-                           "Unknown issue with API access")))
-        (setq magithub--api-available-p (cons (current-time) status))
+
+        (if (symbolp response)
+            (setq go-offline-message
+                  (alist-get response
+                             '((timeout . "API is not responding quickly")
+                               (errored-out . "API call resulted in error"))
+                             "Unknown issue with API access"))
+          (setq status t
+                magithub--api-last-available (current-time)))
+
         (when error-data
           (magithub-debug-message "%S" error-data))
-        (when (and go-offline-message
-                   (y-or-n-p (format "%s; go offline? " go-offline-message)))
-          (magithub-go-offline))
+
+        (when go-offline-message
+          (if (y-or-n-p (format "%s; go offline? " go-offline-message))
+              (magithub-go-offline)
+            (message "Consider customizing `magithub-api-timeout' if this happens often")))
+
         status))))
 
 (defun magithub--completing-read (prompt collection &optional format-function predicate require-match default)
