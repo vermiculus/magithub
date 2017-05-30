@@ -183,11 +183,20 @@ See also URL
 
 (defun magithub-pull-request-new (repo title base head)
   (interactive
-   (let-alist (setq repo (magithub-source-repo))
-     (list repo
-           (read-string (format "Pull request title (%s/%s): " .owner.login .name))
-           (magit-read-branch "Base branch" (magit-get-upstream-branch))
-           (format "%s:%s" (ghub--username) (magit-read-branch "Head")))))
+   (let* ((repo        (magithub-source-repo))
+          (upstream    (magit-get-upstream-branch))
+          (head        (magit-read-branch "Head"))
+          (base        (magit-read-branch "Base branch" upstream))
+          (head-remote (magit-get-push-remote head))
+          (base-remote (magit-get-push-remote base)))
+     (let-alist repo
+       (list repo
+             (read-string (format "Pull request title (%s/%s): "
+                                  .owner.login .name))
+             base
+             (if (string= head-remote base-remote)
+                 head
+               (format "%s:%s" (ghub--username) head))))))
 
   (let-alist repo
     (with-current-buffer
