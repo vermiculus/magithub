@@ -299,9 +299,9 @@ See /.github/ISSUE_TEMPLATE.md in this repository."
 (defun magithub-usable-p ()
   "Non-nil if Magithub should do its thing."
   (and (magithub-enabled-p)
+       (magithub-github-repository-p)
        (or (magithub-offline-p)
-           (magithub--api-available-p))
-       (magithub-github-repository-p)))
+           (magithub--api-available-p))))
 
 (defun magithub-error (err-message tag &optional trace)
   "Report a Magithub error."
