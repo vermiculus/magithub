@@ -20,10 +20,19 @@
     (should (equal t (magithub-cache :test t)))))
 
 (ert-deftest magithub-test-origin-parse ()
-  ;; #105
+  "Tests issue #105."
   (let ((repo '((owner (login . "vermiculus"))
                 (name . "magithub"))))
     (should (equal repo (magithub--url->repo "git@github.com:vermiculus/magithub.git")))
     (should (equal repo (magithub--url->repo "git@github.com:vermiculus/magithub")))))
+
+(ert-deftest magithub-test-source-repo ()
+  "Test basic API functionality.
+This tests everything from checking API availability to
+determining that we're in a GitHub repository to actually making
+cached API calls."
+  (should (and (magithub-source-repo)
+               (let ((magithub-cache t))
+                 (magithub-source-repo)))))
 
 ;;; magithub-test.el ends here
