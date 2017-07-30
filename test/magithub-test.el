@@ -19,4 +19,11 @@
   (magithub-test-cache-with-new-cache ((:test . 30))
     (should (equal t (magithub-cache :test t)))))
 
+(ert-deftest magithub-test-origin-parse ()
+  ;; #105
+  (let ((repo '((owner (login . "vermiculus"))
+                (name . "magithub"))))
+    (should (equal repo (magithub--url->repo "git@github.com:vermiculus/magithub.git")))
+    (should (equal repo (magithub--url->repo "git@github.com:vermiculus/magithub")))))
+
 ;;; magithub-test.el ends here

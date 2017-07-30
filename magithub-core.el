@@ -424,14 +424,50 @@ See `magithub-features'."
                (message (concat m "; " s) feature-list)
                (add-to-list 'feature-list '(t . t) t))))))
 
+(defun magithub--parse-url (url)
+  "Parse URL into its components.
+URL may be of several different formats:
+
+- git@github.com:vermiculus/magithub.git
+- https://github.com/vermiculus/magithub"
+  (and url
+       (or (and (string-match
+                 ;; git@github.com:vermiculus/magithub.git
+                 (rx bol
+                     (group (+? any)) ;sshuser -- git
+                     "@"
+                     (group (+? any)) ;domain  -- github.com
+                     ":"
+                     (group (+? (| alnum "-" "."))) ;owner.login -- vermiculus
+                     "/"
+                     (group (+? (| alnum "-" "."))) ;name -- magithub
+                     (? ".git")
+                     eol)
+                 url)
+                `((kind . 'ssh)
+                  (ssh-user . (match-string 1 url))
+                  (domain . (match-string 2 url))
+                  (sparse-repo (owner (login . ,(match-string 3 url)))
+                               (name . ,(match-string 4 url)))))
+           (and (string-match
+                 ;; https://github.com/vermiculus/magithub
+                 (rx bol
+                     "http" (? "s") "://"
+                     (group (+? any)) ;domain -- github.com
+                     "/"
+                     (group (+? (| alnum "-" "."))) ;owner.login -- vermiculus
+                     "/"
+                     (group (+? (| alnum "-" "."))) ;name -- magithub
+                     eol)
+                 url)
+                `((kind . 'http)
+                  (domain . (match-string 1 url))
+                  (sparse-repo (owner (login . ,(match-string 2 url)))
+                               (name . ,(match-string 3 url))))))))
+
 (defun magithub--url->repo (url)
   "Tries to parse a remote url into a GitHub repository object"
-  (when (and url (string-match (rx bol (+ any) (or "/" ":")
-                                   (group (+ any)) "/" (group (+ any))
-                                   ".git" eol)
-                               url))
-    `((owner (login . ,(match-string 1 url)))
-      (name . ,(match-string 2 url)))))
+  (cdr (assq 'sparse-repo (magithub--parse-url url))))
 
 (defun magithub-source--remote ()
   "Tries to determine the correct remote to use for issue-tracking."
