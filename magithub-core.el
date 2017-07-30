@@ -113,8 +113,10 @@ only be let-bound by `magithub-refresh'.")
 (defun magithub-offline-p ()
   (memq magithub-cache '(t hard-refresh-offline)))
 
-(defvar magithub--api-last-available (eval-when-compile
-                                       (date-to-time "1/1/1970"))
+(defvar magithub--api-last-available
+  ;; see https://travis-ci.org/vermiculus/magithub/jobs/259006323
+  ;; (eval-when-compile (date-to-time "1/1/1970"))
+  '(14445 17280)
   "The last time the API was available.
 Used to avoid pinging GitHub multiple times a second.")
 
