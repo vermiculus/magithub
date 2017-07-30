@@ -456,7 +456,7 @@ URL may be of several different formats:
                   (sparse-repo (owner (login . ,(match-string 3 url)))
                                (name . ,(match-string 4 url)))))
            (and (string-match
-                 ;; https://github.com/vermiculus/magithub
+                 ;; https://github.com/vermiculus/magithub.git
                  (rx bol
                      "http" (? "s") "://"
                      (group (+? any)) ;domain -- github.com
@@ -464,6 +464,7 @@ URL may be of several different formats:
                      (group (+? (| alnum "-" "."))) ;owner.login -- vermiculus
                      "/"
                      (group (+? (| alnum "-" "."))) ;name -- magithub
+                     (? ".git")
                      eol)
                  url)
                 `((kind . 'http)
