@@ -577,4 +577,11 @@ of a signal (e.g., for interactive forms)."
     (add-hook hook #'magithub-bug-reference-mode-on)))
 
 (provide 'magithub-core)
+
+;;; We need the cache for `magithub-source-repo', but the cache needs
+;;; the core functions as well.  Pretend they're in the same file,
+;;; kinda.
+
+;;; See also https://travis-ci.org/vermiculus/magithub/jobs/259008594
+(require 'magithub-cache)
 ;;; magithub-core.el ends here
