@@ -529,6 +529,11 @@ of a signal (e.g., for interactive forms)."
     (setq-local bug-reference-url-format
                 (format "%s/issues/%%s" (alist-get 'html_url repo)))))
 
+(defun magithub-filter-all (funcs list)
+  (dolist (f funcs)
+    (setq list (cl-remove-if-not f list)))
+  list)
+
 (eval-after-load "magit"
   (dolist (hook '(magit-revision-mode-hook git-commit-setup-hook))
     (add-hook hook #'magithub-bug-reference-mode-on)))
