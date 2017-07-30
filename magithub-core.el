@@ -457,8 +457,11 @@ URL may be of several different formats:
                                (name . ,(match-string 4 url)))))
            (and (string-match
                  ;; https://github.com/vermiculus/magithub.git
+                 ;; git://github.com/vermiculus/magithub.git
                  (rx bol
-                     "http" (? "s") "://"
+                     (or (seq "http" (? "s"))
+                         "git")
+                     "://"
                      (group (+? any)) ;domain -- github.com
                      "/"
                      (group (+? (| alnum "-" "."))) ;owner.login -- vermiculus
