@@ -309,8 +309,12 @@ See /.github/ISSUE_TEMPLATE.md in this repository."
   "Non-nil if Magithub should do its thing."
   (and (magithub-enabled-p)
        (magithub-github-repository-p)
-       (or (magithub-offline-p)
-           (magithub--api-available-p))))
+       (or (and (magithub-offline-p)
+                ;; if we're offline, source-repo will get the cached value
+                (magithub-source-repo))
+           (and (magithub--api-available-p)
+                ;; otherwise, we only want to query the API if it's available
+                (magithub-source-repo)))))
 
 (defun magithub-error (err-message tag &optional trace)
   "Report a Magithub error."
