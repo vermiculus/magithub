@@ -93,12 +93,10 @@ idle timer runs")
 
 (defun magithub-cache-invalidate ()
   "Clear the cache"
-  (let ((r (magithub-source-repo)))
-    (maphash
-     (lambda (k _)
-       (when (equal r (car k))
-         (remhash k magithub-cache--cache)))
-     magithub-cache--cache)))
+  (maphash
+   (lambda (k _)
+     (remhash k magithub-cache--cache))
+   magithub-cache--cache))
 
 (defun magithub-cache-invalidate--confirm ()
   (yes-or-no-p
