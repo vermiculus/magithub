@@ -483,8 +483,16 @@ URL may be of several different formats:
   "Tries to determine the correct remote to use for issue-tracking."
   (or (magit-get "magithub" "proxy") "origin"))
 
+(defun magithub-source--sparse-repo ()
+  "Returns the sparse repository object for the current context.
+
+Only information that can be determined without API calls will be
+included in the returned object."
+  (magithub--url->repo
+   (magit-get "remote" (magithub-source--remote) "url")))
+
 (defun magithub-source-repo ()
-  "Returns a sparse repository object for the current context.
+  "Returns a full repository object for the current context.
 
 Uses the URL of `magithub-source-remote' to parse out repository
 information.  Returns a full repository object."
