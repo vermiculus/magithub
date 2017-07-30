@@ -488,11 +488,13 @@ URL may be of several different formats:
 
 Uses the URL of `magithub-source-remote' to parse out repository
 information.  Returns a full repository object."
-  (let ((url (magit-get "remote" (magithub-source--remote) "url")))
-    (magithub-cache :repo-demographics
-      ;; Repo may not exist; ignore 404
-      `(ignore-errors
-         (ghubp-get-repos-owner-repo ',(magithub--url->repo url))))))
+  (magithub-cache :repo-demographics
+    `(condition-case e
+         (ghubp-get-repos-owner-repo
+          ',(magithub-source--sparse-repo))
+       (ghub-404
+        ;; Repo may not exist; ignore 404
+        nil))))
 
 (defun magithub--satisfies-p (preds obj)
   "Non-nil when all functions in PREDS are non-nil for OBJ."
