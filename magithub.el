@@ -103,12 +103,19 @@ One of the following:
   `clone_url' (https://github.com/octocat/Hello-World.git)
   `git_url'   (git:github.com/octocat/Hello-World.git)
   `ssh_url'   (git@github.com:octocat/Hello-World.git)")
-(defun magithub-create (repo)
-  "Create the current repository on GitHub."
-  (interactive (list (unless (or (magithub-github-repository-p) (not (magit-toplevel)))
-                       `((name . ,(magithub--read-repo-name
-                                   (magithub--read-user-or-org)))
-                         (description . ,(read-string "Description (optional): "))))))
+(defun magithub-create (repo &optional org)
+  "Create REPO on GitHub.
+
+If ORG is non-nil, it is an organization object under which to
+create the new repository.  You must be a member of this
+organization."
+  (interactive (unless (or (magithub-github-repository-p) (not (magit-toplevel)))
+                 (let ((account (magithub--read-user-or-org)))
+                   (list
+                    `((name . ,(magithub--read-repo-name account))
+                      (description . ,(read-string "Description (optional): ")))
+                    ,@(unless (string= (ghub--username) account)
+                        `((login . ,account)))))))
   (when (magithub-github-repository-p)
     (error "Already in a GitHub repository"))
   (if (not (magit-toplevel))
@@ -116,7 +123,10 @@ One of the following:
         (magit-init default-directory)
         (call-interactively #'magithub-create))
     (with-temp-message "Creating repository on GitHub..."
-      (setq repo (ghubp-post-user-repos repo)))
+      (setq repo
+            (if org
+                (ghubp-post-orgs-org-repos org repo)
+              (ghubp-post-user-repos repo))))
     (magithub--random-message "Creating repository on GitHub...done!")
     (magit-status-internal default-directory)
     (magit-remote-add "origin" (alist-get magithub-preferred-remote-method repo))
