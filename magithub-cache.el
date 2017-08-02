@@ -68,7 +68,12 @@ idle timer runs")
            (time-to-seconds (time-since saved-time))))))
 
 (defun magithub-cache (expiry-class form &optional message)
-  "The cached value for CACHE (set to (eval DEFAULT) if necessary)."
+  "The cached value for FORM if available.
+
+If FORM has not been cached or its EXPIRY-CLASS dictates the
+cache has expired, FORM will be re-evaluated.  For intensive
+functions, MESSAGE may be specified to display using
+`with-temp-message'."
   (declare (indent defun))
   (let* ((not-there (cl-gensym))
          (cached-value (gethash form magithub-cache--cache not-there)))
