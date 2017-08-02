@@ -56,6 +56,7 @@
 (require 'magithub-issue-status)
 (require 'magithub-issue-post)
 (require 'magithub-issue-tricks)
+(require 'magithub-orgs)
 
 (magit-define-popup magithub-dispatch-popup
   "Popup console for dispatching other Magithub popups."
@@ -105,7 +106,8 @@ One of the following:
 (defun magithub-create (repo)
   "Create the current repository on GitHub."
   (interactive (list (unless (or (magithub-github-repository-p) (not (magit-toplevel)))
-                       `((name . ,(magithub--read-repo-name (ghub--username)))
+                       `((name . ,(magithub--read-repo-name
+                                   (magithub--read-user-or-org)))
                          (description . ,(read-string "Description (optional): "))))))
   (when (magithub-github-repository-p)
     (error "Already in a GitHub repository"))
@@ -121,6 +123,24 @@ One of the following:
     (magit-refresh)
     (when (magit-rev-verify "HEAD")
       (magit-push-popup))))
+
+(defun magithub--read-user-or-org ()
+  "Prompt for an account with completion.
+
+Candidates will include the current user and all organizations,
+public and private, of which they're a part.  If there is only
+one candidate (i.e., no organizations), the single candidate will
+be returned without prompting the user."
+  (let ((user (ghub--username))
+        (orgs (magithub-get-in-all '(login)
+                (magithub-orgs-list)))
+        candidates)
+    (setq candidates orgs)
+    (when user (push user candidates))
+    (cl-case (length candidates)
+      (0 (user-error "No accounts found"))
+      (1 (car candidates))
+      (t (completing-read "Account: " candidates nil t)))))
 
 (defun magithub--read-repo-name (for-user)
   (let* ((prompt (format "Repository name: %s/" for-user))

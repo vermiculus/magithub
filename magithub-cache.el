@@ -41,6 +41,7 @@ Unless it's absolute, this filename is relative inside
   '((:issues . 600)
     (:ci-status . 15)
     (:repo-demographics . 86400)
+    (:user-demographics . 86400)
     (:label . 3600))
   "The number of seconds that have to pass for GitHub data to be
 considered outdated.")
