@@ -84,9 +84,9 @@ functions, MESSAGE may be specified to display using
                   (magithub-cache--expired-p (car cached-value) expiry-class)))
          (let ((current-time (current-time))
                (v (with-temp-message
-                      (when (magithub-debug-mode 'forms)
-                        (let ((print-quoted t))
-                          (format "%s -- %S" message form))
+                      (if (magithub-debug-mode 'forms)
+                          (let ((print-quoted t))
+                            (format "%s -- %S" message form))
                         message)
                     (eval form))))
            (prog1 (puthash form (cons current-time v) magithub-cache--cache)
