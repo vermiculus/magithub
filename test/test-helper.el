@@ -3,6 +3,5 @@
 
 (load-file "./test/magithub-test-compile.el")
 
-;;; Don't authenticate these requests; no known way to keep that
-;;; authentication secret
-(setq ghub-authenticate nil)
+(setq ghub-authenticate t
+      ghub-token (getenv "GITHUB_TOKEN"))

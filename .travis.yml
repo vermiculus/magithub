@@ -16,6 +16,8 @@ env:
   - EMACS_VERSION=25.1
   - EMACS_VERSION=25.2
   - EMACS_VERSION=snapshot
+  global:
+    secure: yN1qbXxfPXcn0T5YIJSnhew/8NHskRzxHn7LauWpxo/Z4Yjb4kte8TIZ93XCfUmcJGEbkHF4wejgui7v09UrUv8tYZO8rUomn7pF6qTtziuwoIMvDdm8Jt4F6xvCUnTjw3gmlVZcJkWcnxVAZQitYdkEZPeTFWyjAGYZlxXhCVh05usBAhHEEwjBkQD4n8Z3O0U9Y553XGj7RqUteA3rnk46WxHpGXCwNmYHdEturZkbmfPqyD7oosstb5fwsZ4CtzgNxnu8o1B5vnk7jUv+fQVyXxxL/0MzfeqFLUjDZH2TwOl0N+/m1Gp41K+TiHpwuHgTw2rvDlikn0Z4EMuDPYyMv2P9SJW48ZtACNhOJ09H8BnrvjG6lxpayJbxmAdXgsMyEO63UhwHV7rnl9BRJ5mFX++wSnnV8G5u/Yp92rIW2Kxj5JoYKcy7/SF+7zFQq7ai+uVGPqseYg+k4BhZgpSgbofLuBKt9KZKMgDqS8bLjh1bvWG8STtN6dHIKLEz746p2MEINjJbg0ysEADujmwWsFdvqr584hRceAtkqynXHgpRh66BoB4a4d8dMUWstzQr9werEGbDcuQeJ8HFcpSirR3+Sw7LbjScHC/toKVG7vty6M9vHWlB1iAEUDps96nvpdAwPlhEL/rcRO1zqrm/OhlunRSpxh0V/dXcj1g=
 
 before_install:
 - export PATH="$HOME/bin:$PATH"
