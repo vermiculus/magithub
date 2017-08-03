@@ -103,6 +103,7 @@ One of the following:
   `clone_url' (https://github.com/octocat/Hello-World.git)
   `git_url'   (git:github.com/octocat/Hello-World.git)
   `ssh_url'   (git@github.com:octocat/Hello-World.git)")
+
 (defun magithub-create (repo &optional org)
   "Create REPO on GitHub.
 
@@ -119,8 +120,8 @@ organization."
                     `((name . ,reponame)
                       (private . ,priv)
                       (description . ,desc))
-                    ,@(unless (string= ghub-username account)
-                        `((login . ,account)))))))
+                    (unless (string= ghub-username account)
+                      `((login . ,account)))))))
   (when (magithub-github-repository-p)
     (error "Already in a GitHub repository"))
   (if (not (magit-toplevel))
