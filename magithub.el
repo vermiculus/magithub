@@ -110,13 +110,14 @@ One of the following:
 If ORG is non-nil, it is an organization object under which to
 create the new repository.  You must be a member of this
 organization."
-  (interactive (list
-                (unless (or (magithub-github-repository-p) (not (magit-toplevel)))
-                  (let* ((ghub-username (ghub--username)) ;performance
-                         (account (magithub--read-user-or-org))
-                         (priv (yes-or-no-p "Will this be a private repository? "))
-                         (reponame (magithub--read-repo-name account))
-                         (desc (read-string "Description (optional): ")))
+  (interactive (if (or (not (magit-toplevel)) (magithub-github-repository-p))
+                   (list nil nil)
+                 (let* ((ghub-username (ghub--username)) ;performance
+                        (account (magithub--read-user-or-org))
+                        (priv (yes-or-no-p "Will this be a private repository? "))
+                        (reponame (magithub--read-repo-name account))
+                        (desc (read-string "Description (optional): ")))
+                   (list
                     `((name . ,reponame)
                       (private . ,priv)
                       (description . ,desc))
