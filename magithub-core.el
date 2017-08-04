@@ -150,7 +150,16 @@ Pings the API a maximum of once every ten seconds."
              go-offline-message
              status
              (response (with-timeout (magithub-api-timeout 'timeout)
-                         (condition-case err (ghub-get "/meta")
+                         ;; Try /rate_limit first, as this will not
+                         ;; count toward rate-limiting.
+                         (condition-case err (ghub-get "/rate_limit")
+                           (ghub-404
+                            ;; Rate-limiting is often disabled on
+                            ;; Enterprise instances.  Try using /meta
+                            ;; which should (hopefully) always work.
+                            ;; See also issue #107.
+                            (condition-case inner-err (ghub-get "/meta")
+                              (error (setq error-data inner-err 'errored-out))))
                            (error (setq error-data err) 'errored-out)))))
 
         (magithub-debug-message
