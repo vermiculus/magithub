@@ -120,7 +120,7 @@ only be let-bound by `magithub-refresh'.")
   "The last time the API was available.
 Used to avoid pinging GitHub multiple times a second.")
 
-(defcustom magithub-api-timeout 1
+(defcustom magithub-api-timeout 3
   "Number of seconds we'll wait for the API to respond."
   :group 'magithub
   :type 'integer)
