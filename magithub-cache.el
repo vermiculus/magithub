@@ -80,7 +80,9 @@ cache has expired, FORM will be re-evaluated.
 MESSAGE may be specified for intensive functions.  We'll display
 this with `with-temp-message' while the form is evaluating.
 
-If NO-CONTEXT is non-nil, we won't use a repository context."
+CONTEXT is a symbol specifying the cache context.  If it's the
+special symbol `repo', we'll use the context of the current
+repository."
   (declare (indent defun))
 
   (when (eq context 'repo)
