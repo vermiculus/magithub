@@ -19,7 +19,7 @@ Magithub is a collection of interfaces to GitHub integrated into
 - Status checks
 - ...
 
-as well as  support for working offline.
+as well as support for working offline.
 
 Happy hacking!
 
