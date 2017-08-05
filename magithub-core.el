@@ -92,11 +92,12 @@ A fourth value, `hard-refresh-offline', counts towards both
 `magithub-offline-p' and `magithub-cache--always-p'.  It should
 only be let-bound by `magithub-refresh'.")
 
-(defun magithub-go-offline ()
+(defun magithub-go-offline (&optional no-refresh)
   (interactive)
   (setq magithub-cache t)
-  (when (derived-mode-p 'magit-status-mode)
-    (magit-refresh)))
+  (unless no-refresh
+    (when (derived-mode-p 'magit-status-mode)
+      (magit-refresh))))
 
 (defun magithub-go-online ()
   (interactive)
@@ -113,7 +114,7 @@ only be let-bound by `magithub-refresh'.")
 (defun magithub-offline-p ()
   (memq magithub-cache '(t hard-refresh-offline)))
 
-(defvar magithub--api-last-available
+(defvar magithub--api-last-checked
   ;; see https://travis-ci.org/vermiculus/magithub/jobs/259006323
   ;; (eval-when-compile (date-to-time "1/1/1970"))
   '(14445 17280)
@@ -134,57 +135,105 @@ threshold, you'll be asked if you'd like to go offline."
   :group 'magithub
   :type 'integer)
 
+(defvar magithub--quick-abort-api-check nil
+  "When non-nil, we'll assume the API is unavailable.
+Do not modify this variable in code outside Magithub.")
+
+(defvar magithub--api-offline-reason nil
+  "The reason we're going offline.
+Could be one of several strings:
+
+ * authentication issue
+
+ * response timeout
+
+ * generic error
+
+and possibly others as error handlers are added to
+`magithub--api-available-p'.")
+
+(define-error 'magithub-error "Magithub Error")
+(define-error 'magithub-api-timeout "Magithub API Timeout" 'magithub-error)
+
 (defun magithub--api-available-p (&optional ignore-offline-mode)
   "Non-nil if the API is available.
 
 Pings the API a maximum of once every ten seconds."
   (magithub-debug-message "checking if the API is available")
-  (unless (and (not ignore-offline-mode) (magithub-offline-p))
-    (if (and magithub--api-last-available
-             (< (time-to-seconds (time-subtract (current-time) magithub--api-last-available)) 10))
-        (prog1 magithub--api-last-available
-          (magithub-debug-message "used cached value for api-last-available"))
+  (when (magithub-enabled-p)
+    (unless (and (not ignore-offline-mode) (magithub-offline-p))
+      (if (and magithub--api-last-checked
+               (< (time-to-seconds (time-since magithub--api-last-checked)) 10))
+          (prog1 magithub--api-last-checked
+            (magithub-debug-message "used cached value for api-last-checked"))
 
-      (magithub-debug-message "cache expired; retrieving new value for api-last-available")
-      (let* (error-data
-             go-offline-message
-             status
-             (response (with-timeout (magithub-api-timeout 'timeout)
-                         ;; Try /rate_limit first, as this will not
-                         ;; count toward rate-limiting.
-                         (condition-case err (ghub-get "/rate_limit")
-                           (ghub-404
-                            ;; Rate-limiting is often disabled on
-                            ;; Enterprise instances.  Try using /meta
-                            ;; which should (hopefully) always work.
-                            ;; See also issue #107.
-                            (condition-case inner-err (ghub-get "/meta")
-                              (error (setq error-data inner-err 'errored-out))))
-                           (error (setq error-data err) 'errored-out)))))
+        (magithub-debug-message "cache expired; retrieving new value for api-last-checked")
+        (setq magithub--api-last-checked (current-time))
 
-        (magithub-debug-message
-         (concat "new value retrieved for api-last-available"
-                 (when (magithub-debug-mode 'forms)
-                   (format ": %S" response))))
+        (let (api-status error-data response)
+          (condition-case err
+              (progn
+                (setq response
+                      (condition-case _
+                          (with-timeout (magithub-api-timeout
+                                         (signal 'magithub-api-timeout nil))
+                            (ghub-get "/rate_limit"))
 
-        (if (symbolp response)
-            (setq go-offline-message
-                  (alist-get response
-                             '((timeout . "API is not responding quickly")
-                               (errored-out . "API call resulted in error"))
-                             "Unknown issue with API access"))
-          (setq status t
-                magithub--api-last-available (current-time)))
+                        (ghub-404
+                         ;; Rate-limiting is often disabled on
+                         ;; Enterprise instances.  Try using /meta
+                         ;; which should (hopefully) always work.  See
+                         ;; also issue #107.
+                         (ghub-get "/meta")))
+                      api-status (and response t))
 
-        (when error-data
-          (magithub-debug-message "%S" error-data))
+                (magithub-debug-message "new value retrieved for api-last-available: %S"
+                                        response))
 
-        (when go-offline-message
-          (if (y-or-n-p (format "%s; go offline? " go-offline-message))
-              (magithub-go-offline)
-            (message "Consider customizing `magithub-api-timeout' if this happens often")))
+            ;; Magithub only works when authenticated.
+            (ghub-auth-error
+             (setq error-data err)
+             (if (y-or-n-p "Not yet authenticated; open instructions in your browser? ")
+                 (progn
+                   (browse-url "https://github.com/magit/ghub#initial-configuration")
+                   (setq magithub--api-offline-reason "Try again once you've authenticated"))
+               (setq magithub--api-offline-reason "Not yet authenticated per ghub's README")))
 
-        status))))
+            ;; Sometimes, the API can take a long time to respond
+            ;; (whether that's GitHub not responding or requests being
+            ;; blocked by some client-side firewal).  Handle this
+            ;; possiblity gracefully.
+            (magithub-api-timeout
+             (setq error-data err
+                   magithub--api-offline-reason
+                   (concat "API is not responding quickly; "
+                           "consider customizing `magithub-api-timeout' if this happens often")))
+
+            ;; Never hurts to be cautious :-)
+            (error
+             (setq error-data err
+                   magithub--api-offline-reason (format "unknown issue: %S" err))))
+
+          (when error-data
+            (magithub-debug-message "consider reporting unknown error while checking api-available: %S"
+                                    error-data))
+
+          (when magithub--api-offline-reason
+            (magithub-go-offline 'no-refresh)
+            (run-with-idle-timer 2 nil #'magithub--api-offline-reason))
+
+          api-status)))))
+
+(defun magithub--api-offline-reason ()
+  "Report the reason we're going offline and go offline.
+Refresh the status buffer if necessary.
+
+See `magithub--api-offline-reason'."
+  (when magithub--api-offline-reason
+    (message "Magithub is now offline: %s"
+             magithub--api-offline-reason)
+    (setq magithub--api-offline-reason nil)
+    (magithub-go-offline)))
 
 (defun magithub--completing-read (prompt collection &optional format-function predicate require-match default)
   "Using PROMPT, get a list of elements in COLLECTION.
@@ -305,7 +354,7 @@ See /.github/ISSUE_TEMPLATE.md in this repository."
 
 (defun magithub-enabled-p ()
   "Returns non-nil when Magithub is enabled for this repository."
-  (when (member (magit-get "magithub" "enabled") '("yes" nil)) t))
+  (and (member (magit-get "magithub" "enabled") '("yes" nil)) t))
 
 (defun magithub-enabled-toggle ()
   "Toggle Magithub"
@@ -514,6 +563,7 @@ information.  Returns a full repository object."
          (ghub-404
           ;; Repo may not exist; ignore 404
           nil))
+      nil
       :context nil)))
 
 (defun magithub--repo-simplify (repo)
