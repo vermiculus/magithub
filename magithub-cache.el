@@ -151,22 +151,29 @@ the age of the oldest cached information."
              (magithub-offline-p))
     (magit-insert-section (magithub)
       (insert
-       "Magithub is "
        (propertize
-        "OFFLINE"
-        'face 'font-lock-warning-face)
-       "; you are seeing cached data"
-       (if-let ((oldest (car (magithub-cache--age t))))
-           (format "%s (%s ago)"
-                   (format-time-string " as old as %D %r" oldest)
-                   (magithub-cache--time-out
-                    (time-subtract (current-time) oldest)))
-         ;; if the above is nil, that means the cache is empty.  If
-         ;; the cache is empty and we're about to print the
-         ;; magit-status buffer, we're probably going to have cached
-         ;; information by the time we finish showing the buffer
-         ;; (after which the user will see this message).
-         " (just retrieved)")))))
+        (concat
+         "Magithub is "
+         (propertize
+          "OFFLINE"
+          'face 'font-lock-warning-face
+          'help-echo "test")
+         "; you are seeing cached data"
+         (if-let ((oldest (car (magithub-cache--age
+                                (magithub-source-repo)))))
+             (format "%s (%s ago)"
+                     (format-time-string " as old as %D %r" oldest)
+                     (magithub-cache--time-out
+                      (time-subtract (current-time) oldest)))
+           ;; if the above is nil, that means the cache is empty.  If
+           ;; the cache is empty and we're about to print the
+           ;; magit-status buffer, we're probably going to have cached
+           ;; information by the time we finish showing the buffer
+           ;; (after which the user will see this message).
+           " (nothing cached)"))
+        'help-echo
+        (substitute-command-keys
+         "To update a section anyway, place point on the section and use C-u \\[magit-refresh]"))))))
 
 (defun magithub-cache--time-out (time)
   "Convert TIME into a human-readable string.
