@@ -31,7 +31,8 @@
   "List organizations for the currently authenticated user."
   (magithub-cache :user-demographics
     `(progn ,(ghub--username)
-            (ghubp-get-user-orgs))))
+            (ghubp-get-user-orgs))
+    :context nil))
 
 (provide 'magithub-orgs)
 ;;; magithub-orgs.el ends here

@@ -505,13 +505,26 @@ included in the returned object."
 
 Uses the URL of `magithub-source-remote' to parse out repository
 information.  Returns a full repository object."
-  (magithub-cache :repo-demographics
-    `(condition-case e
-         (ghubp-get-repos-owner-repo
-          ',(magithub-source--sparse-repo))
-       (ghub-404
-        ;; Repo may not exist; ignore 404
-        nil))))
+  (let ((sparse (magithub-source--sparse-repo)))
+    (magithub-cache :repo-demographics
+      `(condition-case e
+           (or (ghubp-get-repos-owner-repo ',sparse)
+               (and (not magithub--api-available-p)
+                    sparse))
+         (ghub-404
+          ;; Repo may not exist; ignore 404
+          nil))
+      :context nil)))
+
+(defun magithub--repo-simplify (repo)
+  "Convert full repository object REPO to a sparse repository object."
+  (let (login name)
+    ;; There are syntax problems with things like `,.owner.login'
+    (let-alist repo
+      (setq login .owner.login
+            name .name))
+    `((owner (login . ,login))
+      (name . ,name))))
 
 (defun magithub--satisfies-p (preds obj)
   "Non-nil when all functions in PREDS are non-nil for OBJ."

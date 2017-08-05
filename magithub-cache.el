@@ -24,6 +24,8 @@
 
 ;;; Code:
 
+(require 'cl-lib)
+
 (require 'magithub-core)
 
 (defun magithub-cache--always-eval-p () (memq magithub-cache '(nil hard-refresh-offline)))
@@ -67,16 +69,25 @@ idle timer runs")
                (alist-get t a (or default 0)))
            (time-to-seconds (time-since saved-time))))))
 
-(defun magithub-cache (expiry-class form &optional message)
+(cl-defun magithub-cache (expiry-class form
+                                       &optional message
+                                       &key (context 'repo))
   "The cached value for FORM if available.
 
 If FORM has not been cached or its EXPIRY-CLASS dictates the
-cache has expired, FORM will be re-evaluated.  For intensive
-functions, MESSAGE may be specified to display using
-`with-temp-message'."
+cache has expired, FORM will be re-evaluated.
+
+MESSAGE may be specified for intensive functions.  We'll display
+this with `with-temp-message' while the form is evaluating.
+
+If NO-CONTEXT is non-nil, we won't use a repository context."
   (declare (indent defun))
+
+  (when (eq context 'repo)
+    (setq context (magithub-source--sparse-repo)))
+
   (let* ((not-there (cl-gensym))
-         (cached-value (gethash form magithub-cache--cache not-there)))
+         (cached-value (gethash (cons context form) magithub-cache--cache not-there)))
     (cdr
      (if (and (not (magithub-cache--never-eval-p))
               (or (magithub-cache--always-eval-p)
@@ -89,7 +100,7 @@ functions, MESSAGE may be specified to display using
                             (format "%s -- %S" message form))
                         message)
                     (eval form))))
-           (prog1 (puthash form (cons current-time v) magithub-cache--cache)
+           (prog1 (puthash (cons context form) (cons current-time v) magithub-cache--cache)
              (setq magithub-cache--needs-write t)
              (run-with-idle-timer 10 nil #'magithub-cache-write-to-disk)))
        (unless (eq not-there cached-value)
@@ -173,17 +184,17 @@ Returns \"Xd Xh Xm Xs\" (counting from zero)"
 (defun magithub-cache--age (&optional repo)
   "Retrieve the oldest and newest times present in the cache.
 
-If REPO is non-nil, it is a sparse repo object (as returned by
-`magithub-source-repo' and results will be filtered to that repository
-context.  If t, `magithub-source-repo' is used."
-  (when (eq repo t)
-    (setq repo (magithub-source-repo)))
+If REPO is non-nil, it is a repo object (as returned by
+`magithub-source--repo' and results will be filtered to that
+repository context."
+  (setq repo (magithub--repo-simplify repo))
   (let (times)
     (maphash (lambda (k v) (when (or (null repo) (equal (car k) repo))
                              (push (car v) times)))
              magithub-cache--cache)
-    (setq times (sort times #'time-less-p))
-    (cons (car times) (car (last times)))))
+    (when times
+      (setq times (sort times #'time-less-p))
+      (cons (car times) (car (last times))))))
 
 (defun magithub-cache-write-to-disk ()
   (maphash
