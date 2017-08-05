@@ -250,7 +250,15 @@ Banned inside existing GitHub repositories if
 
 (defun magithub-feature-autoinject (feature)
   "Configure FEATURE to recommended settings.
-If FEATURE is `all' ot t, all known features will be loaded."
+If FEATURE is `all' or t, all known features will be loaded.
+
+Features:
+
+- `pull-request-merge'
+  (`magithub-pull-request-merge' inserted into `magit-am-popup')
+
+- `pull-request-checkout'
+  (`magithub-pull-request-checkout' inserted into `magit-branch-popup')"
   (if (memq feature '(t all))
       (mapc #'magithub-feature-autoinject magithub-feature-list)
     (cl-case feature
