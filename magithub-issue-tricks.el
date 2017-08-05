@@ -1,6 +1,18 @@
 (require 'magit)
 (require 'magithub-issue)
 
+(defcustom magithub-hub-executable "hub"
+  "The hub executable used by Magithub."
+  :group 'magithub
+  :package-version '(magithub . "0.1")
+  :type 'string)
+
+(defmacro magithub-with-hub (&rest body)
+  `(let ((magit-git-executable magithub-hub-executable)
+         (magit-pre-call-git-hook nil)
+         (magit-git-global-arguments nil))
+     ,@body))
+
 (defun magithub-pull-request-checkout (pull-request)
   "Checkout PULL-REQUEST as a local branch."
   (interactive (list (magithub-issue-completing-read-pull-requests)))

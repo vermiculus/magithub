@@ -269,66 +269,6 @@ allowed."
   (rx bow (= 40 (| digit (any (?A . ?F) (?a . ?f)))) eow)
   "Regexp for matching commit hashes.")
 
-(defcustom magithub-hub-executable "hub"
-  "The hub executable used by Magithub."
-  :group 'magithub
-  :package-version '(magithub . "0.1")
-  :type 'string)
-
-(defvar magithub-hub-error nil
-  "When non-nil, this is a message for when hub fails.")
-
-(defmacro magithub-with-hub (&rest body)
-  `(let ((magit-git-executable magithub-hub-executable)
-         (magit-pre-call-git-hook nil)
-         (magit-git-global-arguments nil))
-     ,@body))
-
-(defun magithub--hub-command (magit-function command args)
-  (unless (executable-find magithub-hub-executable)
-    (user-error "Hub (hub.github.com) not installed; aborting"))
-  (unless (file-exists-p "~/.config/hub")
-    (user-error "Hub hasn't been initialized yet; aborting"))
-  (magithub-debug-message "Calling hub with args: %S %S" command args)
-  (with-timeout (5 (error "Took too long!  %s%S" command args))
-    (magithub-with-hub (funcall magit-function command args))))
-
-(defun magithub--git-raw-output (&rest args)
-  "Execute Git with ARGS, returning its output as string.
-Adapted from `magit-git-lines'."
-  (with-temp-buffer
-    (apply #'magit-git-insert args)
-    (buffer-string)))
-
-(defun magithub--command (command &optional args)
-  "Run COMMAND synchronously using `magithub-hub-executable'."
-  (magithub--hub-command #'magit-run-git command args))
-
-(defun magithub--command-with-editor (command &optional args)
-  "Run COMMAND asynchronously using `magithub-hub-executable'.
-Ensure GIT_EDITOR is set up appropriately."
-  (magithub--hub-command #'magit-run-git-with-editor command args))
-
-(defun magithub--command-output (command &optional args raw)
-  "Run COMMAND synchronously using `magithub-hub-executable'.
-If not RAW, return output as a list of lines."
-  (magithub--hub-command (if raw #'magithub--git-raw-output #'magit-git-lines) command args))
-
-(defun magithub--command-quick (command &optional args)
-  "Quickly execute COMMAND with ARGS."
-  (ignore (magithub--command-output command args)))
-
-(defun magithub-hub-version ()
-  "Return the `hub' version as a string."
-  (thread-first "--version"
-    magithub--command-output cadr
-    split-string cddr car
-    (split-string "-") car))
-
-(defun magithub-hub-version-at-least (version-string)
-  "Return t if `hub's version is at least VERSION-STRING."
-  (version<= version-string (magithub-hub-version)))
-
 (defun magithub--meta-new-issue ()
   "Open a new Magithub issue.
 See /.github/ISSUE_TEMPLATE.md in this repository."
