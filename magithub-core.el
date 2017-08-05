@@ -600,6 +600,7 @@ of a signal (e.g., for interactive forms)."
                 (format "%s/issues/%%s" (alist-get 'html_url repo)))))
 
 (defun magithub-filter-all (funcs list)
+  "Return LIST without elements that fail any element of FUNCS."
   (dolist (f funcs)
     (setq list (cl-remove-if-not f list)))
   list)

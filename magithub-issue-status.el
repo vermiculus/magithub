@@ -49,16 +49,16 @@ we'll hit the API) if Magithub is offline."
 ;;; status buffer (e.g., 'bugs' or 'questions' assigned to me)
 (defcustom magithub-issue-issue-filter-functions nil
   "List of functions that filter issues.
-Each function will be supplied a single issue object.  If the
-function returns non-nil, the issue will be listed in the status
+Each function will be supplied a single issue object.  If any
+function returns nil, the issue will not be listed in the status
 buffer."
   :type '(repeat function)
   :group 'magithub)
 
 (defcustom magithub-issue-pull-request-filter-functions nil
   "List of functions that filter pull-requests.
-Each function will be supplied a single issue object.  If the
-function returns non-nil, the issue will be listed in the status
+Each function will be supplied a single issue object.  If any
+function returns nil, the issue will not be listed in the status
 buffer."
   :type '(repeat function)
   :group 'magithub)
