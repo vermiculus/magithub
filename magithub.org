@@ -181,6 +181,32 @@ all GitHub API requests concerning the /actual/ current repository.
 | =H x=         | Set a proxy for all GitHub information |
 
 * FAQ
+** How do I authenticate?
+GitHub authentication is handled by =ghub= -- its README includes [[https://github.com/magit/ghub#initial-configuration][instructions
+on how to authenticate]].  In the interest of not duplicating documentation
+(and risking this duplication to fall out of date), I will not repeat those
+instructions here.
+
+To verify that you're authenticated, evaluate the following expression:
+#+BEGIN_SRC emacs-lisp
+  (ghub-get "/user")
+#+END_SRC
+If this returns an alist that has some familiar information (like your
+login, email, bio, and location), you should be good to go!
+
+If you're still having trouble after reading [[https://github.com/magit/ghub#initial-configuration][=ghub='s README]], feel free to
+drop by [[https://gitter.im/vermiculus/magithub][Magithub's Gitter room]] and ask the question there.
+
+** I've authenticated, but some features are still not authorized.
+You might need to configure your personal access token with more
+permissions.  [[https://github.com/settings/tokens][Manage these permissions on GitHub.]]  Currently, I recommend
+giving your token all of the following permissions:
+- =admin:org=
+- =gist=
+- =notifications=
+- =repo=
+- =user=
+
 ** What's this 'Magithub features not configured' message?
 Sometimes, Magithub might complain that you haven't turned on certain
 features.  These features are those pieces of functionality that are

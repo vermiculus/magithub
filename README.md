@@ -28,7 +28,7 @@ Happy hacking!
 GitHub rate-limits unauthenticated requests heavily, so Magithub does
 not support making such requests.  Consequently, `ghub` must be
 authenticated before using Magithub -- [see its README][ghub] for
-instructions on that.
+those instructions.
 
 ```elisp
 (use-package magithub
@@ -38,11 +38,18 @@ instructions on that.
 
 See [the full documentation][magithub-org] for more details.
 
+## Getting Help
+
+See [the FAQ][magithub-org-faq] in the full documentation.  If your
+question isn't answered there, [drop by the Gitter
+room]((https://gitter.im/vermiculus/magithub)).
+
 ## Support
 
 I'm gainfully and happily employed with a company that frowns on
-moonlighting, so unfortunately I can't accept any donations myself.
-Instead, [please direct any and all support to Magit itself][magit-donate]!
+moonlighting, so unfortunately I can't accept any monetary support.
+Instead, [please direct any and all support to Magit
+itself][magit-donate]!
 
 ## Note
 
@@ -67,3 +74,4 @@ package's name will not be changing.
 [old-magithub-13]: //github.com/nex3/magithub/issues/13
 [melpa-1126]: //github.com/melpa/melpa/issues/1126
 [magithub-org]: https://github.com/vermiculus/magithub/blob/master/magithub.org
+[magithub-org-faq]: https://github.com/vermiculus/magithub/blob/master/magithub.org#faq
