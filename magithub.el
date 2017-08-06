@@ -222,25 +222,64 @@ When nil, the current directory at invocation is used."
 (defun magithub-clone (repo dir)
   "Clone REPO.
 Banned inside existing GitHub repositories if
-`magithub-clone-default-directory' is nil."
+`magithub-clone-default-directory' is nil.
+
+See also `magithub-preferred-remote-method'."
   (interactive (if (and (not magithub-clone-default-directory)
                         (magithub-github-repository-p))
                    (user-error "Already in a GitHub repo")
-                 (let ((read-repo (magithub-clone--get-repo)))
-                   (let-alist read-repo
-                     (list read-repo (read-directory-name
+                 (condition-case _
+                     (progn
+                       (setq repo (magithub-clone--get-repo)
+                             repo (ghubp-get-repos-owner-repo repo)
+                             dirname (read-directory-name
                                       "Destination: "
                                       magithub-clone-default-directory
-                                      nil nil
-                                      .name))))))
+                                      (alist-get 'name repo)))
+                       (list repo dirname))
+                   (ghub-404 (let-alist repo
+                               (user-error "Repository %s/%s does not exist"
+                                           .owner.login .name))))))
+  ;; Argument validation
+  (unless (called-interactively-p)
+    (condition-case _
+        (setq repo (ghubp-get-repos-owner-repo repo))
+      (ghub-404
+       (let-alist repo
+         (user-error "Repository %s/%s does not exist"
+                     .owner.login .name)))))
   (unless (file-writable-p dir)
     (user-error "%s does not exist or is not writable" dir))
-  (when (y-or-n-p (let-alist repo (format "Clone %s/%s to %s? " .owner.login .name dir)))
-    (let ((repo (ghubp-get-repos-owner-repo repo)))
-      (magit-clone (thread-last repo
-                     (ghubp-get-repos-owner-repo)
-                     (alist-get magithub-preferred-remote-method))
-                   dir))))
+
+  (let-alist repo
+    (when (y-or-n-p (format "Clone %s to %s? " .full_name dir))
+      (let ((default-directory dir)
+            (magit-clone-set-remote.pushDefault t)
+            set-upstream set-proxy)
+
+        (setq set-upstream
+              (and .fork (y-or-n-p (format (concat "This repository appears to be a fork of %s; "
+                                                   "set upstream to that remote?")
+                                           .parent.full_name)))
+              set-proxy
+              (and set-upstream (y-or-n-p "Use upstream as a proxy for issues, etc.? ")))
+
+        (condition-case _
+            (progn
+              (mkdir dir t)
+              (magit-clone (alist-get magithub-preferred-remote-method repo) dir)
+              (while (process-live-p magit-this-process)
+                (magit-process-buffer)
+                (message "Waiting for clone to finish...")
+                (sit-for 1))
+              (when set-upstream
+                (let ((upstream "upstream"))
+                  (when set-proxy (magithub-proxy-set upstream))
+                  (magit-remote-add upstream (alist-get magithub-preferred-remote-method .parent))
+                  (magit-set-branch*merge/remote (magit-get-current-branch) upstream)))))))))
+
+(let-alist (ghubp-get-repos-owner-repo '((owner (login . "vermiculus")) (name . "ghub")))
+  .parent)
 
 (defun magithub-clone--finished (user repo dir)
   "After finishing the clone, allow the user to jump to their new repo."

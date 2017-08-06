@@ -98,10 +98,17 @@ Checks section for more information.
 ** Content
 *** Working with Repositories
 **** General
-| Default Key | Description                                    |
-|-------------+------------------------------------------------|
-| =H H=         | Opens the current repository in the browser    |
-| =H c=         | Creates the current local repository on GitHub |
+| Default Key        | Description                                    |
+|--------------------+------------------------------------------------|
+| =H H=                | Opens the current repository in the browser    |
+| =H c=                | Creates the current local repository on GitHub |
+| =M-x magithub-clone= | Clone a repository                             |
+
+=magithub-clone= may appear to be a thin wrapper over =magit-clone=, but it's
+quite a bit smarter than that.  We'll of course respect
+=magithub-preferred-remote-method= when cloning the repository, but we can
+also detect when the repository is a fork and can create and set an upstream
+remote accordingly (similar to =M-x magithub-fork=).
 
 **** Issues
 | Default Key | Description              |
