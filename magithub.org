@@ -85,6 +85,9 @@ also useful for folks who want to explicitly control when Emacs communicates
 with GitHub -- for this purpose, you can use =C-u g= (discussed above) to pull
 data from GitHub while in offline mode.
 
+To start into offline mode, throw ~(setq magithub-cache t)~ in your
+configuration.  See that variable's documentation for details.
+
 *** Controlling Sections
 
 Sections like the issue list and the status header can be toggled with the
