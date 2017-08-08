@@ -241,7 +241,7 @@ See also `magithub-preferred-remote-method'."
                                (user-error "Repository %s/%s does not exist"
                                            .owner.login .name))))))
   ;; Argument validation
-  (unless (called-interactively-p)
+  (unless (called-interactively-p 'any)
     (condition-case _
         (setq repo (ghubp-get-repos-owner-repo repo))
       (ghub-404
