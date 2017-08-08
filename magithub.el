@@ -277,9 +277,6 @@ See also `magithub-preferred-remote-method'."
                   (magit-remote-add upstream (alist-get magithub-preferred-remote-method .parent))
                   (magit-set-branch*merge/remote (magit-get-current-branch) upstream)))))))))
 
-(let-alist (ghubp-get-repos-owner-repo '((owner (login . "vermiculus")) (name . "ghub")))
-  .parent)
-
 (defun magithub-clone--finished (user repo dir)
   "After finishing the clone, allow the user to jump to their new repo."
   (when (y-or-n-p (format "%s/%s has finished cloning to %s.  Open? " user repo dir))
