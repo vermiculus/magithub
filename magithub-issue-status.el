@@ -146,9 +146,10 @@ buffer."
 
 (defun magithub-issue--insert-pr-section ()
   "Insert GitHub pull requests if appropriate."
-  (magithub-feature-maybe-idle-notify
-   'pull-request-merge
-   'pull-request-checkout)
+  (when (magithub-usable-p)
+    (magithub-feature-maybe-idle-notify
+     'pull-request-merge
+     'pull-request-checkout))
   (magithub-issue--insert-generic-section
    (magithub-pull-request-list)
    "Pull Requests:"
