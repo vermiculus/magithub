@@ -228,18 +228,17 @@ See also `magithub-preferred-remote-method'."
   (interactive (if (and (not magithub-clone-default-directory)
                         (magithub-github-repository-p))
                    (user-error "Already in a GitHub repo")
-                 (condition-case _
-                     (progn
-                       (setq repo (magithub-clone--get-repo)
-                             repo (ghubp-get-repos-owner-repo repo)
-                             dirname (read-directory-name
-                                      "Destination: "
-                                      magithub-clone-default-directory
-                                      (alist-get 'name repo)))
-                       (list repo dirname))
-                   (ghub-404 (let-alist repo
-                               (user-error "Repository %s/%s does not exist"
-                                           .owner.login .name))))))
+                 (let ((repo (magithub-clone--get-repo)))
+                   (condition-case _
+                       (let* ((repo (ghubp-get-repos-owner-repo repo))
+                              (dirname (read-directory-name
+                                        "Destination: "
+                                        magithub-clone-default-directory
+                                        (alist-get 'name repo))))
+                         (list repo dirname))
+                     (ghub-404 (let-alist repo
+                                 (user-error "Repository %s/%s does not exist"
+                                             .owner.login .name)))))))
   ;; Argument validation
   (unless (called-interactively-p 'any)
     (condition-case _

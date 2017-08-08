@@ -160,12 +160,11 @@ and possibly others as error handlers are added to
 
 Pings the API a maximum of once every ten seconds."
   (magithub-debug-message "making sure authinfo is unlocked")
-  (when (condition-case err
+  (when (condition-case _
             (and (ghub--token) (signal 'ghub-auth-error '("auth")) t)
           ;; Magithub only works when authenticated.
           (ghub-auth-error
            (prog1 nil
-             (setq error-data err)
              (if (y-or-n-p "Not yet authenticated; open instructions in your browser? ")
                  (progn
                    (browse-url "https://github.com/magit/ghub#initial-configuration")
