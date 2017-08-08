@@ -160,7 +160,17 @@ and possibly others as error handlers are added to
 
 Pings the API a maximum of once every ten seconds."
   (magithub-debug-message "making sure authinfo is unlocked")
-  (when (ghub--token)
+  (when (condition-case err
+            (and (ghub--token) (signal 'ghub-auth-error '("auth")) t)
+          ;; Magithub only works when authenticated.
+          (ghub-auth-error
+           (prog1 nil
+             (setq error-data err)
+             (if (y-or-n-p "Not yet authenticated; open instructions in your browser? ")
+                 (progn
+                   (browse-url "https://github.com/magit/ghub#initial-configuration")
+                   (setq magithub--api-offline-reason "Try again once you've authenticated"))
+               (setq magithub--api-offline-reason "Not yet authenticated per ghub's README")))))
     (magithub-debug-message "checking if the API is available")
     (when (magithub-enabled-p)
       (unless (and (not ignore-offline-mode) (magithub-offline-p))
@@ -191,15 +201,6 @@ Pings the API a maximum of once every ten seconds."
 
                   (magithub-debug-message "new value retrieved for api-last-available: %S"
                                           response))
-
-              ;; Magithub only works when authenticated.
-              (ghub-auth-error
-               (setq error-data err)
-               (if (y-or-n-p "Not yet authenticated; open instructions in your browser? ")
-                   (progn
-                     (browse-url "https://github.com/magit/ghub#initial-configuration")
-                     (setq magithub--api-offline-reason "Try again once you've authenticated"))
-                 (setq magithub--api-offline-reason "Not yet authenticated per ghub's README")))
 
               ;; Sometimes, the API can take a long time to respond
               ;; (whether that's GitHub not responding or requests being
