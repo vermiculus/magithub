@@ -234,7 +234,7 @@ example, to turn on the PR Merge feature:
 This inserts the feature into =magithub-features= and places it in the
 appropriate popup.
 
-To turn on all features, use =(magithub-feature-autoinject t)=.
+To turn on all features, use ~(magithub-feature-autoinject t)~.
 
 If for some reason you don't want to use a feature, see the documentation
 for =magithub-features= for instructions on how to disable specific (or all)
