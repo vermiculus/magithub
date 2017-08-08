@@ -170,7 +170,10 @@ Pings the API a maximum of once every ten seconds."
             ;; Magithub only works when authenticated.
             (ghub-auth-error
              (prog1 nil
-               (magithub-go-offline 'no-refresh)
+               (with-temp-message
+                   "Authentication error; Magithub is going offline"
+                 (magithub-go-offline 'no-refresh)
+                 (sit-for 1))
                (if (y-or-n-p "Not yet authenticated; open instructions in your browser? ")
                    (progn
                      (browse-url "https://github.com/magit/ghub#initial-configuration")
