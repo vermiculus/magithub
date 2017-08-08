@@ -159,20 +159,23 @@ and possibly others as error handlers are added to
   "Non-nil if the API is available.
 
 Pings the API a maximum of once every ten seconds."
-  (magithub-debug-message "making sure authinfo is unlocked")
-  (when (condition-case _
-            (and (ghub--token) (signal 'ghub-auth-error '("auth")) t)
-          ;; Magithub only works when authenticated.
-          (ghub-auth-error
-           (prog1 nil
-             (if (y-or-n-p "Not yet authenticated; open instructions in your browser? ")
-                 (progn
-                   (browse-url "https://github.com/magit/ghub#initial-configuration")
-                   (setq magithub--api-offline-reason "Try again once you've authenticated"))
-               (setq magithub--api-offline-reason "Not yet authenticated per ghub's README")))))
-    (magithub-debug-message "checking if the API is available")
-    (when (magithub-enabled-p)
-      (unless (and (not ignore-offline-mode) (magithub-offline-p))
+  (when (magithub-enabled-p)
+    (unless (and (not ignore-offline-mode) (magithub-offline-p))
+      (magithub-debug-message "checking if the API is available")
+      (when
+          (condition-case _
+              (progn
+                (magithub-debug-message "making sure authinfo is unlocked")
+                (ghub--token))
+            ;; Magithub only works when authenticated.
+            (ghub-auth-error
+             (prog1 nil
+               (magithub-go-offline 'no-refresh)
+               (if (y-or-n-p "Not yet authenticated; open instructions in your browser? ")
+                   (progn
+                     (browse-url "https://github.com/magit/ghub#initial-configuration")
+                     (setq magithub--api-offline-reason "Try again once you've authenticated"))
+                 (setq magithub--api-offline-reason "Not yet authenticated per ghub's README")))))
         (if (and magithub--api-last-checked
                  (< (time-to-seconds (time-since magithub--api-last-checked)) 10))
             (prog1 magithub--api-last-checked
