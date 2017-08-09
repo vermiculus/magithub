@@ -13,6 +13,7 @@
          (magit-git-global-arguments nil))
      ,@body))
 
+;;;###autoload
 (defun magithub-pull-request-checkout (pull-request)
   "Checkout PULL-REQUEST as a local branch."
   (interactive (list (magithub-issue-completing-read-pull-requests)))
@@ -27,6 +28,7 @@
                  "branch" (magit-get-current-branch)
                  (concat "magithubPullRequest" (car var-val))))))
 
+;;;###autoload
 (defun magithub-pull-request-merge (pull-request &optional args)
   "Merge PULL-REQUEST with ARGS.
 See `magithub-pull-request--completing-read'.  If point is on a
