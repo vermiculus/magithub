@@ -22,8 +22,8 @@
   (let-alist pull-request
     (magithub-with-hub
      (magit-checkout .html_url))
-    (dolist (var-val (list (cons "URL" .html_utl)
-                           (cons "ID"  .number)))
+    (dolist (var-val (list (cons "URL" .html_url)
+                           (cons "ID"  (number-to-string .number))))
       (magit-set (cdr var-val)
                  "branch" (magit-get-current-branch)
                  (concat "magithubPullRequest" (car var-val))))))
@@ -39,8 +39,9 @@ pull-request object, that object is selected by default."
     (user-error "This hasn't been supported in elisp yet; please install/configure `hub'"))
   (unless (member pull-request (magithub-pull-requests))
     (user-error "Unknown pull request %S" pull-request))
-  (magithub-with-hub
-   (magit-run-git-sequencer "am" args (plist-get pull-request :url)))
-  (message "#%d has been applied" (plist-get pull-request :number)))
+  (let-alist pull-request
+    (magithub-with-hub
+     (magit-run-git-sequencer "am" args .html_url))
+    (message "#%d has been applied" .number)))
 
 (provide 'magithub-issue-tricks)
