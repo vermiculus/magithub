@@ -458,7 +458,7 @@ URL may be of several different formats:
                  url)
                 `((kind . 'ssh)
                   (ssh-user . (match-string 1 url))
-                  (domain . (match-string 2 url))
+                  (domain . ,(match-string 2 url))
                   (sparse-repo (owner (login . ,(match-string 3 url)))
                                (name . ,(match-string 4 url)))))
            (and (string-match
@@ -477,7 +477,7 @@ URL may be of several different formats:
                      eol)
                  url)
                 `((kind . 'http)
-                  (domain . (match-string 1 url))
+                  (domain . ,(match-string 1 url))
                   (sparse-repo (owner (login . ,(match-string 2 url)))
                                (name . ,(match-string 3 url))))))))
 
