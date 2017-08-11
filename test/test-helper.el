@@ -3,5 +3,6 @@
 
 (load-file "./test/magithub-test-compile.el")
 
-(setq ghub-authenticate t
-      ghub-token (getenv "GITHUB_TOKEN"))
+(setq ghub-username (getenv "GITHUB_USER")
+      ghub-token (getenv "GITHUB_TOKEN")
+      ghub-authenticate (and ghub-username ghub-token))
