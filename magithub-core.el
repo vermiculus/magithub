@@ -482,6 +482,10 @@ URL may be of several different formats:
   "Tries to parse a remote url into a GitHub repository object"
   (cdr (assq 'sparse-repo (magithub--parse-url url))))
 
+(defun magithub--url->domain (url)
+  "Tries to parse a remote url into a domain name."
+  (cdr (assq 'domain (magithub--parse-url url))))
+
 (defun magithub-source--remote ()
   "Tries to determine the correct remote to use for issue-tracking."
   (or (magit-get "magithub" "proxy") "origin"))
