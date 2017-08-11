@@ -1,16 +1,12 @@
 language: emacs-lisp
-
 sudo: false
-
 cache:
 - directories:
   - "$HOME/emacs"
-
 matrix:
   fast_finish: true
   allow_failures:
   - env: EMACS_VERSION=snapshot
-
 env:
   matrix:
   - EMACS_VERSION=25.1
@@ -24,13 +20,10 @@ before_install:
 - wget 'https://raw.githubusercontent.com/flycheck/emacs-travis/master/emacs-travis.mk'
 - make -f emacs-travis.mk install_emacs
 - make -f emacs-travis.mk install_cask
-
 install:
 - cask install
-
 script:
 - cask exec ert-runner
-
 notifications:
   email:
     on_success: never
