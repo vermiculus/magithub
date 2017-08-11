@@ -56,6 +56,7 @@
 (require 'magithub-issue-post)
 (require 'magithub-issue-tricks)
 (require 'magithub-orgs)
+(require 'magithub-ghe)
 
 (magit-define-popup magithub-dispatch-popup
   "Popup console for dispatching other Magithub popups."

@@ -189,6 +189,10 @@ all GitHub API requests concerning the /actual/ current repository.
 | Default Key | Description                            |
 |-------------+----------------------------------------|
 | =H x=         | Set a proxy for all GitHub information |
+** Github Enterprise Integration
+
+You can enable Github Enterprise support by customizing magithub-ghe-integration variable and set the value to t.
+Note that you'll need to have [[https://github.com/magit/ghub][=ghub=]] configured for GHE.
 
 * FAQ
 ** How do I authenticate?
