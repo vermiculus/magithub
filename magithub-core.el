@@ -162,75 +162,71 @@ Pings the API a maximum of once every ten seconds."
   (when (magithub-enabled-p)
     (unless (and (not ignore-offline-mode) (magithub-offline-p))
       (magithub-debug-message "checking if the API is available")
-      (when
-          (condition-case _
-              (progn
-                (magithub-debug-message "making sure authinfo is unlocked")
-                (ghub--token))
-            ;; Magithub only works when authenticated.
-            (ghub-auth-error
-             (prog1 nil
-               (with-temp-message
-                   "Authentication error; Magithub is going offline"
-                 (magithub-go-offline 'no-refresh)
-                 (sit-for 1))
-               (if (y-or-n-p "Not yet authenticated; open instructions in your browser? ")
-                   (progn
-                     (browse-url "https://github.com/magit/ghub#initial-configuration")
-                     (setq magithub--api-offline-reason "Try again once you've authenticated"))
-                 (setq magithub--api-offline-reason "Not yet authenticated per ghub's README")))))
-        (if (and magithub--api-last-checked
-                 (< (time-to-seconds (time-since magithub--api-last-checked)) 10))
-            (prog1 magithub--api-last-checked
-              (magithub-debug-message "used cached value for api-last-checked"))
+      (prog1
+          (when
+              (condition-case _
+                  (progn
+                    (magithub-debug-message "making sure authinfo is unlocked")
+                    (ghub--token))
+                ;; Magithub only works when authenticated.
+                (ghub-auth-error
+                 (prog1 nil
+                   (if (y-or-n-p "Not yet authenticated; open instructions in your browser? ")
+                       (progn
+                         (browse-url "https://github.com/magit/ghub#initial-configuration")
+                         (setq magithub--api-offline-reason "Try again once you've authenticated"))
+                     (setq magithub--api-offline-reason "Not yet authenticated per ghub's README")))))
+            (if (and magithub--api-last-checked
+                     (< (time-to-seconds (time-since magithub--api-last-checked)) 10))
+                (prog1 magithub--api-last-checked
+                  (magithub-debug-message "used cached value for api-last-checked"))
 
-          (magithub-debug-message "cache expired; retrieving new value for api-last-checked")
-          (setq magithub--api-last-checked (current-time))
+              (magithub-debug-message "cache expired; retrieving new value for api-last-checked")
+              (setq magithub--api-last-checked (current-time))
 
-          (let (api-status error-data response)
-            (condition-case err
-                (progn
-                  (setq response
-                        (condition-case _
-                            (with-timeout (magithub-api-timeout
-                                           (signal 'magithub-api-timeout nil))
-                              (ghub-get "/rate_limit"))
+              (let (api-status error-data response)
+                (condition-case err
+                    (progn
+                      (setq response
+                            (condition-case _
+                                (with-timeout (magithub-api-timeout
+                                               (signal 'magithub-api-timeout nil))
+                                  (ghub-get "/rate_limit"))
 
-                          (ghub-404
-                           ;; Rate-limiting is often disabled on
-                           ;; Enterprise instances.  Try using /meta
-                           ;; which should (hopefully) always work.  See
-                           ;; also issue #107.
-                           (ghub-get "/meta")))
-                        api-status (and response t))
+                              (ghub-404
+                               ;; Rate-limiting is often disabled on
+                               ;; Enterprise instances.  Try using /meta
+                               ;; which should (hopefully) always work.  See
+                               ;; also issue #107.
+                               (ghub-get "/meta")))
+                            api-status (and response t))
 
-                  (magithub-debug-message "new value retrieved for api-last-available: %S"
-                                          response))
+                      (magithub-debug-message "new value retrieved for api-last-available: %S"
+                                              response))
 
-              ;; Sometimes, the API can take a long time to respond
-              ;; (whether that's GitHub not responding or requests being
-              ;; blocked by some client-side firewal).  Handle this
-              ;; possiblity gracefully.
-              (magithub-api-timeout
-               (setq error-data err
-                     magithub--api-offline-reason
-                     (concat "API is not responding quickly; "
-                             "consider customizing `magithub-api-timeout' if this happens often")))
+                  ;; Sometimes, the API can take a long time to respond
+                  ;; (whether that's GitHub not responding or requests being
+                  ;; blocked by some client-side firewal).  Handle this
+                  ;; possiblity gracefully.
+                  (magithub-api-timeout
+                   (setq error-data err
+                         magithub--api-offline-reason
+                         (concat "API is not responding quickly; "
+                                 "consider customizing `magithub-api-timeout' if this happens often")))
 
-              ;; Never hurts to be cautious :-)
-              (error
-               (setq error-data err
-                     magithub--api-offline-reason (format "unknown issue: %S" err))))
+                  ;; Never hurts to be cautious :-)
+                  (error
+                   (setq error-data err
+                         magithub--api-offline-reason (format "unknown issue: %S" err))))
 
-            (when error-data
-              (magithub-debug-message "consider reporting unknown error while checking api-available: %S"
-                                      error-data))
+                (when error-data
+                  (magithub-debug-message "consider reporting unknown error while checking api-available: %S"
+                                          error-data))
 
-            (when magithub--api-offline-reason
-              (magithub-go-offline 'no-refresh)
-              (run-with-idle-timer 2 nil #'magithub--api-offline-reason))
-
-            api-status))))))
+                api-status)))
+        (when magithub--api-offline-reason
+          (magithub-go-offline 'no-refresh)
+          (run-with-idle-timer 2 nil #'magithub--api-offline-reason))))))
 
 (defun magithub--api-offline-reason ()
   "Report the reason we're going offline and go offline.
