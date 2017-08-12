@@ -491,20 +491,32 @@ URL may be of several different formats:
 
 Only information that can be determined without API calls will be
 included in the returned object."
-  (magithub--url->repo
-   (magit-get "remote" (magithub-source--remote) "url")))
+  (magithub-repo-from-remote--sparse
+   (magithub-source--remote)))
+
+(defun magithub-repo-from-remote (remote)
+  (magithub-repo (magithub-repo-from-remote--sparse remote)))
+
+(defun magithub-repo-from-remote--sparse (remote)
+  (magithub--url->repo (magit-get "remote" remote "url")))
 
 (defun magithub-source-repo ()
   "Returns a full repository object for the current context.
 
 Uses the URL of `magithub-source-remote' to parse out repository
 information.  Returns a full repository object."
-  (let ((sparse (magithub-source--sparse-repo)))
+  (magithub-repo (magithub-source--sparse-repo)))
+(make-obsolete 'magithub-source-repo 'magithub-repo "0.1.4")
+
+(defun magithub-repo (&optional sparse-repo)
+  "Turn SPARSE-REPO into a full repository object.
+If SPARSE-REPO is null, the current context is used."
+  (let ((sparse-repo (or sparse-repo (magithub-source--sparse-repo))))
     (magithub-cache :repo-demographics
       `(condition-case e
-           (or (ghubp-get-repos-owner-repo ',sparse)
+           (or (ghubp-get-repos-owner-repo ',sparse-repo)
                (and (not magithub--api-available-p)
-                    sparse))
+                    sparse-repo))
          (ghub-404
           ;; Repo may not exist; ignore 404
           nil))
