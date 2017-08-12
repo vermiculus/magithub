@@ -313,10 +313,10 @@ See /.github/ISSUE_TEMPLATE.md in this repository."
        (magithub-github-repository-p)
        (or (and (magithub-offline-p)
                 ;; if we're offline, source-repo will get the cached value
-                (magithub-source-repo))
+                (magithub-repo))
            (and (magithub--api-available-p)
                 ;; otherwise, we only want to query the API if it's available
-                (magithub-source-repo)))))
+                (magithub-repo)))))
 
 (defun magithub-error (err-message tag &optional trace)
   "Report a Magithub error."
@@ -599,7 +599,7 @@ be signaled.
 
 If INTERACTIVE is non-nil, a `user-error' will be raised instead
 of a signal (e.g., for interactive forms)."
-  (let-alist (magithub-source-repo)
+  (let-alist (magithub-repo)
     (if .permissions.push t
       (if interactive
           (user-error "You're not allowed to manage labels in %s" .full_name)
@@ -608,7 +608,7 @@ of a signal (e.g., for interactive forms)."
 (defun magithub-bug-reference-mode-on ()
   "In GitHub repositories, configure `bug-reference-mode'."
   (interactive)
-  (when-let ((repo (magithub-source-repo)))
+  (when-let ((repo (magithub-repo)))
     (bug-reference-mode 1)
     (setq-local bug-reference-bug-regexp "#\\(?2:[0-9]+\\)")
     (setq-local bug-reference-url-format
@@ -657,9 +657,8 @@ One of the following:
 
 (provide 'magithub-core)
 
-;;; We need the cache for `magithub-source-repo', but the cache needs
-;;; the core functions as well.  Pretend they're in the same file,
-;;; kinda.
+;;; We need the cache for `magithub-repo', but the cache needs the
+;;; core functions as well.  Pretend they're in the same file, kinda.
 
 ;;; See also https://travis-ci.org/vermiculus/magithub/jobs/259008594
 (require 'magithub-cache)

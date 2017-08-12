@@ -84,7 +84,7 @@
   (interactive)
   (unless (magithub-github-repository-p)
     (user-error "Not a GitHub repository"))
-  (let-alist (magithub-source-repo)
+  (let-alist (magithub-repo)
     (unless (stringp .html_url)
       (user-error "No GitHub repository to visit"))
     (browse-url .html_url)))
@@ -173,7 +173,7 @@ be returned without prompting the user."
   (interactive)
   (unless (magithub-github-repository-p)
     (user-error "Not a GitHub repository"))
-  (let* ((repo (magithub-source-repo))
+  (let* ((repo (magithub-repo))
          (fork (with-temp-message "Forking repository on GitHub..."
                  (ghubp-post-repos-owner-repo-forks repo))))
     (when (y-or-n-p "Create a spinoff branch? ")

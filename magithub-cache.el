@@ -162,7 +162,7 @@ the age of the oldest cached information."
           'help-echo "test")
          "; you are seeing cached data"
          (if-let ((oldest (car (magithub-cache--age
-                                (magithub-source-repo)))))
+                                (magithub-repo)))))
              (format "%s (%s ago)"
                      (format-time-string " as old as %D %r" oldest)
                      (magithub-cache--time-out

@@ -79,7 +79,7 @@ buffer."
                     nil nil current-labels)))))
   (setcdr (assq 'labels issue) labels)
   (ghubp-patch-repos-owner-repo-issues-number
-   (magithub-source-repo) issue `((labels . ,labels)))
+   (magithub-repo) issue `((labels . ,labels)))
   (when (derived-mode-p 'magit-status-mode)
     (magit-refresh)))
 

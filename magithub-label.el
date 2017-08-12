@@ -5,7 +5,7 @@
   "Return a list of issue and pull-request labels."
   (magithub-cache :label
     '(ghubp-get-repos-owner-repo-labels
-      (magithub-source-repo))
+      (magithub-repo))
     "Loading labels..."))
 
 (defun magithub-label-read-labels (prompt &optional default)
@@ -36,7 +36,7 @@ likely be replaced with a search on issues and pull requests with
 the label LABEL."
   (unless (string= ghub-base-url "https://api.github.com")
     (user-error "Label browsing not yet supported on GitHub Enterprise; pull requests welcome!"))
-  (let-alist (magithub-source-repo)
+  (let-alist (magithub-repo)
     (browse-url (format "https://www.github.com/%s/%s/labels/%s"
                         .owner.login .name (alist-get 'name label)))))
 

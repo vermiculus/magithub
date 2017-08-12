@@ -37,7 +37,7 @@
   (magithub-cache :issues
     `(ghubp-unpaginate
       (ghubp-get-repos-owner-repo-issues
-       ',(magithub-source-repo)
+       ',(magithub-repo)
        ,@params))
     "Retrieving issue list..."))
 

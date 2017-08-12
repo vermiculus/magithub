@@ -141,7 +141,7 @@ properties are respected and prepopulate the form."
 
 (defun magithub-issue-new (repo title labels)
   (interactive
-   (let-alist (setq repo (magithub-source-repo))
+   (let-alist (setq repo (magithub-repo))
      (list repo
            (read-string (format "Issue title (%s): " .full_name))
            (when .permissions.push
@@ -183,7 +183,7 @@ See also URL
 
 (defun magithub-pull-request-new (repo title base head)
   (interactive
-   (let* ((repo        (magithub-source-repo))
+   (let* ((repo        (magithub-repo))
           (upstream    (magit-get-upstream-branch))
           (head        (magit-read-branch "Head"))
           (base        (magit-read-branch "Base branch" upstream))
@@ -232,7 +232,7 @@ See also URL
       (user-error "Title is required"))
     (when (yes-or-no-p "Are you sure you want to submit this issue? ")
       (magithub-issue-browse
-       (ghubp-post-repos-owner-repo-issues (magithub-source-repo) issue))
+       (ghubp-post-repos-owner-repo-issues (magithub-repo) issue))
       (kill-buffer-and-window))))
 (defun magithub-issue-wsubmit-pull-request (&rest _)
   (interactive)
@@ -246,7 +246,7 @@ See also URL
       (when (y-or-n-p "Allow maintainers to modify this pull request? ")
         (push (cons 'maintainer_can_modify t) pull-request))
       (magithub-issue-browse
-       (ghubp-post-repos-owner-repo-pulls (magithub-source-repo) pull-request))
+       (ghubp-post-repos-owner-repo-pulls (magithub-repo) pull-request))
       (kill-buffer-and-window))))
 
 (defun magithub-issue-wcancel (&rest _)
