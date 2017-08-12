@@ -620,6 +620,12 @@ One of the following:
   "Get the preferred cloning URL from REPO."
   (alist-get magithub-preferred-remote-method repo))
 
+(defun magithub--wait-for-git (proc &optional seconds)
+  "Wait for git process PROC, polling every SECONDS seconds."
+  (let ((seconds (or seconds 0.5)))
+    (while (process-live-p proc)
+      (sit-for seconds))))
+
 (eval-after-load "magit"
   (dolist (hook '(magit-revision-mode-hook git-commit-setup-hook))
     (add-hook hook #'magithub-bug-reference-mode-on)))
