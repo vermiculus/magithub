@@ -638,6 +638,19 @@ One of the following:
     (while (process-live-p proc)
       (sit-for seconds))))
 
+(defmacro magithub--run-git-synchronously (&rest body)
+  (declare (debug t))
+  (let ((valsym (cl-gensym)) final-form)
+    (while body
+      (let ((form (pop body)))
+        (push `(let ((,valsym ,form))
+                 (if (processp ,valsym)
+                     (magithub--wait-for-git ,valsym)
+                   ,valsym))
+              final-form)))
+    `(progn
+       ,@(nreverse final-form))))
+
 (eval-after-load "magit"
   (dolist (hook '(magit-revision-mode-hook git-commit-setup-hook))
     (add-hook hook #'magithub-bug-reference-mode-on)))
