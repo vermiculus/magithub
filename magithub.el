@@ -95,14 +95,6 @@
   "One of these messages will be displayed after you create a
 GitHub repository.")
 
-(defvar magithub-preferred-remote-method 'ssh_url
-  "Preferred method when cloning or adding remotes.
-One of the following:
-
-  `clone_url' (https://github.com/octocat/Hello-World.git)
-  `git_url'   (git:github.com/octocat/Hello-World.git)
-  `ssh_url'   (git@github.com:octocat/Hello-World.git)")
-
 (defun magithub-create (repo &optional org)
   "Create REPO on GitHub.
 
@@ -135,7 +127,7 @@ organization."
               (ghubp-post-user-repos repo))))
     (magithub--random-message "Creating repository on GitHub...done!")
     (magit-status-internal default-directory)
-    (magit-remote-add "origin" (alist-get magithub-preferred-remote-method repo))
+    (magit-remote-add "origin" (magithub-repo--clone-url repo))
     (magit-refresh)
     (when (magit-rev-verify "HEAD")
       (magit-push-popup))))
@@ -190,7 +182,7 @@ be returned without prompting the user."
      (let-alist repo (format "%s/%s forked!" .owner.login .name)))
     (let-alist fork
       (when (y-or-n-p (format "Add %s as a remote in this repository? " .owner.login))
-        (magit-remote-add .owner.login (alist-get magithub-preferred-remote-method fork))
+        (magit-remote-add .owner.login (magithub-repo--clone-url fork))
         (magit-set .owner.login "branch" (magit-get-current-branch) "pushRemote")))
     (let-alist repo
       (when (y-or-n-p (format "Set upstream to %s? " .owner.login))
@@ -266,7 +258,7 @@ See also `magithub-preferred-remote-method'."
         (condition-case _
             (progn
               (mkdir dir t)
-              (magit-clone (alist-get magithub-preferred-remote-method repo) dir)
+              (magit-clone (magithub-repo--clone-url repo) dir)
               (while (process-live-p magit-this-process)
                 (magit-process-buffer)
                 (message "Waiting for clone to finish...")
@@ -274,7 +266,7 @@ See also `magithub-preferred-remote-method'."
               (when set-upstream
                 (let ((upstream "upstream"))
                   (when set-proxy (magithub-proxy-set upstream))
-                  (magit-remote-add upstream (alist-get magithub-preferred-remote-method .parent))
+                  (magit-remote-add upstream (magithub-repo--clone-url .parent))
                   (magit-set-branch*merge/remote (magit-get-current-branch) upstream)))))))))
 
 (defun magithub-clone--finished (user repo dir)

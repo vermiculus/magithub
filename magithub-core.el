@@ -608,6 +608,18 @@ of a signal (e.g., for interactive forms)."
     (setq list (cl-remove-if-not f list)))
   list)
 
+(defvar magithub-preferred-remote-method 'ssh_url
+  "Preferred method when cloning or adding remotes.
+One of the following:
+
+  `clone_url' (https://github.com/octocat/Hello-World.git)
+  `git_url'   (git:github.com/octocat/Hello-World.git)
+  `ssh_url'   (git@github.com:octocat/Hello-World.git)")
+
+(defun magithub-repo--clone-url (repo)
+  "Get the preferred cloning URL from REPO."
+  (alist-get magithub-preferred-remote-method repo))
+
 (eval-after-load "magit"
   (dolist (hook '(magit-revision-mode-hook git-commit-setup-hook))
     (add-hook hook #'magithub-bug-reference-mode-on)))
