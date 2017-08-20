@@ -110,5 +110,11 @@ default."
   (-find (lambda (i) (= (alist-get 'number i) number))
          (magithub--issue-list :filter "all" :state "all")))
 
+(defun magithub-issue (repo number)
+  (magithub-cache :issues
+    `(ghubp-get-repos-owner-repo-issues-number
+      ',repo '((number . ,number)))
+    (format "Getting issue %s#%d..." (magithub-repo-name repo) number)))
+
 (provide 'magithub-issue)
 ;;; magithub-issue.el ends here

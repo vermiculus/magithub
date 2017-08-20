@@ -7,6 +7,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'magithub-core)
 
 (defmacro magithub-test-cache-with-new-cache (plist &rest body)
   (declare (indent 1))
@@ -14,7 +15,6 @@
          (magithub-cache--cache (make-hash-table)))
      ,@body))
 
-(require 'magithub-cache)
 (ert-deftest magithub-test-cache ()
   (magithub-test-cache-with-new-cache ((:test . 30))
     (should (equal t (magithub-cache :test t)))))

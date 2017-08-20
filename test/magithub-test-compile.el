@@ -14,7 +14,6 @@
         files)))
 
 (magithub-test-compile
- "magithub-cache.el"
  "magithub-ci.el"
  "magithub-core.el"
  "magithub-issue-post.el"

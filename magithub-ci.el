@@ -31,7 +31,7 @@
 (require 's)
 
 (require 'magithub-core)
-(require 'magithub-cache)
+(require 'magithub-pr)
 
 (defun magithub-ci-enabled-p ()
   "Non-nil if CI is enabled for this repository.
@@ -66,14 +66,51 @@ If magithub.ci.enabled is not set, CI is considered to be enabled."
 (magit-define-popup-action 'magithub-dispatch-popup
   ?~ "Toggle CI for this repository" #'magithub-ci-toggle ?`)
 
+(defun magithub-pull-request-pr->branch (pull-request)
+  "Does not handle cases where the local branch has been renamed."
+  (let-alist pull-request .head.ref))
+
+(define-error 'magithub-error-ambiguous-branch "Ambiguous Branch" 'magithub-error)
+(defun magithub-pull-request-branch->pr (branch)
+  "This is a hueristic; it's not 100% accurate.
+It may fail if branch.BRANCH.magithub.sourcePR is unset AND the
+fork has multiple branches named BRANCH."
+  (if-let ((source (magit-get "branch" branch "magithub" "sourcePR")))
+      (magithub-pull-request (magithub-repo) (string-to-number source))
+    ;; PR not recorded; search for it
+    (let ((repo (magithub-repo-from-remote (magit-get-push-remote branch))))
+      (when (alist-get 'fork repo)
+        (let* ((guess-head (format "%s:%s" (magit-get-push-remote branch) branch))
+               (prs (ghubp-get-repos-owner-repo-pulls (magithub-repo) :head guess-head)))
+          (if (= 1 (length prs))
+              (prog1 (car prs)
+                (magit-set (number-to-string (alist-get 'number (car prs)))
+                           "branch" branch "magithub" "sourcePR"))
+            ;; todo: currently unhandled
+            (signal 'magithub-error-ambiguous-branch prs)))))))
+
+
+(defun magithub-api-rate-limit ()
+  "Get the `.rate' object of /rate_limit from response headers."
+  (when ghub-response-headers
+    (if (assoc-string "X-RateLimit-Limit" ghub-response-headers)
+        (let* ((headers (list "X-RateLimit-Limit" "X-RateLimit-Remaining" "X-RateLimit-Reset"))
+               (headers (mapcar (lambda (x) (string-to-number (ghubp-header x))) headers)))
+          `((limit     . ,(nth 0 headers))
+            (remaining . ,(nth 1 headers))
+            (reset     . ,(seconds-to-time
+                           (nth 2 headers)))))
+      'disabled)))
+
 (defun magithub-ci-status--get-default-ref (&optional branch)
-  "The remote branch name to use for CI status based on BRANCH.
+  "The ref to use for CI status based on BRANCH.
 
 Handles cases where the local branch's name is different than its
 remote counterpart."
-  (when-let ((push-branch (magit-get-push-branch
-                           (or branch (magit-get-current-branch)))))
-    (cdr (magit-split-branch-name push-branch))))
+  (if-let ((pull-request (magithub-pull-request-branch->pr (magit-get-current-branch))))
+      (let-alist pull-request .head.sha)
+    (when-let ((push-branch (magit-get-push-branch (or branch (magit-get-current-branch)))))
+      (cdr (magit-split-branch-name push-branch)))))
 
 (defun magithub-ci-status (ref)
   (when (stringp ref)
@@ -86,7 +123,7 @@ remote counterpart."
               ',(magithub-repo) ,ref)
             (format "Getting CI status for %s..."
                     (if (magit-branch-p ref) (format "branch `%s'" ref)
-                      (s-left ref 6))))
+                      (substring ref 0 6))))
         (ghub-404
          '((state . "error")
            (total_count . 0)

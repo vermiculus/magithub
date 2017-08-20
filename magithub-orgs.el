@@ -25,7 +25,6 @@
 ;;; Code:
 
 (require 'magithub-core)
-(require 'magithub-cache)
 
 (defun magithub-orgs-list ()
   "List organizations for the currently authenticated user."

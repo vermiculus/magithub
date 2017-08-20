@@ -49,7 +49,6 @@
 
 (require 'magithub-core)
 (require 'magithub-issue)
-(require 'magithub-cache)
 (require 'magithub-ci)
 (require 'magithub-proxy)
 (require 'magithub-issue-status)
@@ -74,10 +73,12 @@
              (?& "Request a feature or report a bug" magithub--meta-new-issue)
              (?h "Ask for help on Gitter" magithub--meta-help)))
 
-(magit-define-popup-action 'magit-dispatch-popup
-  ?H "Magithub" #'magithub-dispatch-popup ?!)
-(define-key magit-status-mode-map
-  "H" #'magithub-dispatch-popup)
+(eval-after-load "magit"
+  '(progn
+     (magit-define-popup-action 'magit-dispatch-popup
+       ?H "Magithub" #'magithub-dispatch-popup ?!)
+     (define-key magit-status-mode-map
+       "H" #'magithub-dispatch-popup)))
 
 (defun magithub-browse ()
   "Open the repository in your browser."
