@@ -83,7 +83,8 @@ If it does not exist, it will be created."
   (interactive)
   (magit-set "yes" "magithub" "enabled")
   (when (derived-mode-p 'magit-status-mode)
-    (magit-refresh)))
+    (magit-refresh))
+  (message "Magithub is now enabled in this repository"))
 
 (defmacro magithub-in-data-dir (&rest forms)
   "Execute forms in `magithub-dir'.
@@ -100,7 +101,8 @@ created automatically."
   (interactive)
   (magit-set "no" "magithub" "enabled")
   (when (derived-mode-p 'magit-status-mode)
-    (magit-refresh)))
+    (magit-refresh))
+  (message "Magithub is now disabled in this repository"))
 
 (defun magithub-enabled-p ()
   "Returns non-nil when Magithub is enabled for this repository."
@@ -139,7 +141,8 @@ retrieved from the cache."
   (setq magithub-cache t)
   (unless no-refresh
     (when (derived-mode-p 'magit-status-mode)
-      (magit-refresh))))
+      (magit-refresh)))
+  (message "Magithub is now offline everywhere"))
 
 (defun magithub-go-online ()
   "Take Magithub online.
@@ -147,7 +150,8 @@ API requests will be made to refresh expired caches."
   (interactive)
   (setq magithub-cache 'expire)
   (when (derived-mode-p 'magit-status-mode)
-    (magit-refresh)))
+    (magit-refresh))
+  (message "Magithub is now online everywhere"))
 
 (defun magithub-toggle-offline ()
   "See `magithub-go-online' and `magithub-go-offline'.
