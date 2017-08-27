@@ -872,11 +872,12 @@ of a signal (e.g., for interactive forms)."
 (defun magithub-bug-reference-mode-on ()
   "In GitHub repositories, configure `bug-reference-mode'."
   (interactive)
-  (when-let ((repo (magithub-repo)))
-    (bug-reference-mode 1)
-    (setq-local bug-reference-bug-regexp "#\\(?2:[0-9]+\\)")
-    (setq-local bug-reference-url-format
-                (format "%s/issues/%%s" (alist-get 'html_url repo)))))
+  (when (magithub-usable-p)
+    (when-let ((repo (magithub-repo)))
+      (bug-reference-mode 1)
+      (setq-local bug-reference-bug-regexp "#\\(?2:[0-9]+\\)")
+      (setq-local bug-reference-url-format
+                  (format "%s/issues/%%s" (alist-get 'html_url repo))))))
 
 (defun magithub-filter-all (funcs list)
   "Return LIST without elements that fail any element of FUNCS."
