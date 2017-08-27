@@ -82,12 +82,17 @@ fork has multiple branches named BRANCH."
       (when (alist-get 'fork repo)
         (let* ((guess-head (format "%s:%s" (magit-get-push-remote branch) branch))
                (prs (ghubp-get-repos-owner-repo-pulls (magithub-repo) :head guess-head)))
-          (if (= 1 (length prs))
-              (prog1 (car prs)
-                (magit-set (number-to-string (alist-get 'number (car prs)))
-                           "branch" branch "magithub" "sourcePR"))
-            ;; todo: currently unhandled
-            (signal 'magithub-error-ambiguous-branch prs)))))))
+          (pcase (length prs)
+            (0)    ; this branch does not seem to correspond to any PR
+            (1 (magit-set (number-to-string (alist-get 'number (car prs)))
+                          "branch" branch "magithub" "sourcePR")
+               (car prs))
+            (_ ;; todo: currently unhandled
+             (signal 'magithub-error-ambiguous-branch
+                     (list :prs prs
+                           :guess-head guess-head
+                           :repo-from-remote (alist-get 'full_name repo)
+                           :source-repo (alist-get 'full_name (magithub-repo)))))))))))
 
 
 (defun magithub-api-rate-limit ()
