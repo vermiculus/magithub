@@ -63,7 +63,7 @@ PULL-REQUEST is the full object; not just the issue subset."
                    `((number . ,(alist-get 'number pr)))))))
   (let-alist pull-request
     (let ((remote .user.login)
-          (branch .head.ref))
+          (branch (format "%s/%s" .user.login .head.ref)))
       (cond
        ((magithub-pull-request-checked-out pull-request)
         (with-temp-message (format "PR#%d is already checked out somewhere; checking out %s"
