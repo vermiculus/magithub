@@ -1,6 +1,7 @@
 (require 's)
 (require 'magit)
 (require 'magithub-issue)
+(require 'magithub-pr)
 (require 'magithub-label)
 
 (defun magithub-issue-refresh (even-if-offline)
@@ -137,39 +138,40 @@ buffer."
 
 (defun magithub-issue--insert-issue-section ()
   "Insert GitHub issues if appropriate."
-  (magithub-issue--insert-generic-section
-   (magithub-issue-list)
-   "Issues:"
-   (magithub-issues)
-   magithub-issue-issue-filter-functions
-   (lambda (i) (magithub-issue--insert i nil))))
+  (when (magithub-usable-p)
+    (magithub-issue--insert-generic-section
+     (magithub-issues-list)
+     "Issues"
+     (magithub-issues)
+     magithub-issue-issue-filter-functions
+     (lambda (i) (magithub-issue--insert i nil)))))
 
 (defun magithub-issue--insert-pr-section ()
   "Insert GitHub pull requests if appropriate."
   (when (magithub-usable-p)
     (magithub-feature-maybe-idle-notify
      'pull-request-merge
-     'pull-request-checkout))
-  (magithub-issue--insert-generic-section
-   (magithub-pull-request-list)
-   "Pull Requests:"
-   (magithub-pull-requests)
-   magithub-issue-pull-request-filter-functions
-   (lambda (i) (magithub-issue--insert i t))))
+     'pull-request-checkout)
+    (magithub-issue--insert-generic-section
+     (magithub-pull-requests-list)
+     "Pull Requests"
+     (magithub-pull-requests)
+     magithub-issue-pull-request-filter-functions
+     (lambda (i) (magithub-issue--insert i t)))))
 
 (defmacro magithub-issue--insert-generic-section
-    (section-spec section-title source-list filters insert-handler)
-  (let ((objs-sym (cl-gensym)))
-    `(when (magithub-usable-p)
-       (when-let ((,objs-sym (magithub-filter-all ,filters ,source-list)))
-         (magit-insert-section ,section-spec
-           (magit-insert-heading
-             (concat ,section-title
-                     (when ,filters
-                       (propertize "  (filtered)"
-                                   'face 'magit-dimmed))))
-           (mapc ,insert-handler ,objs-sym)
-           (insert ?\n))))))
+    (spec title list filters handler)
+  (let ((sym-filtered (cl-gensym)))
+    `(when-let ((,sym-filtered (magithub-filter-all ,filters ,list)))
+       (magit-insert-section ,spec
+         (insert (format "%s%s:"
+                         (propertize ,title 'face 'magit-header-line)
+                         (if ,filters
+                             (propertize " (filtered)" 'face 'magit-dimmed)
+                           "")))
+         (magit-insert-heading)
+         (mapc ,handler ,sym-filtered)
+         (insert ?\n)))))
 
 (defun magithub-issue-browse (issue)
   "Visits ISSUE in the browser.

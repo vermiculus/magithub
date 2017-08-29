@@ -32,7 +32,9 @@
   (magithub-cache :issues
     `(ghubp-get-repos-owner-repo-pulls-number
       ',repo '((number . ,number)))
-    (format "Getting pull request %s#%d..." (magithub-repo-name repo) number)))
+    (format "Getting pull request %s#%d..."
+            (magithub-repo-name repo)
+            number)))
 
 (defun magithub-remote-fork-p (remote)
   "True if REMOTE is a fork."
