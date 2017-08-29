@@ -14,21 +14,6 @@
      ,@body))
 
 ;;;###autoload
-(defun magithub-pull-request-checkout (pull-request)
-  "Checkout PULL-REQUEST as a local branch."
-  (interactive (list (magithub-issue-completing-read-pull-requests)))
-  (unless (executable-find magithub-hub-executable)
-    (user-error "This hasn't been supported in elisp yet; please install/configure `hub'"))
-  (let-alist pull-request
-    (magithub-with-hub
-     (magit-checkout .html_url))
-    (dolist (var-val (list (cons "URL" .html_url)
-                           (cons "ID"  (number-to-string .number))))
-      (magit-set (cdr var-val)
-                 "branch" (magit-get-current-branch)
-                 (concat "magithubPullRequest" (car var-val))))))
-
-;;;###autoload
 (defun magithub-pull-request-merge (pull-request &optional args)
   "Merge PULL-REQUEST with ARGS.
 See `magithub-pull-request--completing-read'.  If point is on a
