@@ -617,6 +617,9 @@ If SPARSE-REPO is null, the current context is used."
 
 ;;; Repository utilities
 (defun magithub-repo-name (repo)
+  "Return the full name of REPO.
+If the `full_name' object is present, use that.  Otherwise,
+concatenate `.owner.login' and `.name' with `/'."
   (let-alist repo
     (if .full_name .full_name
       (concat .owner.login "/" .name))))

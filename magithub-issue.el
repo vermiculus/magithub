@@ -32,7 +32,11 @@
 
 ;; Core
 (defun magithub--issue-list (&rest params)
-  "Return a list of issues for the current repository."
+  "Return a list of issues for the current repository.
+The response is unpaginated, so avoid doing this with PARAMS that
+will return a ton of issues.
+
+See also `ghubp-get-repos-owner-repo-issues'."
   (cl-assert (cl-evenp (length params)))
   (magithub-cache :issues
     `(ghubp-unpaginate
@@ -111,6 +115,7 @@ default."
          (magithub--issue-list :filter "all" :state "all")))
 
 (defun magithub-issue (repo number)
+  "Retrieve in REPO issue NUMBER."
   (magithub-cache :issues
     `(ghubp-get-repos-owner-repo-issues-number
       ',repo '((number . ,number)))
