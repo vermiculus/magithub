@@ -121,5 +121,64 @@ default."
       ',repo '((number . ,number)))
     (format "Getting issue %s#%d..." (magithub-repo-name repo) number)))
 
+(defun magithub-issue-personal-note-file (issue-or-pr)
+  "Return an absolute filename appropriate for ISSUE-OR-PR."
+  (expand-file-name
+   (format "magithub/notes/%d.org"
+           (alist-get 'number issue-or-pr))
+   (magit-git-dir)))
+
+(magithub-interactive-issue-or-pr personal-note (issue-or-pr)
+  "Write a personal note about %s.
+This is stored in `magit-git-dir' and is unrelated to
+`git-notes'."
+  (let* ((num (alist-get 'number issue-or-pr))
+         (note-file (magithub-issue-personal-note-file issue-or-pr)))
+    (make-directory (file-name-directory note-file) t)
+    (with-current-buffer (find-file note-file)
+      (rename-buffer (format "*magithub note for #%d*" num)))))
+
+(defun magithub-issue-has-personal-note-p (issue-or-pr)
+  "Non-nil if a personal note exists for ISSUE-OR-PR."
+  (let ((filename (magithub-issue-personal-note-file issue-or-pr)))
+    (and (file-exists-p filename)
+         (not (string-equal
+               ""
+               (string-trim
+                (with-temp-buffer
+                  (insert-file-contents-literally filename)
+                  (buffer-string))))))))
+
+(defmacro magithub-interactive-issue-or-pr (sym args doc &rest body)
+  "Declare an interactive form that works on both issues and PRs.
+SYM is a postfix for the function symbol.  An appropriate prefix
+will be added for both the issue-version and PR-version.
+
+ARGS should be a list of one element, the symbol ISSUE-OR-PR.
+
+DOC is a doc-string.
+
+BODY is the function implementation."
+  (declare (indent defun)
+           (doc-string 3))
+  (unless (eq (car args) 'issue-or-pr)
+    (error "For clarity, the first argument must be ISSUE-OR-PR"))
+  (let* ((snam (symbol-name sym))
+         (isym (intern (concat "magithub-issue-" snam)))
+         (psym (intern (concat "magithub-pull-request-" snam))))
+    `(list
+      (defun ,isym ,(cons 'issue (cdr args))
+        ,(format (concat doc "\n\nSee also `%S'.") "ISSUE" psym)
+        (interactive (list (or (magithub-thing-at-point 'issue)
+                               (magithub-issue-completing-read-issues))))
+        (let ((issue-or-pr issue))
+          ,@body))
+      (defun ,psym ,(cons 'pull-request (cdr args))
+        ,(format (concat doc "\n\nSee also `%S'.") "PULL-REQUEST" isym)
+        (interactive (list (or (magithub-thing-at-point 'pull-request)
+                               (magithub-issue-completing-read-pull-requests))))
+        (let ((issue-or-pr pull-request))
+          ,@body)))))
+
 (provide 'magithub-issue)
 ;;; magithub-issue.el ends here
