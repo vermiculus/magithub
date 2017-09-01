@@ -489,7 +489,7 @@ Pings the API a maximum of once every ten seconds."
                   ;; Sometimes, the API can take a long time to respond
                   ;; (whether that's GitHub not responding or requests being
                   ;; blocked by some client-side firewal).  Handle this
-                  ;; possiblity gracefully.
+                  ;; possibility gracefully.
                   (magithub-api-timeout
                    (setq error-data err
                          magithub--api-offline-reason
