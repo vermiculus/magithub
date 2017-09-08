@@ -79,9 +79,9 @@ buffer."
        (list issue (magithub--completing-read-multiple
                     "Add labels: " (magithub-label-list) fmt
                     nil nil current-labels)))))
-  (setcdr (assq 'labels issue) labels)
-  (ghubp-patch-repos-owner-repo-issues-number
-   (magithub-repo) issue `((labels . ,labels)))
+  (when (ghubp-patch-repos-owner-repo-issues-number
+         (magithub-repo) issue `((labels . ,labels)))
+    (setcdr (assq 'labels issue) labels))
   (when (derived-mode-p 'magit-status-mode)
     (magit-refresh)))
 
