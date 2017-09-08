@@ -81,7 +81,7 @@ If it does not exist, it will be created."
 (defun magithub-enable ()
   "Enable Magithub for this repository."
   (interactive)
-  (magit-set "yes" "magithub" "enabled")
+  (magit-set "true" "magithub" "enabled")
   (when (derived-mode-p 'magit-status-mode)
     (magit-refresh))
   (message "Magithub is now enabled in this repository"))
@@ -99,14 +99,14 @@ created automatically."
 (defun magithub-disable ()
   "Disable Magithub for this repository."
   (interactive)
-  (magit-set "no" "magithub" "enabled")
+  (magit-set "false" "magithub" "enabled")
   (when (derived-mode-p 'magit-status-mode)
     (magit-refresh))
   (message "Magithub is now disabled in this repository"))
 
 (defun magithub-enabled-p ()
   "Returns non-nil when Magithub is enabled for this repository."
-  (and (member (magit-get "magithub" "enabled") '("yes" nil)) t))
+  (and (member (magit-get "magithub" "enabled") '("yes" "true" nil)) t))
 
 (defun magithub-enabled-toggle ()
   "Toggle Magithub integration."
