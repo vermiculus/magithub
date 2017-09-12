@@ -604,16 +604,19 @@ included in the returned object."
   "Turn SPARSE-REPO into a full repository object.
 If SPARSE-REPO is null, the current context is used."
   (let ((sparse-repo (or sparse-repo (magithub-source--sparse-repo))))
-    (magithub-cache :repo-demographics
-      `(condition-case e
-           (or (ghubp-get-repos-owner-repo ',sparse-repo)
-               (and (not magithub--api-available-p)
-                    sparse-repo))
-         (ghub-404
-          ;; Repo may not exist; ignore 404
-          nil))
-      nil
-      :context nil)))
+    (or (magithub-cache :repo-demographics
+          `(condition-case e
+               (or (ghubp-get-repos-owner-repo ',sparse-repo)
+                   (and (not magithub--api-available-p)
+                        sparse-repo))
+             (ghub-404
+              ;; Repo may not exist; ignore 404
+              nil))
+          nil
+          :context nil)
+        (when (eq magithub-cache 'expire)
+          (let ((magithub-cache nil))
+            (magithub-repo sparse-repo))))))
 
 ;;; Repository utilities
 (defun magithub-repo-name (repo)
