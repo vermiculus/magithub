@@ -421,6 +421,12 @@ threshold, you'll be asked if you'd like to go offline."
   :group 'magithub
   :type 'integer)
 
+(defcustom magithub-api-last-checked-threshold 10
+  "Threashold to check GitHub API.
+Time in seconds between each API ping to indicate if it's available or not."
+  :group 'magithub
+  :type 'integer)
+
 (defvar magithub--quick-abort-api-check nil
   "When non-nil, we'll assume the API is unavailable.
 Do not modify this variable in code outside Magithub.")
@@ -459,7 +465,7 @@ Pings the API a maximum of once every ten seconds."
                          (setq magithub--api-offline-reason "Try again once you've authenticated"))
                      (setq magithub--api-offline-reason "Not yet authenticated per ghub's README")))))
             (if (and magithub--api-last-checked
-                     (< (time-to-seconds (time-since magithub--api-last-checked)) 10))
+                     (< (time-to-seconds (time-since magithub--api-last-checked)) magithub-api-last-checked-threshold))
                 (prog1 magithub--api-last-checked
                   (magithub-debug-message "used cached value for api-last-checked"))
 
