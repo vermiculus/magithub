@@ -421,9 +421,14 @@ threshold, you'll be asked if you'd like to go offline."
   :group 'magithub
   :type 'integer)
 
-(defcustom magithub-api-last-checked-threshold 10
-  "Threashold to check GitHub API.
-Time in seconds between each API ping to indicate if it's available or not."
+(defcustom magithub-api-available-check-frequency 10
+  "Minimum number of seconds between each API availability check.
+While online (see `magithub-go-online'), we check to ensure the API is available
+before making a real request. This involves a `/rate_limit' call (or for some
+Enterprise instances, a `/meta' call). Use this setting to configure how often
+this is done. It will be done no more frequently than other API actions.
+
+These calls are guaranteed to not count against your rate limit."
   :group 'magithub
   :type 'integer)
 
