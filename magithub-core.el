@@ -470,7 +470,7 @@ Pings the API a maximum of once every ten seconds."
                          (setq magithub--api-offline-reason "Try again once you've authenticated"))
                      (setq magithub--api-offline-reason "Not yet authenticated per ghub's README")))))
             (if (and magithub--api-last-checked
-                     (< (time-to-seconds (time-since magithub--api-last-checked)) magithub-api-last-checked-threshold))
+                     (< (time-to-seconds (time-since magithub--api-last-checked)) magithub-api-available-check-frequency))
                 (prog1 magithub--api-last-checked
                   (magithub-debug-message "used cached value for api-last-checked"))
 
