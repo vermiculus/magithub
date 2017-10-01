@@ -637,6 +637,38 @@ concatenate `.owner.login' and `.name' with `/'."
     `((owner (login . ,login))
       (name . ,name))))
 
+(defun magithub-repo-remotes ()
+  "Return GitHub repositories in this repository.
+`magit-list-remotes' is filtered to those remotes that point to
+GitHub repositories."
+  (delq nil (mapcar (lambda (r) (cons r (magithub-repo-from-remote r)))
+                    (magit-list-remotes))))
+
+(defun magithub-read-repo (prompt)
+  "Using PROMPT, read a GitHub repository.
+See also `magithub-repo-remotes'."
+  (let* ((remotes (magithub-repo-remotes))
+         (maxlen (->> remotes
+                      (mapcar #'car)
+                      (mapcar #'length)
+                      (apply #'max)))
+         (fmt (format "%%-%ds (%%s/%%s)" maxlen)))
+    (magithub-repo
+     (cdr (magithub--completing-read
+           prompt (magithub-repo-remotes)
+           (lambda (remote-repo-pair)
+             (let-alist (cdr remote-repo-pair)
+               (format fmt (car remote-repo-pair) .owner.login .name))))))))
+
+(defun magithub-repo-remotes-for-repo (repo)
+  (-filter (lambda (remote)
+             (let-alist (list (cons 'repo repo)
+                              (cons 'remote (magithub-repo-from-remote remote)))
+               (and (string= .repo.owner.login
+                             .remote.owner.login)
+                    (string= .repo.name .remote.name))))
+           (magit-list-remotes)))
+
 ;;; Feature checking
 (defconst magithub-feature-list
   '(pull-request-merge pull-request-checkout)
