@@ -954,6 +954,37 @@ One of the following:
     `(progn
        ,@(nreverse final-form))))
 
+(defmacro magithub-interactive-issue-or-pr (sym args doc &rest body)
+  "Declare an interactive form that works on both issues and PRs.
+SYM is a postfix for the function symbol.  An appropriate prefix
+will be added for both the issue-version and PR-version.
+
+ARGS should be a list of one element, the symbol ISSUE-OR-PR.
+
+DOC is a doc-string.
+
+BODY is the function implementation."
+  (declare (indent defun)
+           (doc-string 3))
+  (unless (eq (car args) 'issue-or-pr)
+    (error "For clarity, the first argument must be ISSUE-OR-PR"))
+  (let* ((snam (symbol-name sym))
+         (isym (intern (concat "magithub-issue-" snam)))
+         (psym (intern (concat "magithub-pull-request-" snam))))
+    `(list
+      (defun ,isym ,(cons 'issue (cdr args))
+        ,(format (concat doc "\n\nSee also `%S'.") "ISSUE" psym)
+        (interactive (list (or (magithub-thing-at-point 'issue)
+                               (magithub-issue-completing-read-issues))))
+        (let ((issue-or-pr issue))
+          ,@body))
+      (defun ,psym ,(cons 'pull-request (cdr args))
+        ,(format (concat doc "\n\nSee also `%S'.") "PULL-REQUEST" isym)
+        (interactive (list (or (magithub-thing-at-point 'pull-request)
+                               (magithub-issue-completing-read-pull-requests))))
+        (let ((issue-or-pr pull-request))
+          ,@body)))))
+
 (eval-after-load "magit"
   '(dolist (hook '(magit-revision-mode-hook git-commit-setup-hook))
      (add-hook hook #'magithub-bug-reference-mode-on)))
