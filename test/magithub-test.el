@@ -9,7 +9,8 @@
 (require 'ert)
 (require 'magithub-core)
 
-(setf (symbol-function 'ghub-request) #'magithub-mock-ghub-request)
+(setq ghubp-request-override-function
+      #'magithub-mock-ghub-request)
 
 (defmacro magithub-test-cache-with-new-cache (plist &rest body)
   (declare (indent 1))
