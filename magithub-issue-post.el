@@ -182,22 +182,27 @@ See also URL
     (-find #'file-readable-p combinations)))
 
 (defun magithub-pull-request-new (repo title base head)
+  "Create a new pull request."
   (interactive
-   (let* ((repo        (magithub-repo))
-          (upstream    (magit-get-upstream-branch))
-          (head        (magit-read-branch "Head"))
-          (base        (magit-read-branch "Base branch" upstream))
-          (head-remote (magit-get-push-remote head))
-          (base-remote (magit-get-push-remote base)))
-     (let-alist repo
-       (list repo
+   (let* ((this-repo   (magithub-read-repo "Fork's remote (this is you!)"))
+          (this-repo-owner (let-alist this-repo .owner.login))
+          (parent-repo (or (alist-get 'parent this-repo) this-repo))
+          (this-remote (car (magithub-repo-remotes-for-repo this-repo)))
+          (base-remote (car (magithub-repo-remotes-for-repo parent-repo)))
+          (head        (magit-read-remote-branch "Head" this-remote))
+          (base        (magit-read-remote-branch
+                        (format "Base branch (on %s)"
+                                (magithub-repo-name parent-repo))
+                        base-remote
+                        (magit-get-upstream-branch))))
+     (let-alist parent-repo
+       (list parent-repo
              (read-string (format "Pull request title (%s/%s): "
                                   .owner.login .name))
-             base
-             (if (string= head-remote base-remote)
+             (if (string= this-remote base-remote)
                  head
-               (format "%s:%s" (ghub--username) head))))))
-
+               (format "%s:%s" this-repo-owner head))
+             base))))
   (let-alist repo
     (with-current-buffer
         (magithub-issue--new-form

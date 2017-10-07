@@ -20,6 +20,7 @@ we'll hit the API) if Magithub is offline."
     (define-key map [remap magit-visit-thing] #'magithub-issue-browse)
     (define-key map [remap magit-refresh] #'magithub-issue-refresh)
     (define-key map "L" #'magithub-issue-add-labels)
+    (define-key map "N" #'magithub-issue-personal-note)
     map)
   "Keymap for `magithub-issue' sections.")
 
@@ -78,9 +79,9 @@ buffer."
        (list issue (magithub--completing-read-multiple
                     "Add labels: " (magithub-label-list) fmt
                     nil nil current-labels)))))
-  (setcdr (assq 'labels issue) labels)
-  (ghubp-patch-repos-owner-repo-issues-number
-   (magithub-repo) issue `((labels . ,labels)))
+  (when (ghubp-patch-repos-owner-repo-issues-number
+         (magithub-repo) issue `((labels . ,labels)))
+    (setcdr (assq 'labels issue) labels))
   (when (derived-mode-p 'magit-status-mode)
     (magit-refresh)))
 
@@ -93,14 +94,16 @@ buffer."
     (let-alist issue
       (let* ((fc fill-column)
              (issue-format
-              (format " %%%ds %%%ds  "
+              (format " %%%ds %%%ds %%s "
                       (alist-get 'number justify)
                       (+ 2 (alist-get 'comments justify))))
              (issue-prefix
               (format issue-format
                       (number-to-string .number)
                       (if (= .comments 0) ""
-                        (format "(%d)" .comments))))
+                        (format "(%d)" .comments))
+                      (if (magithub-issue-has-personal-note-p issue)
+                          "N" " ")))
 
              (issue-title-width (- fc (length issue-prefix)))
              (indent (make-string (length issue-prefix) ?\ )))

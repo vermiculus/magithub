@@ -81,7 +81,7 @@ If it does not exist, it will be created."
 (defun magithub-enable ()
   "Enable Magithub for this repository."
   (interactive)
-  (magit-set "yes" "magithub" "enabled")
+  (magit-set "true" "magithub" "enabled")
   (when (derived-mode-p 'magit-status-mode)
     (magit-refresh))
   (message "Magithub is now enabled in this repository"))
@@ -99,14 +99,14 @@ created automatically."
 (defun magithub-disable ()
   "Disable Magithub for this repository."
   (interactive)
-  (magit-set "no" "magithub" "enabled")
+  (magit-set "false" "magithub" "enabled")
   (when (derived-mode-p 'magit-status-mode)
     (magit-refresh))
   (message "Magithub is now disabled in this repository"))
 
 (defun magithub-enabled-p ()
   "Returns non-nil when Magithub is enabled for this repository."
-  (and (member (magit-get "magithub" "enabled") '("yes" nil)) t))
+  (and (member (magit-get "magithub" "enabled") '("yes" "true" nil)) t))
 
 (defun magithub-enabled-toggle ()
   "Toggle Magithub integration."
@@ -615,19 +615,25 @@ included in the returned object."
   "Turn SPARSE-REPO into a full repository object.
 If SPARSE-REPO is null, the current context is used."
   (let ((sparse-repo (or sparse-repo (magithub-source--sparse-repo))))
-    (magithub-cache :repo-demographics
-      `(condition-case e
-           (or (ghubp-get-repos-owner-repo ',sparse-repo)
-               (and (not magithub--api-available-p)
-                    sparse-repo))
-         (ghub-404
-          ;; Repo may not exist; ignore 404
-          nil))
-      nil
-      :context nil)))
+    (or (magithub-cache :repo-demographics
+          `(condition-case e
+               (or (ghubp-get-repos-owner-repo ',sparse-repo)
+                   (and (not magithub--api-available-p)
+                        sparse-repo))
+             (ghub-404
+              ;; Repo may not exist; ignore 404
+              nil))
+          nil
+          :context nil)
+        (when (eq magithub-cache 'expire)
+          (let ((magithub-cache nil))
+            (magithub-repo sparse-repo))))))
 
 ;;; Repository utilities
 (defun magithub-repo-name (repo)
+  "Return the full name of REPO.
+If the `full_name' object is present, use that.  Otherwise,
+concatenate `.owner.login' and `.name' with `/'."
   (let-alist repo
     (if .full_name .full_name
       (concat .owner.login "/" .name))))
@@ -641,6 +647,38 @@ If SPARSE-REPO is null, the current context is used."
             name .name))
     `((owner (login . ,login))
       (name . ,name))))
+
+(defun magithub-repo-remotes ()
+  "Return GitHub repositories in this repository.
+`magit-list-remotes' is filtered to those remotes that point to
+GitHub repositories."
+  (delq nil (mapcar (lambda (r) (cons r (magithub-repo-from-remote r)))
+                    (magit-list-remotes))))
+
+(defun magithub-read-repo (prompt)
+  "Using PROMPT, read a GitHub repository.
+See also `magithub-repo-remotes'."
+  (let* ((remotes (magithub-repo-remotes))
+         (maxlen (->> remotes
+                      (mapcar #'car)
+                      (mapcar #'length)
+                      (apply #'max)))
+         (fmt (format "%%-%ds (%%s/%%s)" maxlen)))
+    (magithub-repo
+     (cdr (magithub--completing-read
+           prompt (magithub-repo-remotes)
+           (lambda (remote-repo-pair)
+             (let-alist (cdr remote-repo-pair)
+               (format fmt (car remote-repo-pair) .owner.login .name))))))))
+
+(defun magithub-repo-remotes-for-repo (repo)
+  (-filter (lambda (remote)
+             (let-alist (list (cons 'repo repo)
+                              (cons 'remote (magithub-repo-from-remote remote)))
+               (and (string= .repo.owner.login
+                             .remote.owner.login)
+                    (string= .repo.name .remote.name))))
+           (magit-list-remotes)))
 
 ;;; Feature checking
 (defconst magithub-feature-list
@@ -926,6 +964,37 @@ One of the following:
               final-form)))
     `(progn
        ,@(nreverse final-form))))
+
+(defmacro magithub-interactive-issue-or-pr (sym args doc &rest body)
+  "Declare an interactive form that works on both issues and PRs.
+SYM is a postfix for the function symbol.  An appropriate prefix
+will be added for both the issue-version and PR-version.
+
+ARGS should be a list of one element, the symbol ISSUE-OR-PR.
+
+DOC is a doc-string.
+
+BODY is the function implementation."
+  (declare (indent defun)
+           (doc-string 3))
+  (unless (eq (car args) 'issue-or-pr)
+    (error "For clarity, the first argument must be ISSUE-OR-PR"))
+  (let* ((snam (symbol-name sym))
+         (isym (intern (concat "magithub-issue-" snam)))
+         (psym (intern (concat "magithub-pull-request-" snam))))
+    `(list
+      (defun ,isym ,(cons 'issue (cdr args))
+        ,(format (concat doc "\n\nSee also `%S'.") "ISSUE" psym)
+        (interactive (list (or (magithub-thing-at-point 'issue)
+                               (magithub-issue-completing-read-issues))))
+        (let ((issue-or-pr issue))
+          ,@body))
+      (defun ,psym ,(cons 'pull-request (cdr args))
+        ,(format (concat doc "\n\nSee also `%S'.") "PULL-REQUEST" isym)
+        (interactive (list (or (magithub-thing-at-point 'pull-request)
+                               (magithub-issue-completing-read-pull-requests))))
+        (let ((issue-or-pr pull-request))
+          ,@body)))))
 
 (eval-after-load "magit"
   '(dolist (hook '(magit-revision-mode-hook git-commit-setup-hook))

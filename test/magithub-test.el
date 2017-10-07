@@ -9,6 +9,9 @@
 (require 'ert)
 (require 'magithub-core)
 
+(setq ghubp-request-override-function
+      #'magithub-mock-ghub-request)
+
 (defmacro magithub-test-cache-with-new-cache (plist &rest body)
   (declare (indent 1))
   `(let ((magithub-cache-class-refresh-seconds-alist ',plist)

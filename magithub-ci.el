@@ -36,9 +36,9 @@
 (defun magithub-ci-enabled-p ()
   "Non-nil if CI is enabled for this repository.
 If magithub.ci.enabled is not set, CI is considered to be enabled."
-  (member (magit-get "magithub" "ci" "enabled") '(nil "yes")))
+  (member (magit-get "magithub" "ci" "enabled") '(nil "yes" "true")))
 (defun magithub-ci--set-enabled (val)
-  (magit-set (if val "yes" "no") "magithub" "ci" "enabled"))
+  (magit-set (if val "true" "false") "magithub" "ci" "enabled"))
 (defun magithub-ci-disable ()
   "Disable CI for this repository."
   (magithub-ci--set-enabled nil))

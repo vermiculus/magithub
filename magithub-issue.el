@@ -32,7 +32,11 @@
 
 ;; Core
 (defun magithub--issue-list (&rest params)
-  "Return a list of issues for the current repository."
+  "Return a list of issues for the current repository.
+The response is unpaginated, so avoid doing this with PARAMS that
+will return a ton of issues.
+
+See also `ghubp-get-repos-owner-repo-issues'."
   (cl-assert (cl-evenp (length params)))
   (magithub-cache :issues
     `(ghubp-unpaginate
@@ -111,10 +115,39 @@ default."
          (magithub--issue-list :filter "all" :state "all")))
 
 (defun magithub-issue (repo number)
+  "Retrieve in REPO issue NUMBER."
   (magithub-cache :issues
     `(ghubp-get-repos-owner-repo-issues-number
       ',repo '((number . ,number)))
     (format "Getting issue %s#%d..." (magithub-repo-name repo) number)))
+
+(defun magithub-issue-personal-note-file (issue-or-pr)
+  "Return an absolute filename appropriate for ISSUE-OR-PR."
+  (expand-file-name
+   (format "magithub/notes/%d.org"
+           (alist-get 'number issue-or-pr))
+   (magit-git-dir)))
+
+(magithub-interactive-issue-or-pr personal-note (issue-or-pr)
+  "Write a personal note about %s.
+This is stored in `magit-git-dir' and is unrelated to
+`git-notes'."
+  (let* ((num (alist-get 'number issue-or-pr))
+         (note-file (magithub-issue-personal-note-file issue-or-pr)))
+    (make-directory (file-name-directory note-file) t)
+    (with-current-buffer (find-file note-file)
+      (rename-buffer (format "*magithub note for #%d*" num)))))
+
+(defun magithub-issue-has-personal-note-p (issue-or-pr)
+  "Non-nil if a personal note exists for ISSUE-OR-PR."
+  (let ((filename (magithub-issue-personal-note-file issue-or-pr)))
+    (and (file-exists-p filename)
+         (not (string-equal
+               ""
+               (string-trim
+                (with-temp-buffer
+                  (insert-file-contents-literally filename)
+                  (buffer-string))))))))
 
 (provide 'magithub-issue)
 ;;; magithub-issue.el ends here
