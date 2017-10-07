@@ -1,4 +1,5 @@
-language: emacs-lisp
+#language: emacs-lisp
+language: python
 sudo: false
 cache:
 - directories:
