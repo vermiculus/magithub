@@ -14,6 +14,10 @@
 
 (load-file (magithub-in-test-dir "magithub-test-compile.el"))
 
+(defun magithub-mock-data-crunch (data)
+  "Crunch DATA into a string appropriate for a filename."
+  (substring (sha1 (prin1-to-string data)) 0 8))
+
 (defun magithub-mock-ghub-request (method resource &optional params data)
   "Mock a call to the GitHub API.
 
@@ -26,10 +30,17 @@ response."
   (let* ((parts (cdr (s-split "/" resource)))
          (directory (mapconcat (lambda (s) (concat s ".d"))
                                (butlast parts) "/"))
-         (filename (magithub-in-test-dir (format "mock-data/%s/%s/%s"
-                                                 (downcase method)
-                                                 directory
-                                                 (car (last parts))))))
+         (filename (magithub-in-test-dir
+                    (format "mock-data/%s/%s/%s"
+                            (downcase method)
+                            directory
+                            (car (last parts))))))
+    (dolist (v `(("P" . ,params) ("D" . ,data)))
+      (when (cdr v)
+        (setq filename (format "%s.%s-%s"
+                               filename
+                               (car v)
+                               (magithub-mock-data-crunch (cdr v))))))
     (if (file-readable-p filename)
         (with-temp-buffer
           (insert-file-contents-literally filename)
@@ -46,4 +57,4 @@ response."
                     (write-file filename)
                     (message "Wrote %s" filename))
                 (error "API response rejected"))))
-        (error "Unmocked test: %S %S" method resource)))))
+        (error "Unmocked test: %S %S %S %S" method resource params data)))))
