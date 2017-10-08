@@ -181,19 +181,32 @@ See also URL
         (push (expand-file-name tryname trydir) combinations)))
     (-find #'file-readable-p combinations)))
 
+(defun magithub-remote-branches (remote)
+  "Return a list of branches on REMOTE."
+  (let ((regexp (concat (regexp-quote remote) (rx "/" (group (* any))))))
+    (--map (and (string-match regexp it)
+                (match-string 1 it))
+           (magit-list-remote-branch-names remote))))
+
 (defun magithub-pull-request-new-arguments ()
   (let* ((this-repo   (magithub-read-repo "Fork's remote (this is you!)"))
          (this-repo-owner (let-alist this-repo .owner.login))
          (parent-repo (or (alist-get 'parent this-repo) this-repo))
          (this-remote (car (magithub-repo-remotes-for-repo this-repo)))
+         (on-this-remote (string= (magit-get-push-remote) this-remote))
          (base-remote (car (magithub-repo-remotes-for-repo parent-repo)))
-         (head        (magit-read-remote-branch "Head" this-remote))
-         (base        (magit-read-remote-branch
-                       (format "Base branch (on %s)"
-                               (magithub-repo-name parent-repo))
-                       base-remote
-                       (magit-get-upstream-branch head)
-                       nil t)))
+         (head        (magit-completing-read
+                       (format "Head branch (on %s)" (magithub-repo-name this-repo))
+                       (magithub-remote-branches this-remote)
+                       nil t nil nil
+                       (when on-this-remote
+                         (magit-get-current-branch))))
+         (base        (magit-completing-read
+                       (format "Base branch (on %s)" (magithub-repo-name parent-repo))
+                       (magithub-remote-branches base-remote)
+                       nil t nil nil
+                       (when on-this-remote
+                         (magit-get-upstream-branch head)))))
     (let-alist parent-repo
       (list parent-repo
             (read-string (format "Pull request title (%s/%s): "
