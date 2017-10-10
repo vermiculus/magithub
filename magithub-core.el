@@ -104,9 +104,18 @@ created automatically."
     (magit-refresh))
   (message "Magithub is now disabled in this repository"))
 
+(defcustom magithub-enabled-by-default t
+  "Non-nil if Magithub is enabled by default."
+  :group 'magithub
+  :type 'boolean)
+
 (defun magithub-enabled-p ()
   "Returns non-nil when Magithub is enabled for this repository."
-  (and (member (magit-get "magithub" "enabled") '("yes" "true" nil)) t))
+  (let ((enabled (magit-get "magithub" "enabled")))
+    (cond
+     ((string= enabled "yes") t)
+     ((string= enabled "no") nil)
+     (t magithub-enabled-by-default))))
 
 (defun magithub-enabled-toggle ()
   "Toggle Magithub integration."
