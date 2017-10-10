@@ -209,14 +209,14 @@ See also URL
                          (magit-get-upstream-branch head)))))
     (let-alist parent-repo
       (list parent-repo
-            (read-string (format "Pull request title (%s/%s): "
-                                 .owner.login .name))
+            base
             (if (string= this-remote base-remote)
                 head
               (format "%s:%s" this-repo-owner head))
-            base))))
+            (read-string (format "Pull request title (%s/%s): "
+                                 .owner.login .name))))))
 
-(defun magithub-pull-request-new (repo title base head)
+(defun magithub-pull-request-new (repo base head title)
   "Create a new pull request."
   (interactive (magithub-pull-request-new-arguments))
   (let-alist repo
