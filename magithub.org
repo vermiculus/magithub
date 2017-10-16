@@ -126,7 +126,7 @@ You can filter issues with =magithub-issue-issue-filter-functions=:
                 (not
                  (member "enhancement"
                          (let-alist issue
-                           (magithub-get-in-all '(name) .labels)))))))
+                           (ghubp-get-in-all '(name) .labels)))))))
 #+END_SRC
 Each function in the =*-functions= list must return non-nil for the issue to
 appear in the issue list.  See also the documentation for that variable.

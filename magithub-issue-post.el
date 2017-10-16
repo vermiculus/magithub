@@ -121,7 +121,7 @@ properties are respected and prepopulate the form."
                     (let ((w (apply #'widget-create 'magithub-issue-labels
                                     (mapcar (lambda (label) `(item ,(alist-get 'name label)))
                                             (magithub-label-list)))))
-                      (widget-value-set w (magithub-get-in-all '(name) .issue.labels))
+                      (widget-value-set w (ghubp-get-in-all '(name) .issue.labels))
                       w))
               magithub-issue--widgets))
 

@@ -899,27 +899,22 @@ Used for `magithub-thing-at-point' and related functions.")
 (defun magithub-thing-at-point (type)
   "Determine the thing of TYPE at point.
 If TYPE is `all', an alist of types to objects is returned."
-  (if (eq type 'all)
-      (let ((plist (text-properties-at (point))) alist)
-        (while plist
-          (when (magithub--object-text-prop-p (car plist))
-            (thread-first (car plist)
-              (magithub--object-text-prop-inv)
-              (cons (cadr plist))
-              (push alist)))
-          (setq plist (cddr plist)))
-        alist)
-    (get-text-property (point) (magithub--object-text-prop type))))
-
-(defun magithub-get-in-all (props object-list)
-  "Follow property-path PROPS in OBJECT-LIST.
-Returns a list of the property-values."
-  (declare (indent 1))
-  (if (or (null props) (not (consp props)))
-      object-list
-    (magithub-get-in-all (cdr props)
-      (mapcar (lambda (o) (alist-get (car props) o))
-              object-list))))
+  (cond
+   ((eq (intern (concat "magithub-" (symbol-name type)))
+        (magit-section-type (magit-current-section)))
+    (magit-section-value (magit-current-section)))
+   ((eq type 'all)
+    (let ((plist (text-properties-at (point))) alist)
+      (while plist
+        (when (magithub--object-text-prop-p (car plist))
+          (thread-first (car plist)
+            (magithub--object-text-prop-inv)
+            (cons (cadr plist))
+            (push alist)))
+        (setq plist (cddr plist)))
+      alist))
+   (t
+    (get-text-property (point) (magithub--object-text-prop type)))))
 
 (defun magithub-verify-manage-labels (&optional interactive)
   "Verify the user has permission to manage labels.
