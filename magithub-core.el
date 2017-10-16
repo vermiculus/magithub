@@ -225,12 +225,19 @@ idle timer runs.")
 * SAVED-TIME is when the cached value was last computed.
 
 If `magithub-cache-class-refresh-seconds-alist' does not contain
-a expiry time for CLASS, DEFAULT is used."
-  (let ((a magithub-cache-class-refresh-seconds-alist))
-    (or (null a)
-        (< (or (alist-get class a)
-               (alist-get t a (or default 0)))
-           (time-to-seconds (time-since saved-time))))))
+a expiry time for CLASS, a class of t is checked, then
+DEFAULT (or 0) is used.  If the expiry time for CLASS is nil,
+however, that cache never expires."
+  (let* ((a magithub-cache-class-refresh-seconds-alist)
+         (expire-seconds (thread-last (or default 0)
+                           (alist-get t a)
+                           (alist-get class a))))
+    (cond
+     ((null a) t)
+     ((null expire-seconds) nil)
+     (t (thread-last (time-since saved-time)
+          (time-to-seconds)
+          (< expire-seconds))))))
 
 (cl-defun magithub-cache (expiry-class form
                                        &optional message
