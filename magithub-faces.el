@@ -33,12 +33,12 @@
   :group 'magithub-faces)
 
 (defface magithub-issue-title
-  '((((class color)) :inherit magit-dimmed))
+  '((((class color))))
   "Face used for GitHub repository names."
   :group 'magithub-faces)
 
 (defface magithub-issue-number
-  '((((class color))))
+  '((((class color)) :inherit magit-dimmed))
   "Face used for GitHub repository names."
   :group 'magithub-faces)
 
