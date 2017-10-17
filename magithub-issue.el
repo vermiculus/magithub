@@ -124,20 +124,22 @@ default."
 
 (defun magithub-issue-personal-note-file (issue-or-pr)
   "Return an absolute filename appropriate for ISSUE-OR-PR."
-  (expand-file-name
-   (format "magithub/notes/%d.org"
-           (alist-get 'number issue-or-pr))
-   (magit-git-dir)))
+  (let-alist issue-or-pr
+    (expand-file-name
+     (format "magithub/notes/%d.org" .number)
+     (magit-git-dir))))
 
 (magithub-interactive-issue-or-pr personal-note (issue-or-pr)
   "Write a personal note about %s.
 This is stored in `magit-git-dir' and is unrelated to
 `git-notes'."
-  (let* ((num (alist-get 'number issue-or-pr))
-         (note-file (magithub-issue-personal-note-file issue-or-pr)))
-    (make-directory (file-name-directory note-file) t)
-    (with-current-buffer (find-file note-file)
-      (rename-buffer (format "*magithub note for #%d*" num)))))
+  (if (null issue-or-pr)
+      (error "No issue or pull request here")
+    (let-alist issue-or-pr
+      (let ((note-file (magithub-issue-personal-note-file issue-or-pr)))
+        (make-directory (file-name-directory note-file) t)
+        (with-current-buffer (find-file note-file)
+          (rename-buffer (format "*magithub note for #%d*" .number)))))))
 
 (defun magithub-issue-has-personal-note-p (issue-or-pr)
   "Non-nil if a personal note exists for ISSUE-OR-PR."
@@ -154,16 +156,14 @@ This is stored in `magit-git-dir' and is unrelated to
   "Get a repository object from ISSUE."
   (let-alist issue
     (save-match-data
-      (when (string-match
-             (concat
-              (rx bos)
-              (regexp-quote ghub-base-url)
-              (rx "/repos/"
-                  (group (+ (not (any "/")))) "/"
-                  (group (+ (not (any "/")))) "/issues/")
-              (regexp-quote (number-to-string .number))
-              (rx eos))
-             .url)
+      (when (string-match (concat (rx bos)
+                                  (regexp-quote ghub-base-url)
+                                  (rx "/repos/"
+                                      (group (+ (not (any "/")))) "/"
+                                      (group (+ (not (any "/")))) "/issues/")
+                                  (regexp-quote (number-to-string .number))
+                                  (rx eos))
+                          .url)
         (magithub-repo
          `((owner (login . ,(match-string 1 .url)))
            (name . ,(match-string 2 .url))))))))
