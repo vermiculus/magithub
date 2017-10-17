@@ -29,6 +29,7 @@
 (require 'cl-lib)
 
 (require 'magithub-core)
+(require 'magithub-user)
 
 ;; Core
 (defun magithub--issue-list (&rest params)
@@ -166,6 +167,133 @@ This is stored in `magit-git-dir' and is unrelated to
         (magithub-repo
          `((owner (login . ,(match-string 1 .url)))
            (name . ,(match-string 2 .url))))))))
+
+(defun magithub-issue-insert-sections (issues)
+  "Insert ISSUES into the buffer with alignment.
+See also `magithub-issue-insert-section'."
+  (let ((max-num-len (thread-last issues
+                       (ghubp-get-in-all '(number))
+                       (apply #'max)
+                       (number-to-string)
+                       (length))))
+    (--map (magithub-issue-insert-section it max-num-len)
+           issues)))
+
+(defun magithub-issue-insert-section (issue &optional pad-num-to-len)
+  "Insert ISSUE into the buffer.
+If PAD-NUM-TO-LEN is non-nil, it is an integer width.  For
+example, if this section's issue number is \"3\" and the next
+section's number is \"401\", pass a padding of 3 to both to align
+them.
+
+See also `magithub-issue-insert-sections'."
+  (when issue
+    (setq pad-num-to-len (or pad-num-to-len 0))
+    (magit-insert-section (magithub-issue issue t)
+      (let-alist issue
+        (magit-insert-heading
+          (format (format "%%%ds  %%s" (1+ pad-num-to-len)) ;1+ accounts for #
+                  (propertize (format "#%d" .number) 'face 'magithub-issue-number)
+                  (propertize .title                 'face 'magithub-issue-title)))
+        (run-hook-with-args 'magithub-issue-details-hook issue
+                            (format " %s  %%-12s" (make-string pad-num-to-len ?\ )))))))
+
+(defvar magithub-issue-details-hook
+  '(magithub-issue-detail-insert-created
+    magithub-issue-detail-insert-updated
+    magithub-issue-detail-insert-author
+    magithub-issue-detail-insert-assignees
+    magithub-issue-detail-insert-labels
+    magithub-issue-detail-insert-body-preview)
+  "Detail functions for issue-type sections.
+These details appear under issues as expandable content.
+
+Each function takes two arguments:
+
+ 1. an issue object
+ 2. a format string for a string label (for alignment)")
+
+(defun magithub-issue-detail-insert-author (issue fmt)
+  "Insert the author of ISSUE using FMT."
+  (let-alist issue
+    (insert (format fmt "Author:"))
+    (magit-insert-section (magithub-user .user)
+      (insert
+       (propertize .user.login 'face 'magithub-user)))
+    (insert "\n")))
+
+(defun magithub-issue-detail-insert-created (issue fmt)
+  "Insert when ISSUE was created using FMT."
+  (let-alist issue
+    (insert (format fmt "Created:")
+            (propertize .created_at 'face 'magit-dimmed)
+            "\n")))
+
+(defun magithub-issue-detail-insert-updated (issue fmt)
+  "Insert when ISSUE was created using FMT."
+  (let-alist issue
+    (insert (format fmt "Updated:")
+            (propertize .updated_at 'face 'magit-dimmed)
+            "\n")))
+
+(defun magithub-issue-detail-insert-assignees (issue fmt)
+  "Insert the assignees of ISSUE using FMT."
+  (let-alist issue
+    (insert (format fmt "Assignees:"))
+    (if .assignees
+        (let ((assignees .assignees) assignee)
+          (while (setq assignee (pop assignees))
+            (magit-insert-section (magithub-assignee assignee)
+              (insert (propertize (let-alist assignee .login)
+                                  'face 'magithub-user)))
+            (when assignees
+              (insert " "))))
+      (magit-insert-section (magithub-assignee)
+        (insert (propertize "none" 'face 'magit-dimmed))))
+    (insert "\n")))
+
+(defun magithub-issue-detail-insert-body-preview (issue fmt)
+  "Insert a preview of ISSUE's body using FMT."
+  (let-alist issue
+    (let* ((label-string (format fmt "Preview:"))
+           (label-len (length label-string))
+           (prefix (make-string label-len ?\ ))
+           (lines 0)
+           did-cut)
+      (insert label-string
+              (if (or (null .body) (string= .body ""))
+                  (concat (propertize "none" 'face 'magit-dimmed))
+                (concat
+                 (s-trim
+                  (with-temp-buffer
+                    (insert (s-word-wrap (- fill-column label-len) .body))
+                    (goto-char 0)
+                    (let ((lines 0))
+                      (while (and (not (eobp))
+                                  (< (setq lines (1+ lines)) 4))
+                        (insert prefix)
+                        (forward-line))
+                      (unless (= (point) (point-max))
+                        (delete-region (point) (point-max))
+                        (setq did-cut t)))
+                    (replace-regexp-in-string
+                     "" "" (buffer-string))))
+                 (if did-cut "...")))
+              "\n"))))
+
+(defun magithub-issue-detail-insert-labels (issue fmt)
+  "Insert ISSUE's labels using FMT."
+  (let-alist issue
+    (insert (format fmt "Labels:"))
+    (if-let ((labels .labels) (l t))
+        (while (setq l (pop labels))
+          (magit-insert-section (magithub-label l)
+            (insert (magithub-label-propertize l)))
+          (when labels
+            (insert " ")))
+      (magit-insert-section (magithub-label)
+        (insert (propertize "none" 'face 'magit-dimmed))))
+    (insert "\n")))
 
 (provide 'magithub-issue)
 ;;; magithub-issue.el ends here

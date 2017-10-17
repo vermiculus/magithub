@@ -85,60 +85,6 @@ buffer."
   (when (derived-mode-p 'magit-status-mode)
     (magit-refresh)))
 
-(defun magithub-issue--label-string (issue)
-  (let-alist issue
-    (mapconcat #'magithub-label-propertize .labels " ")))
-
-(defun magithub-issue--format (issue justify type)
-  (magithub--object-propertize type issue
-    (let-alist issue
-      (let* ((fc fill-column)
-             (issue-format
-              (format " %%%ds %%%ds %%s "
-                      (alist-get 'number justify)
-                      (+ 2 (alist-get 'comments justify))))
-             (issue-prefix
-              (format issue-format
-                      (number-to-string .number)
-                      (if (= .comments 0) ""
-                        (format "(%d)" .comments))
-                      (if (magithub-issue-has-personal-note-p issue)
-                          "N" " ")))
-
-             (issue-title-width (- fc (length issue-prefix)))
-             (indent (make-string (length issue-prefix) ?\ )))
-        (with-temp-buffer
-          (save-excursion
-            (insert issue-prefix (s-word-wrap issue-title-width .title)))
-
-          (save-excursion
-            (forward-line)
-            (while (not (eobp))
-              (insert indent)
-              (forward-line)))
-
-          (save-excursion
-            (move-to-column fc t)
-            (insert (magithub-issue--label-string issue)))
-          (concat (s-trim-right (buffer-string)) "\n"))))))
-
-(defun magithub-issue--format-justify ()
-  (let* ((issue-list (magithub--issue-list))
-         (fn1 (lambda (p i) (length (format "%d" (alist-get p i)))))
-         (fn2 (lambda (p) (apply #'max (mapcar (apply-partially fn1 p) issue-list)))))
-    `((number . ,(funcall fn2 'number))
-      (comments . ,(funcall fn2 'comments)))))
-
-(defun magithub-issue--insert (issue is-pr)
-  "Insert ISSUE as a Magit section into the buffer."
-  (when issue
-    (let* ((justify (magithub-issue--format-justify))
-           (issue-string (magithub-issue--format issue justify (if is-pr 'pull-request 'issue))))
-      (if is-pr (magit-insert-section (magithub-pull-request issue)
-                  (insert issue-string))
-        (magit-insert-section (magithub-issue issue)
-          (insert issue-string))))))
-
 (defun magithub-issue--insert-issue-section ()
   "Insert GitHub issues if appropriate."
   (when (magithub-usable-p)
@@ -146,8 +92,7 @@ buffer."
      (magithub-issues-list)
      "Issues"
      (magithub-issues)
-     magithub-issue-issue-filter-functions
-     (lambda (i) (magithub-issue--insert i nil)))))
+     magithub-issue-issue-filter-functions)))
 
 (defun magithub-issue--insert-pr-section ()
   "Insert GitHub pull requests if appropriate."
@@ -159,11 +104,10 @@ buffer."
      (magithub-pull-requests-list)
      "Pull Requests"
      (magithub-pull-requests)
-     magithub-issue-pull-request-filter-functions
-     (lambda (i) (magithub-issue--insert i t)))))
+     magithub-issue-pull-request-filter-functions)))
 
 (defmacro magithub-issue--insert-generic-section
-    (spec title list filters handler)
+    (spec title list filters)
   (let ((sym-filtered (cl-gensym)))
     `(when-let ((,sym-filtered (magithub-filter-all ,filters ,list)))
        (magit-insert-section ,spec
@@ -173,7 +117,7 @@ buffer."
                              (propertize " (filtered)" 'face 'magit-dimmed)
                            "")))
          (magit-insert-heading)
-         (mapc ,handler ,sym-filtered)
+         (magithub-issue-insert-sections ,sym-filtered)
          (insert ?\n)))))
 
 (defun magithub-issue-browse (issue)
