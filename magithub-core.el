@@ -1013,6 +1013,42 @@ BODY is the function implementation."
         (let ((issue-or-pr pull-request))
           ,@body)))))
 
+(defun magithub-core-bucket (collection key-func &optional value-func)
+  "Bucket COLLECTION by ENTRY-FUNC and VALUE-FUNC.
+
+Each element of COLLECTION is passed through KEY-FUNC to
+determine its key in an alist.  If specified, the value is
+determined by VALUE-FUNC.
+
+Returns an alist of these keys to lists of values.
+
+See also `magithub-fnnor-each-bucket'."
+  (unless value-func
+    (setq value-func #'identity))
+  (let (bucketed)
+    (dolist (item collection)
+      (let ((entry (funcall key-func item))
+            (val (funcall value-func item)))
+        (if-let (bucket (assoc entry bucketed))
+            (push val (cdr bucket))
+          (push (cons entry (list val))
+                bucketed))))
+    bucketed))
+
+(defmacro magithub-for-each-bucket (buckets key values &rest body)
+  "Do things for each bucket in BUCKETS.
+
+For each bucket in BUCKETs, bind the key to KEY and its
+contents (a list) to VALUES and execute BODY.
+
+See also `magithub-core-bucket'."
+  (declare (indent 3) (debug t))
+  (let ((buckets-sym (cl-gensym)))
+    `(let ((,buckets-sym ,buckets))
+       (while ,buckets-sym
+         (-let (((,key . ,values) (pop ,buckets-sym)))
+           ,@body)))))
+
 (defun magithub-core-color-completing-read (prompt)
   "Generic completing-read for a color."
   (let* ((colors (list-colors-duplicates))
