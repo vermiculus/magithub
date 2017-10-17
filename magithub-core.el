@@ -578,9 +578,11 @@ URL may be of several different formats:
            (and (string-match
                  ;; https://github.com/vermiculus/magithub.git
                  ;; git://github.com/vermiculus/magithub.git
+                 ;; ssh://git@github.com/vermiculus/magithub
                  ;; git+ssh://github.com/vermiculus/magithub.git
                  (rx bol
                      (or (seq "http" (? "s"))
+                         (seq "ssh")
                          (seq "git" (? "+ssh")))
                      "://"
                      (group (+? any)) ;domain -- github.com

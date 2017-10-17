@@ -28,7 +28,8 @@
                 (name . "magithub"))))
     (should (equal repo (magithub--url->repo "git@github.com:vermiculus/magithub.git")))
     (should (equal repo (magithub--url->repo "git@github.com:vermiculus/magithub")))
-    (should (equal repo (magithub--url->repo "git+ssh://github.com/vermiculus/magithub")))))
+    (should (equal repo (magithub--url->repo "git+ssh://github.com/vermiculus/magithub")))
+    (should (equal repo (magithub--url->repo "ssh://git@github.com/vermiculus/magithub")))))
 
 (ert-deftest magithub-test-source-repo ()
   "Test basic API functionality.
