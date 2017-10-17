@@ -1011,6 +1011,18 @@ BODY is the function implementation."
         (let ((issue-or-pr pull-request))
           ,@body)))))
 
+(defun magithub-core-color-completing-read (prompt)
+  "Generic completing-read for a color."
+  (let* ((colors (list-colors-duplicates))
+         (len (apply #'max (mapcar (lambda (c) (length (car c))) colors)))
+         (sample (make-string 20 ?\ )))
+    (car
+     (magithub--completing-read
+      prompt colors
+      (lambda (colors)
+        (format (format "%%-%ds  %%s" len) (car colors)
+                (propertize sample 'face `(:background ,(car colors)))))))))
+
 (eval-after-load "magit"
   '(dolist (hook '(magit-revision-mode-hook git-commit-setup-hook))
      (add-hook hook #'magithub-bug-reference-mode-on)))

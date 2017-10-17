@@ -57,24 +57,12 @@ from `magithub-label'.  Customize that to affect all labels."
   (magithub--object-propertize 'label label
     (propertize (alist-get 'name label)
                 'face (list :foreground (magithub-label--get-display-color label)
-
-(defun magithub-color-completing-read (prompt)
-  "Generic completing-read for a color."
-  (let* ((colors (list-colors-duplicates))
-         (len (apply #'max (mapcar (lambda (c) (length (car c))) colors)))
-         (sample (make-string 20 ?\ )))
-    (car
-     (magithub--completing-read
-      prompt colors
-      (lambda (colors)
-        (format (format "%%-%ds  %%s" len) (car colors)
-                (propertize sample 'face `(:background ,(car colors)))))))))
                             :inherit 'magithub-label))))
 
 (defun magithub-label-color-replace (label new-color)
   (interactive
    (list (magithub-thing-at-point 'label)
-         (magithub-color-completing-read "Replace label color: ")))
+         (magithub-core-color-completing-read "Replace label color: ")))
   (let ((label-color (concat "#" (alist-get 'color label))))
     (if-let ((cell (assoc-string label-color magithub-label-color-replacement-alist)))
         (setcdr cell new-color)
