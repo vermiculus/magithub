@@ -636,7 +636,7 @@ If SPARSE-REPO is null, the current context is used."
     (or (magithub-cache :repo-demographics
           `(condition-case e
                (or (ghubp-get-repos-owner-repo ',sparse-repo)
-                   (and (not magithub--api-available-p)
+                   (and (not (magithub--api-available-p))
                         sparse-repo))
              (ghub-404
               ;; Repo may not exist; ignore 404
