@@ -95,18 +95,6 @@ fork has multiple branches named BRANCH."
                            :source-repo (alist-get 'full_name (magithub-repo)))))))))))
 
 
-(defun magithub-api-rate-limit ()
-  "Get the `.rate' object of /rate_limit from response headers."
-  (when ghub-response-headers
-    (if (assoc-string "X-RateLimit-Limit" ghub-response-headers)
-        (let* ((headers (list "X-RateLimit-Limit" "X-RateLimit-Remaining" "X-RateLimit-Reset"))
-               (headers (mapcar (lambda (x) (string-to-number (ghubp-header x))) headers)))
-          `((limit     . ,(nth 0 headers))
-            (remaining . ,(nth 1 headers))
-            (reset     . ,(seconds-to-time
-                           (nth 2 headers)))))
-      'disabled)))
-
 (defun magithub-ci-status--get-default-ref (&optional branch)
   "The ref to use for CI status based on BRANCH.
 

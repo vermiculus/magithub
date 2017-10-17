@@ -548,6 +548,8 @@ See `magithub--api-offline-reason'."
     (setq magithub--api-offline-reason nil)
     (magithub-go-offline)))
 
+(defalias 'magithub-api-rate-limit #'ghubp-ratelimit)
+
 ;;; Repository parsing
 (defun magithub-github-repository-p ()
   "Non-nil if \"origin\" points to GitHub or a whitelisted domain."
