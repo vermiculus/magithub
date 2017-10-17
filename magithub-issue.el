@@ -149,5 +149,23 @@ This is stored in `magit-git-dir' and is unrelated to
                   (insert-file-contents-literally filename)
                   (buffer-string))))))))
 
+(defun magithub-issue-repo (issue)
+  "Get a repository object from ISSUE."
+  (let-alist issue
+    (save-match-data
+      (when (string-match
+             (concat
+              (rx bos)
+              (regexp-quote ghub-base-url)
+              (rx "/repos/"
+                  (group (+ (not (any "/")))) "/"
+                  (group (+ (not (any "/")))) "/issues/")
+              (regexp-quote (number-to-string .number))
+              (rx eos))
+             .url)
+        (magithub-repo
+         `((owner (login . ,(match-string 1 .url)))
+           (name . ,(match-string 2 .url))))))))
+
 (provide 'magithub-issue)
 ;;; magithub-issue.el ends here
