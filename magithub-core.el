@@ -882,45 +882,43 @@ If a prop is nil, the entire element is used."
     (setq preds (cdr preds)))
   (null preds))
 
-(defconst magithub--object-text-prop-prefix
-  "magithub-object-"
-  "Prefix used for text properties.
-Used for `magithub-thing-at-point' and related functions.")
+(defun magithub-section-type (section)
+  (let* ((type (magit-section-type section))
+         (name (symbol-name type)))
+    (and (string-prefix-p "magithub-" name)
+         (intern (substring name 9)))))
 
-(defun magithub--object-text-prop (type)
-  "Returns a text property symbol for TYPE."
-  (intern (concat magithub--object-text-prop-prefix (symbol-name type))))
-(defun magithub--object-text-prop-inv (prop)
-  "Returns the type referred to by the text property symbol PROP."
-  (intern (substring (symbol-name prop) (length magithub--object-text-prop-prefix))))
-(defun magithub--object-text-prop-p (prop)
-  "Returns non-nil if PROP is a Magithub object text property."
-  (s-prefix-p magithub--object-text-prop-prefix (symbol-name prop)))
-
-(defun magithub--object-propertize (type object text)
-  "Gives a type-TYPE OBJECT property to TEXT."
-  (declare (indent 2))
-  (propertize text (magithub--object-text-prop type) object))
+(defvar magithub-thing-type-specializations
+  '((user assignee))
+  "Alist of general types to specific types.
+Specific types offer more relevant functionality to a given
+section, but are inconvenient for `magithub-thing-at-point'.
+This alist defines equivalencies such that a search for the
+general type will also return sections of a specialized type.")
 
 (defun magithub-thing-at-point (type)
   "Determine the thing of TYPE at point.
 If TYPE is `all', an alist of types to objects is returned."
-  (cond
-   ((eq (intern (concat "magithub-" (symbol-name type)))
-        (magit-section-type (magit-current-section)))
-    (magit-section-value (magit-current-section)))
-   ((eq type 'all)
-    (let ((plist (text-properties-at (point))) alist)
-      (while plist
-        (when (magithub--object-text-prop-p (car plist))
-          (thread-first (car plist)
-            (magithub--object-text-prop-inv)
-            (cons (cadr plist))
-            (push alist)))
-        (setq plist (cddr plist)))
-      alist))
-   (t
-    (get-text-property (point) (magithub--object-text-prop type)))))
+  (let ((sec (magit-current-section)))
+    (if (eq type 'all)
+        (let (all)
+          (while sec
+            (when-let ((type (magithub-section-type sec)))
+              (push (cons type (magit-section-value sec))
+                    all))
+            (setq sec (magit-section-parent sec)))
+          all)
+      (while (and sec
+                  (not (let ((this-type (magithub-section-type sec)))
+                         (or
+                          ;; exact match
+                          (eq type this-type)
+                          ;; equivalency
+                          (thread-last magithub-thing-type-specializations
+                            (alist-get type)
+                            (memq this-type))))))
+        (setq sec (magit-section-parent sec)))
+      (and sec (magit-section-value sec)))))
 
 (defun magithub-verify-manage-labels (&optional interactive)
   "Verify the user has permission to manage labels.

@@ -62,10 +62,9 @@ Respects `magithub-label-color-replacement-alist'."
   "Propertize LABEL according to its color.
 The face used is dynamically calculated, but it always inherits
 from `magithub-label'.  Customize that to affect all labels."
-  (magithub--object-propertize 'label label
-    (propertize (alist-get 'name label)
-                'face (list :foreground (magithub-label--get-display-color label)
-                            :inherit 'magithub-label))))
+  (propertize (alist-get 'name label)
+              'face (list :foreground (magithub-label--get-display-color label)
+                          :inherit 'magithub-label)))
 
 (defun magithub-label-color-replace (label new-color)
   "For LABEL, define a NEW-COLOR to use in the buffer."
