@@ -23,12 +23,6 @@ prompted for again."
      prompt remaining-labels
      (lambda (l) (alist-get 'name l)))))
 
-(defface magithub-label-face '((t :box t))
-  "The inherited face used for labels.
-Feel free to customize any part of this face, but be aware that
-`:foreground' will be overridden by `magithub-label-propertize'."
-  :group 'magithub)
-
 (defun magithub-label-browse (label)
   "Visit LABEL with `browse-url'.
 Only GitHub.com is currently supported.  In the future, this will
@@ -59,11 +53,10 @@ Respects `magithub-label-color-replacement-alist'."
 (defun magithub-label-propertize (label)
   "Propertize LABEL according to its color.
 The face used is dynamically calculated, but it always inherits
-from `magithub-label-face'.  Customize that to affect all labels."
+from `magithub-label'.  Customize that to affect all labels."
   (magithub--object-propertize 'label label
     (propertize (alist-get 'name label)
                 'face (list :foreground (magithub-label--get-display-color label)
-                            :inherit 'magithub-label-face))))
 
 (defun magithub-color-completing-read (prompt)
   "Generic completing-read for a color."
@@ -76,6 +69,7 @@ from `magithub-label-face'.  Customize that to affect all labels."
       (lambda (colors)
         (format (format "%%-%ds  %%s" len) (car colors)
                 (propertize sample 'face `(:background ,(car colors)))))))))
+                            :inherit 'magithub-label))))
 
 (defun magithub-label-color-replace (label new-color)
   (interactive

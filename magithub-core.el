@@ -32,6 +32,8 @@
 (require 'bug-reference)
 (require 'cl-lib)
 
+(require 'magithub-faces)
+
 ;;; Debugging utilities
 (defvar magithub-debug-mode nil
   "Controls what kinds of debugging information shows.
