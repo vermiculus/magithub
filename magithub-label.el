@@ -25,13 +25,13 @@ prompted for again."
 
 (defun magithub-label-browse (label)
   "Visit LABEL with `browse-url'.
-Only GitHub.com is currently supported.  In the future, this will
-likely be replaced with a search on issues and pull requests with
-the label LABEL."
+In the future, this will likely be replaced with a search on
+issues and pull requests with the label LABEL."
   (unless (string= ghub-base-url "https://api.github.com")
     (user-error "Label browsing not yet supported on GitHub Enterprise; pull requests welcome!"))
   (let-alist (magithub-repo)
-    (browse-url (format "https://www.github.com/%s/%s/labels/%s"
+    (browse-url (format "%s/%s/%s/labels/%s"
+                        (ghubp-base-html-url)
                         .owner.login .name (alist-get 'name label)))))
 
 (defcustom magithub-label-color-replacement-alist nil
