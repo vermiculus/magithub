@@ -60,6 +60,7 @@ from `magithub-label'.  Customize that to affect all labels."
                             :inherit 'magithub-label))))
 
 (defun magithub-label-color-replace (label new-color)
+  "For LABEL, define a NEW-COLOR to use in the buffer."
   (interactive
    (list (magithub-thing-at-point 'label)
          (magithub-core-color-completing-read "Replace label color: ")))

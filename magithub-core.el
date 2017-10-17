@@ -249,6 +249,8 @@ however, that cache never expires."
 If FORM has not been cached or its EXPIRY-CLASS dictates the
 cache has expired, FORM will be re-evaluated.
 
+EXPIRY-CLASS: See `magithub-cache-class-refresh-seconds-alist'.
+
 MESSAGE may be specified for intensive functions.  We'll display
 this with `with-temp-message' while the form is evaluating.
 
