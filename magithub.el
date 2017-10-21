@@ -141,7 +141,7 @@ public and private, of which they're a part.  If there is only
 one candidate (i.e., no organizations), the single candidate will
 be returned without prompting the user."
   (let ((user (ghub--username))
-        (orgs (magithub-get-in-all '(login)
+        (orgs (ghubp-get-in-all '(login)
                 (magithub-orgs-list)))
         candidates)
     (setq candidates orgs)

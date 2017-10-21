@@ -32,6 +32,8 @@
 (require 'bug-reference)
 (require 'cl-lib)
 
+(require 'magithub-faces)
+
 ;;; Debugging utilities
 (defvar magithub-debug-mode nil
   "Controls what kinds of debugging information shows.
@@ -225,12 +227,19 @@ idle timer runs.")
 * SAVED-TIME is when the cached value was last computed.
 
 If `magithub-cache-class-refresh-seconds-alist' does not contain
-a expiry time for CLASS, DEFAULT is used."
-  (let ((a magithub-cache-class-refresh-seconds-alist))
-    (or (null a)
-        (< (or (alist-get class a)
-               (alist-get t a (or default 0)))
-           (time-to-seconds (time-since saved-time))))))
+a expiry time for CLASS, a class of t is checked, then
+DEFAULT (or 0) is used.  If the expiry time for CLASS is nil,
+however, that cache never expires."
+  (let* ((a magithub-cache-class-refresh-seconds-alist)
+         (expire-seconds (thread-last (or default 0)
+                           (alist-get t a)
+                           (alist-get class a))))
+    (cond
+     ((null a) t)
+     ((null expire-seconds) nil)
+     (t (thread-last (time-since saved-time)
+          (time-to-seconds)
+          (< expire-seconds))))))
 
 (cl-defun magithub-cache (expiry-class form
                                        &optional message
@@ -239,6 +248,8 @@ a expiry time for CLASS, DEFAULT is used."
 
 If FORM has not been cached or its EXPIRY-CLASS dictates the
 cache has expired, FORM will be re-evaluated.
+
+EXPIRY-CLASS: See `magithub-cache-class-refresh-seconds-alist'.
 
 MESSAGE may be specified for intensive functions.  We'll display
 this with `with-temp-message' while the form is evaluating.
@@ -541,6 +552,8 @@ See `magithub--api-offline-reason'."
     (setq magithub--api-offline-reason nil)
     (magithub-go-offline)))
 
+(defalias 'magithub-api-rate-limit #'ghubp-ratelimit)
+
 ;;; Repository parsing
 (defun magithub-github-repository-p ()
   "Non-nil if \"origin\" points to GitHub or a whitelisted domain."
@@ -629,7 +642,7 @@ If SPARSE-REPO is null, the current context is used."
     (or (magithub-cache :repo-demographics
           `(condition-case e
                (or (ghubp-get-repos-owner-repo ',sparse-repo)
-                   (and (not magithub--api-available-p)
+                   (and (not (magithub--api-available-p))
                         sparse-repo))
              (ghub-404
               ;; Repo may not exist; ignore 404
@@ -871,50 +884,43 @@ If a prop is nil, the entire element is used."
     (setq preds (cdr preds)))
   (null preds))
 
-(defconst magithub--object-text-prop-prefix
-  "magithub-object-"
-  "Prefix used for text properties.
-Used for `magithub-thing-at-point' and related functions.")
+(defun magithub-section-type (section)
+  (let* ((type (magit-section-type section))
+         (name (symbol-name type)))
+    (and (string-prefix-p "magithub-" name)
+         (intern (substring name 9)))))
 
-(defun magithub--object-text-prop (type)
-  "Returns a text property symbol for TYPE."
-  (intern (concat magithub--object-text-prop-prefix (symbol-name type))))
-(defun magithub--object-text-prop-inv (prop)
-  "Returns the type referred to by the text property symbol PROP."
-  (intern (substring (symbol-name prop) (length magithub--object-text-prop-prefix))))
-(defun magithub--object-text-prop-p (prop)
-  "Returns non-nil if PROP is a Magithub object text property."
-  (s-prefix-p magithub--object-text-prop-prefix (symbol-name prop)))
-
-(defun magithub--object-propertize (type object text)
-  "Gives a type-TYPE OBJECT property to TEXT."
-  (declare (indent 2))
-  (propertize text (magithub--object-text-prop type) object))
+(defvar magithub-thing-type-specializations
+  '((user assignee))
+  "Alist of general types to specific types.
+Specific types offer more relevant functionality to a given
+section, but are inconvenient for `magithub-thing-at-point'.
+This alist defines equivalencies such that a search for the
+general type will also return sections of a specialized type.")
 
 (defun magithub-thing-at-point (type)
   "Determine the thing of TYPE at point.
 If TYPE is `all', an alist of types to objects is returned."
-  (if (eq type 'all)
-      (let ((plist (text-properties-at (point))) alist)
-        (while plist
-          (when (magithub--object-text-prop-p (car plist))
-            (thread-first (car plist)
-              (magithub--object-text-prop-inv)
-              (cons (cadr plist))
-              (push alist)))
-          (setq plist (cddr plist)))
-        alist)
-    (get-text-property (point) (magithub--object-text-prop type))))
-
-(defun magithub-get-in-all (props object-list)
-  "Follow property-path PROPS in OBJECT-LIST.
-Returns a list of the property-values."
-  (declare (indent 1))
-  (if (or (null props) (not (consp props)))
-      object-list
-    (magithub-get-in-all (cdr props)
-      (mapcar (lambda (o) (alist-get (car props) o))
-              object-list))))
+  (let ((sec (magit-current-section)))
+    (if (eq type 'all)
+        (let (all)
+          (while sec
+            (when-let ((type (magithub-section-type sec)))
+              (push (cons type (magit-section-value sec))
+                    all))
+            (setq sec (magit-section-parent sec)))
+          all)
+      (while (and sec
+                  (not (let ((this-type (magithub-section-type sec)))
+                         (or
+                          ;; exact match
+                          (eq type this-type)
+                          ;; equivalency
+                          (thread-last magithub-thing-type-specializations
+                            (alist-get type)
+                            (memq this-type))))))
+        (setq sec (magit-section-parent sec)))
+      (and sec (magit-section-value sec)))))
 
 (defun magithub-verify-manage-labels (&optional interactive)
   "Verify the user has permission to manage labels.
@@ -1006,6 +1012,64 @@ BODY is the function implementation."
                                (magithub-issue-completing-read-pull-requests))))
         (let ((issue-or-pr pull-request))
           ,@body)))))
+
+(defun magithub-core-bucket (collection key-func &optional value-func)
+  "Bucket COLLECTION by ENTRY-FUNC and VALUE-FUNC.
+
+Each element of COLLECTION is passed through KEY-FUNC to
+determine its key in an alist.  If specified, the value is
+determined by VALUE-FUNC.
+
+Returns an alist of these keys to lists of values.
+
+See also `magithub-fnnor-each-bucket'."
+  (unless value-func
+    (setq value-func #'identity))
+  (let (bucketed)
+    (dolist (item collection)
+      (let ((entry (funcall key-func item))
+            (val (funcall value-func item)))
+        (if-let (bucket (assoc entry bucketed))
+            (push val (cdr bucket))
+          (push (cons entry (list val))
+                bucketed))))
+    bucketed))
+
+(defmacro magithub-for-each-bucket (buckets key values &rest body)
+  "Do things for each bucket in BUCKETS.
+
+For each bucket in BUCKETs, bind the key to KEY and its
+contents (a list) to VALUES and execute BODY.
+
+See also `magithub-core-bucket'."
+  (declare (indent 3) (debug t))
+  (let ((buckets-sym (cl-gensym)))
+    `(let ((,buckets-sym ,buckets))
+       (while ,buckets-sym
+         (-let (((,key . ,values) (pop ,buckets-sym)))
+           ,@body)))))
+
+(defun magithub-core-color-completing-read (prompt)
+  "Generic completing-read for a color."
+  (let* ((colors (list-colors-duplicates))
+         (len (apply #'max (mapcar (lambda (c) (length (car c))) colors)))
+         (sample (make-string 20 ?\ )))
+    (car
+     (magithub--completing-read
+      prompt colors
+      (lambda (colors)
+        (format (format "%%-%ds  %%s" len) (car colors)
+                (propertize sample 'face `(:background ,(car colors)))))))))
+
+(defun magit-section-show-level-5 ()
+  "Show surrounding sections up to fifth level."
+  (interactive)
+  (magit-section-show-level 5))
+
+(defun magit-section-show-level-5-all ()
+  "Show all sections up to fifth level."
+  (interactive)
+  (magit-section-show-level -5))
 
 (eval-after-load "magit"
   '(dolist (hook '(magit-revision-mode-hook git-commit-setup-hook))

@@ -121,7 +121,7 @@ properties are respected and prepopulate the form."
                     (let ((w (apply #'widget-create 'magithub-issue-labels
                                     (mapcar (lambda (label) `(item ,(alist-get 'name label)))
                                             (magithub-label-list)))))
-                      (widget-value-set w (magithub-get-in-all '(name) .issue.labels))
+                      (widget-value-set w (ghubp-get-in-all '(name) .issue.labels))
                       w))
               magithub-issue--widgets))
 
@@ -188,6 +188,15 @@ See also URL
                 (match-string 1 it))
            (magit-list-remote-branch-names remote))))
 
+(defun magithub-remote-branches-choose (prompt remote &optional default)
+  "Using PROMPT, choose a branch on REMOTE."
+  (magit-completing-read
+   (format "[%s] %s"
+           (magithub-repo-name (magithub-repo-from-remote remote))
+           prompt)
+   (magithub-remote-branches remote)
+   nil t nil nil default))
+
 (defun magithub-pull-request-new-arguments ()
   (let* ((this-repo   (magithub-read-repo "Fork's remote (this is you!)"))
          (this-repo-owner (let-alist this-repo .owner.login))
@@ -195,16 +204,12 @@ See also URL
          (this-remote (car (magithub-repo-remotes-for-repo this-repo)))
          (on-this-remote (string= (magit-get-push-remote) this-remote))
          (base-remote (car (magithub-repo-remotes-for-repo parent-repo)))
-         (head        (magit-completing-read
-                       (format "Head branch (on %s)" (magithub-repo-name this-repo))
-                       (magithub-remote-branches this-remote)
-                       nil t nil nil
+         (head        (magithub-remote-branches-choose
+                       "Head branch" this-remote
                        (when on-this-remote
                          (magit-get-current-branch))))
-         (base        (magit-completing-read
-                       (format "Base branch (on %s)" (magithub-repo-name parent-repo))
-                       (magithub-remote-branches base-remote)
-                       nil t nil nil
+         (base        (magithub-remote-branches-choose
+                       "Base branch" base-remote
                        (when on-this-remote
                          (magit-get-upstream-branch head)))))
     (let-alist parent-repo

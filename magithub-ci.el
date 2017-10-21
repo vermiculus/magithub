@@ -95,18 +95,6 @@ fork has multiple branches named BRANCH."
                            :source-repo (alist-get 'full_name (magithub-repo)))))))))))
 
 
-(defun magithub-api-rate-limit ()
-  "Get the `.rate' object of /rate_limit from response headers."
-  (when ghub-response-headers
-    (if (assoc-string "X-RateLimit-Limit" ghub-response-headers)
-        (let* ((headers (list "X-RateLimit-Limit" "X-RateLimit-Remaining" "X-RateLimit-Reset"))
-               (headers (mapcar (lambda (x) (string-to-number (ghubp-header x))) headers)))
-          `((limit     . ,(nth 0 headers))
-            (remaining . ,(nth 1 headers))
-            (reset     . ,(seconds-to-time
-                           (nth 2 headers)))))
-      'disabled)))
-
 (defun magithub-ci-status--get-default-ref (&optional branch)
   "The ref to use for CI status based on BRANCH.
 
@@ -142,36 +130,6 @@ remote counterpart."
     ("success" . ((display . "Success") (face . magithub-ci-success)))))
 (defconst magithub-ci-status--unknown
   '((face . magithub-ci-unknown)))
-
-(defface magithub-ci-no-status
-  '((((class color)) :inherit magit-dimmed))
-  "Face used when CI status is `no-status'."
-  :group 'magithub-faces)
-
-(defface magithub-ci-error
-  '((((class color)) :inherit magit-signature-untrusted))
-  "Face used when CI status is `error'."
-  :group 'magithub-faces)
-
-(defface magithub-ci-pending
-  '((((class color)) :inherit magit-signature-untrusted))
-  "Face used when CI status is `pending'."
-  :group 'magithub-faces)
-
-(defface magithub-ci-success
-  '((((class color)) :inherit magit-signature-good))
-  "Face used when CI status is `success'."
-  :group 'magithub-faces)
-
-(defface magithub-ci-failure
-  '((((class color)) :inherit magit-signature-bad))
-  "Face used when CI status is `'"
-  :group 'magithub-faces)
-
-(defface magithub-ci-unknown
-  '((((class color)) :inherit magit-signature-untrusted))
-  "Face used when CI status is `unknown'."
-  :group 'magithub-faces)
 
 (defun magithub-ci-visit (ref)
   "Jump to CI with `browse-url'."
