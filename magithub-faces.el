@@ -84,7 +84,7 @@ Feel free to customize any part of this face, but be aware that
   :group 'magithub)
 
 (defface magithub-notification-reason
-  '((((class color)) :inherit magit-keyword))
+  '((((class color)) :inherit magit-dimmed))
   "Face used for notification reasons."
   :group 'magithub-faces)
 

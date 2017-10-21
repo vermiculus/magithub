@@ -1059,6 +1059,16 @@ See also `magithub-core-bucket'."
         (format (format "%%-%ds  %%s" len) (car colors)
                 (propertize sample 'face `(:background ,(car colors)))))))))
 
+(defun magit-section-show-level-5 ()
+  "Show surrounding sections up to fifth level."
+  (interactive)
+  (magit-section-show-level 5))
+
+(defun magit-section-show-level-5-all ()
+  "Show all sections up to fifth level."
+  (interactive)
+  (magit-section-show-level -5))
+
 (eval-after-load "magit"
   '(dolist (hook '(magit-revision-mode-hook git-commit-setup-hook))
      (add-hook hook #'magithub-bug-reference-mode-on)))
