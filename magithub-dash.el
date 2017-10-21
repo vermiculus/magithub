@@ -26,7 +26,7 @@
 
 (require 'magit)
 (require 'magithub-core)
-(require 'magithub-notifications)
+(require 'magithub-notification)
 (require 'magithub-issue)
 
 (defun magithub-dashboard ()
