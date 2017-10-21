@@ -109,24 +109,23 @@ See also `magithub-dash-headers-hook'."
 
 (defun magithub-dash-insert-notifications (&optional notifications)
   "Insert NOTIFICATIONS into the buffer bucketed by repository."
-  (when-let ((all-notifications (or notifications (magithub-notifications t))))
-    (let ((unread (-filter #'magithub-notification-unread-p all-notifications)) bucketed)
-      (magit-insert-section (magithub-notifications all-notifications (null unread))
+  (when (setq notifications (or notifications (magithub-notifications t)))
+    (let ((bucketed (magithub-core-bucket notifications (apply-partially #'alist-get 'repository)))
+          (unread (-filter #'magithub-notification-unread-p notifications))
+          (hide (null unread)))
+      (magit-insert-section (magithub-notifications notifications hide)
         (magit-insert-heading
           (format "%s (%d unread of %d)"
                   (propertize "Notifications" 'face 'magit-section-heading)
                   (length unread)
-                  (length all-notifications)))
-        (setq bucketed (magithub-core-bucket
-                        all-notifications
-                        (lambda (notif)
-                          (let-alist notif .repository))))
-        (magithub-for-each-bucket bucketed repo notifications
-          (magit-insert-section (magithub-repo repo (null (-filter #'magithub-notification-unread-p notifications)))
+                  (length notifications)))
+        (magithub-for-each-bucket bucketed repo repo-notifications
+          (setq hide (null (-filter #'magithub-notification-unread-p repo-notifications)))
+          (magit-insert-section (magithub-repo repo hide)
             (magit-insert-heading
               (concat (propertize (magithub-repo-name repo) 'face 'magithub-repo)
                       (propertize "..." 'face 'magit-dimmed)))
-            (mapc #'magithub-notification-insert-section notifications)
+            (mapc #'magithub-notification-insert-section repo-notifications)
             (insert "\n")))
         (insert "\n")))))
 
