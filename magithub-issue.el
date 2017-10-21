@@ -217,7 +217,7 @@ Each function takes two arguments:
   "Insert the author of ISSUE using FMT."
   (let-alist issue
     (insert (format fmt "Author:"))
-    (magit-insert-section (magithub-user .user)
+    (magit-insert-section (magithub-user (magithub-user .user))
       (insert
        (propertize .user.login 'face 'magithub-user)))
     (insert "\n")))
@@ -243,7 +243,7 @@ Each function takes two arguments:
     (if .assignees
         (let ((assignees .assignees) assignee)
           (while (setq assignee (pop assignees))
-            (magit-insert-section (magithub-assignee assignee)
+            (magit-insert-section (magithub-assignee (magithub-user assignee))
               (insert (propertize (alist-get 'login assignee)
                                   'face 'magithub-user)))
             (when assignees
