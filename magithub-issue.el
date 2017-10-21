@@ -244,7 +244,7 @@ Each function takes two arguments:
         (let ((assignees .assignees) assignee)
           (while (setq assignee (pop assignees))
             (magit-insert-section (magithub-assignee assignee)
-              (insert (propertize (let-alist assignee .login)
+              (insert (propertize (alist-get 'login assignee)
                                   'face 'magithub-user)))
             (when assignees
               (insert " "))))
@@ -258,7 +258,6 @@ Each function takes two arguments:
     (let* ((label-string (format fmt "Preview:"))
            (label-len (length label-string))
            (prefix (make-string label-len ?\ ))
-           (lines 0)
            did-cut)
       (insert label-string
               (if (or (null .body) (string= .body ""))
