@@ -17,6 +17,7 @@ Magithub is a collection of interfaces to GitHub integrated into
 - Issue listing and creation
 - Labeling
 - Status checks
+- Notifications
 - ...
 
 as well as support for working offline.

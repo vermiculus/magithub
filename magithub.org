@@ -179,6 +179,10 @@ prompted to choose a check (e.g., Travis, Circle, CLA, ...).  Of course, if
 you expand the header to show the individual checks, =RET= on those will take
 you straight to that check.
 
+*** Your Dashboard
+Check out =M-x magithub-dashboard= to view your notifications and issues
+assigned to you
+
 ** Using a Proxy
 
 It's not uncommon to have repositories where the bug-tracker is in a
