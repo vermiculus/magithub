@@ -46,6 +46,7 @@
   "Return the currently-authenticated user."
   (magithub-cache :user-demographics
     '(ghubp-get-user)
+    :message
     "user object for the currently-authenticated user"
     :context nil))
 

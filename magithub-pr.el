@@ -32,6 +32,7 @@
   (magithub-cache :issues
     `(ghubp-get-repos-owner-repo-pulls-number
       ',repo '((number . ,number)))
+    :message
     (format "Getting pull request %s#%d..."
             (magithub-repo-name repo)
             number)))

@@ -14,6 +14,7 @@
   (magithub-cache :label
     '(ghubp-get-repos-owner-repo-labels
       (magithub-repo))
+    :message
     "Loading labels..."))
 
 (defun magithub-label-read-labels (prompt &optional default)

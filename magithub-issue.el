@@ -44,6 +44,7 @@ See also `ghubp-get-repos-owner-repo-issues'."
       (ghubp-get-repos-owner-repo-issues
        ',(magithub-repo)
        ,@params))
+    :message
     "Retrieving issue list..."))
 
 (defun magithub-issue--issue-is-pull-p (issue)
@@ -120,6 +121,7 @@ default."
   (magithub-cache :issues
     `(ghubp-get-repos-owner-repo-issues-number
       ',repo '((number . ,number)))
+    :message
     (format "Getting issue %s#%d..." (magithub-repo-name repo) number)))
 
 (defun magithub-issue-personal-note-file (issue-or-pr)
