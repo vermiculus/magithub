@@ -32,6 +32,7 @@
 (defvar magit-magithub-user-section-map
   (let ((m (make-sparse-keymap)))
     (define-key m [remap magit-visit-thing] #'magithub-user-visit)
+    (define-key m "m" #'magithub-user-email)
     m))
 
 (defvar magit-magithub-assignee-section-map
@@ -115,6 +116,18 @@
   (interactive (list (magit-section-value (magit-current-section))))
   (if user
       (browse-url (alist-get 'html_url user))
+    (user-error "No user here")))
+
+(defun magithub-user-email (user)
+  "Email USER."
+  (interactive (list (magit-section-value (magit-current-section))))
+  (if user
+      (let-alist user
+        (if .email
+            (if (y-or-n-p (format "Email @%s at \"%s\"? " .login .email))
+                (browse-url (format "mailto:%s" .email))
+              (user-error "Aborted"))
+          (user-error "No email found; target user may be private")))
     (user-error "No user here")))
 
 (provide 'magithub-user)
