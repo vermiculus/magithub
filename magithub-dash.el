@@ -151,12 +151,12 @@ will be used."
       (magithub-for-each-bucket user-repo-issue-buckets user repo-issue-buckets
         (magit-insert-section (magithub-user-repo-issues)
           (magit-insert-heading
-            (propertize (let-alist user .login) 'face 'magithub-user)
+            (propertize (alist-get 'login user) 'face 'magithub-user)
             (propertize "/..."                  'face 'magit-dimmed))
           (magithub-for-each-bucket repo-issue-buckets repo repo-issues
             (magit-insert-section (magithub-repo-issues)
               (magit-insert-heading
-                (format "%s:" (propertize (let-alist repo .name) 'face 'magithub-repo)))
+                (format "%s:" (propertize (alist-get 'name repo) 'face 'magithub-repo)))
               (magithub-issue-insert-sections repo-issues)
               (insert "\n")))))
       (insert "\n"))))
