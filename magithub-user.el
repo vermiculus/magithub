@@ -56,7 +56,7 @@
   (interactive (let ((issue (magit-section-parent-value (magit-current-section))))
                  (list issue
                        (magithub-user-choose-assignee
-                        "Choose a user: "
+                        "Choose an assignee: "
                         (magithub-issue-repo issue)))))
   (let-alist `((repo . ,(magithub-issue-repo issue))
                (issue . ,issue)
