@@ -1035,6 +1035,19 @@ See also `magithub-fnnor-each-bucket'."
                 bucketed))))
     bucketed))
 
+(defmacro magithub-core-bucket-multi (collection &rest buckets)
+  "Chain calls to `magithub-core-bucket'."
+  (declare (indent 1))
+  (let* ((fnelsym (cl-gensym))
+         (apply-to fnelsym)
+         form)
+    (while buckets
+      (setq form `(magithub-core-bucket
+                   ,(or form collection)
+                   (lambda (,fnelsym) (funcall ,(pop buckets) ,apply-to)))
+            apply-to `(car ,apply-to)))
+    form))
+
 (defmacro magithub-for-each-bucket (buckets key values &rest body)
   "Do things for each bucket in BUCKETS.
 
