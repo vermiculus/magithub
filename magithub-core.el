@@ -241,9 +241,7 @@ however, that cache never expires."
           (time-to-seconds)
           (< expire-seconds))))))
 
-(cl-defun magithub-cache (expiry-class form
-                                       &optional message
-                                       &key (context 'repo))
+(cl-defun magithub-cache (expiry-class form &key message (context 'repo))
   "The cached value for FORM if available.
 
 If FORM has not been cached or its EXPIRY-CLASS dictates the
@@ -255,8 +253,8 @@ MESSAGE may be specified for intensive functions.  We'll display
 this with `with-temp-message' while the form is evaluating.
 
 CONTEXT is a symbol specifying the cache context.  If it's the
-special symbol `repo', we'll use the context of the current
-repository."
+special symbol `repo' (the default), we'll use the context of the
+current repository."
   (declare (indent defun))
 
   (when (eq context 'repo)
@@ -647,7 +645,6 @@ If SPARSE-REPO is null, the current context is used."
              (ghub-404
               ;; Repo may not exist; ignore 404
               nil))
-          nil
           :context nil)
         (when (eq magithub-cache 'expire)
           (let ((magithub-cache nil))

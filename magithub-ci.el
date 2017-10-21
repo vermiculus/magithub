@@ -114,6 +114,7 @@ remote counterpart."
           (magithub-cache :ci-status
             `(ghubp-get-repos-owner-repo-commits-ref-status
               ',(magithub-repo) ,ref)
+            :message
             (format "Getting CI status for %s..."
                     (if (magit-branch-p ref) (format "branch `%s'" ref)
                       (substring ref 0 6))))

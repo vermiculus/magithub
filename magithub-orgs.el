@@ -31,7 +31,6 @@
   (magithub-cache :user-demographics
     `(progn ,(ghub--username)
             (ghubp-get-user-orgs))
-    nil
     :context nil))
 
 (provide 'magithub-orgs)
