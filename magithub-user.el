@@ -123,14 +123,18 @@
 (defun magithub-user-email (user)
   "Email USER."
   (interactive (list (magit-section-value (magit-current-section))))
-  (if user
-      (let-alist user
-        (if .email
-            (if (y-or-n-p (format "Email @%s at \"%s\"? " .login .email))
-                (browse-url (format "mailto:%s" .email))
-              (user-error "Aborted"))
-          (user-error "No email found; target user may be private")))
-    (user-error "No user here")))
+  (when (and (string= (alist-get 'login (magithub-user-me))
+                      (alist-get 'login user))
+             (not (y-or-n-p "Email yourself? ")))
+    (user-error "Aborted"))
+  (unless user
+    (user-error "No user here"))
+  (let-alist user
+    (unless .email
+      (user-error "No email found; target user may be private"))
+    (if (y-or-n-p (format "Email @%s at \"%s\"? " .login .email))
+        (browse-url (format "mailto:%s" .email))
+      (user-error "Aborted"))))
 
 (provide 'magithub-user)
 ;;; magithub-user.el ends here
