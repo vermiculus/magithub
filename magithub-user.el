@@ -51,7 +51,8 @@
 
 (defun magithub-user (user)
   "Return the full object for USER."
-  (ghubp-get-users-username user))
+  (magithub-cache :user-demographics
+    `(ghubp-get-users-username ',user)))
 
 (defun magithub-assignee-add (issue user)
   (interactive (let ((issue (magit-section-parent-value (magit-current-section))))
