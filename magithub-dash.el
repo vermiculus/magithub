@@ -29,6 +29,7 @@
 (require 'magithub-notification)
 (require 'magithub-issue)
 
+;;;###autoload
 (defun magithub-dashboard ()
   "View your GitHub dashboard."
   (interactive)

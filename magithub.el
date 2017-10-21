@@ -60,6 +60,7 @@
   "Popup console for dispatching other Magithub popups."
   'magithub-commands
   :actions '("Actions"
+             (?d "Dashboard" magithub-dashboard)
              (?H "Browse on GitHub" magithub-browse)
              (?c "Create" magithub-create)
              (?f "Fork" magithub-fork)
