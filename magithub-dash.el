@@ -137,7 +137,6 @@ If ISSUES is not defined, all issues assigned to the current user
 will be used."
   (setq issues (or issues (magithub-cache :issues
                             '(ghubp-get-issues)
-                            nil
                             :context nil))
         title (or title "Issues Assigned to Me"))
   (when-let ((user-repo-issue-buckets
