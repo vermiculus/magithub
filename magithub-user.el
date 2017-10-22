@@ -55,12 +55,17 @@
   (magithub-cache :user-demographics
     `(ghubp-get-users-username ',user)))
 
+(defun magithub-assignee--verify-manage ()
+  (unless (magithub-repo-admin-p)
+    (user-error "You don't have permission to manage assignees in this repository")))
+
 (defun magithub-assignee-add (issue user)
-  (interactive (let ((issue (magit-section-parent-value (magit-current-section))))
-                 (list issue
-                       (magithub-user-choose-assignee
-                        "Choose an assignee: "
-                        (magithub-issue-repo issue)))))
+  (interactive (when (magithub-assignee--verify-manage)
+                 (let ((issue (magit-section-parent-value (magit-current-section))))
+                   (list issue
+                         (magithub-user-choose-assignee
+                          "Choose an assignee: "
+                          (magithub-issue-repo issue))))))
   (let-alist `((repo . ,(magithub-issue-repo issue))
                (issue . ,issue)
                (user . ,user))
@@ -77,8 +82,9 @@
       (user-error "Aborted"))))
 
 (defun magithub-assignee-remove (issue user)
-  (interactive (list (magit-section-parent-value (magit-current-section))
-                     (magit-section-value (magit-current-section))))
+  (interactive (when (magithub-assignee--verify-manage)
+                 (list (magit-section-parent-value (magit-current-section))
+                       (magit-section-value (magit-current-section)))))
   (let-alist `((repo . ,(magithub-issue-repo issue))
                (issue . ,issue)
                (user . ,user))
