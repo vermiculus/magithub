@@ -115,8 +115,8 @@ created automatically."
   "Returns non-nil when Magithub is enabled for this repository."
   (let ((enabled (magit-get "magithub" "enabled")))
     (cond
-     ((string= enabled "yes") t)
-     ((string= enabled "no") nil)
+     ((member enabled '("yes" "true")) t)
+     ((member enabled '("no" "false")) nil)
      (t magithub-enabled-by-default))))
 
 (defun magithub-enabled-toggle ()
