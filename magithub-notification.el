@@ -128,9 +128,10 @@ argument.")
 (defun magithub-notification-detail-insert-expanded-reason (notification)
   "Insert NOTIFICATION's expanded reason.
 See also `magithub-notification-reasons'."
-  (let-alist notification
-    (insert (format "%-12s %s\n" "Reason:"
-                    (propertize (magithub-notification-reason notification t) 'face 'magit-dimmed)))))
+  (insert (format "%-12s %s\n" "Reason:"
+                  (propertize (or (magithub-notification-reason notification t)
+                                  "(no description available)")
+                              'face 'magit-dimmed))))
 
 (provide 'magithub-notification)
 ;;; magithub-notification.el ends here

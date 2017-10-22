@@ -279,7 +279,7 @@ Each function takes two arguments:
                         (setq did-cut t)))
                     (replace-regexp-in-string
                      "" "" (buffer-string))))
-                 (if did-cut "...")))
+                 (if did-cut (propertize "..." 'face 'magit-dimmed))))
               "\n"))))
 
 (defun magithub-issue-detail-insert-labels (issue fmt)
