@@ -87,7 +87,11 @@ get a more verbose explanation."
   (if notification
       (let ((url (let-alist notification (or .subject.latest_comment_url
                                              .subject.url))))
+        (unless url
+          (user-error "No target URL found"))
         (let-alist (magithub-cache :noexpire `(ghubp-follow-get ,url))
+          (unless .html_url
+            (user-error "No target URL found"))
           (browse-url .html_url)))
     (user-error "No notification here")))
 
