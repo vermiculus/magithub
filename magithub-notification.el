@@ -85,7 +85,8 @@ get a more verbose explanation."
   "Visits the URL pointed to by NOTIFICATION."
   (interactive (list (magit-section-value (magit-current-section))))
   (if notification
-      (let ((url (let-alist notification .subject.latest_comment_url)))
+      (let ((url (let-alist notification (or .subject.latest_comment_url
+                                             .subject.url))))
         (let-alist (magithub-cache :noexpire `(ghubp-follow-get ,url))
           (browse-url .html_url)))
     (user-error "No notification here")))
