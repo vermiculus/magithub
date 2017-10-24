@@ -260,6 +260,7 @@ Each function takes two arguments:
     (let* ((label-string (format fmt "Preview:"))
            (label-len (length label-string))
            (prefix (make-string label-len ?\ ))
+           (max-lines 4)
            did-cut)
       (insert label-string
               (if (or (null .body) (string= .body ""))
@@ -267,11 +268,18 @@ Each function takes two arguments:
                 (concat
                  (s-trim
                   (with-temp-buffer
-                    (insert (s-word-wrap (- fill-column label-len) .body))
+                    (insert (s-word-wrap
+                             (- fill-column label-len)
+                             ;; Truncate string to longest possible wrapped
+                             ;; string before wrapping it (peformance)
+                             (substring .body
+                                        0
+                                        (min (* fill-column max-lines)
+                                             (length .body)))))
                     (goto-char 0)
                     (let ((lines 0))
                       (while (and (not (eobp))
-                                  (< (setq lines (1+ lines)) 4))
+                                  (< (setq lines (1+ lines)) max-lines))
                         (insert prefix)
                         (forward-line))
                       (unless (= (point) (point-max))
