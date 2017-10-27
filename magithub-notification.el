@@ -29,6 +29,11 @@
     (define-key m [remap magit-visit-thing] #'magithub-notification-visit)
     m))
 
+(defvar magit-magithub-notifications-section-map
+  (let ((m (make-sparse-keymap)))
+    (define-key m [remap magit-refresh] #'magithub-notification-refresh)
+    m))
+
 (defun magithub-notifications (&optional include-read only-participating since before)
   "Get notifications for the currently-authenticated user.
 If INCLUDE-READ is non-nil, read notifications are returned as
@@ -53,6 +58,10 @@ See also Info node `(elisp)Time of Day'."
       `(ghubp-unpaginate
         (ghubp-get-notifications ,@(apply #'append args))))))
 
+(defun magithub-notification-refresh ()
+  (interactive)
+  (magithub-cache-without-cache :notification
+    (magit-refresh)))
 
 (defun magithub-notification-unread-p (notification)
   "Non-nil if NOTIFICATION has been read."

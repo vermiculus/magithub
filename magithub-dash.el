@@ -182,7 +182,7 @@ will be used."
             (propertize (alist-get 'login user) 'face 'magithub-user)
             (propertize "/..."                  'face 'magit-dimmed))
           (magithub-for-each-bucket repo-issue-buckets repo repo-issues
-            (magit-insert-section (magithub-repo-issues)
+            (magit-insert-section (magithub-repo-issues repo)
               (magit-insert-heading
                 (format "%s:" (propertize (alist-get 'name repo) 'face 'magithub-repo)))
               (magithub-issue-insert-sections repo-issues)

@@ -293,6 +293,10 @@ Each function takes two arguments:
              (propertize "..." 'face 'magit-dimmed))))
         "\n")))))
 
+(defvar magit-magithub-repo-issues-section-map
+  (let ((m (make-sparse-keymap)))
+    (define-key m [remap magit-visit-thing] #'magithub-repo-visit-issues)
+    m))
 
 (defun magithub-issue-detail-insert-labels (issue fmt)
   "Insert ISSUE's labels using FMT."

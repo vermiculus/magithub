@@ -86,10 +86,7 @@
   (interactive)
   (unless (magithub-github-repository-p)
     (user-error "Not a GitHub repository"))
-  (let-alist (magithub-repo)
-    (unless (stringp .html_url)
-      (user-error "No GitHub repository to visit"))
-    (browse-url .html_url)))
+  (magithub-repo-visit (magithub-repo)))
 
 (defvar magithub-after-create-messages
   '("Don't be shy!"

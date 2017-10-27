@@ -533,6 +533,25 @@ If SPARSE-REPO is null, the current context is used."
             (magithub-repo sparse-repo))))))
 
 ;;; Repository utilities
+(defvar magit-magithub-repo-section-map
+  (let ((m (make-sparse-keymap)))
+    (define-key m [remap magit-visit-thing] #'magithub-repo-visit)
+    m))
+
+(defun magithub-repo-visit (repo)
+  "Visit REPO on GitHub."
+  (interactive (list (magit-section-value (magit-current-section))))
+  (if-let ((url (alist-get 'html_url repo)))
+      (browse-url url)
+    (user-error "No URL for repo")))
+
+(defun magithub-repo-visit-issues (repo)
+  "Visit REPO's issues on GitHub."
+  (interactive (list (magit-section-value (magit-current-section))))
+  (if-let ((url (alist-get 'html_url repo)))
+      (browse-url (format "%s/issues" url))
+    (user-error "No URL for repo")))
+
 (defun magithub-repo-name (repo)
   "Return the full name of REPO.
 If the `full_name' object is present, use that.  Otherwise,
