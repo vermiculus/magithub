@@ -190,25 +190,16 @@ we'll hit the API) if Magithub is offline."
       (magit-insert-section (magithub-ci-status
                              `(magithub-ci-ref . ,ref)
                              'collapsed)
-        (insert (format "%-10s" "Status: "))
-        (insert (magithub-ci--status-header checks))
+        (insert (format "%-10s%s %s %s%s" "Status:"
+                        (magithub-ci--status-header checks)
+                        (propertize "on ref" 'face 'magit-dimmed)
+                        (propertize ref 'face 'magit-refname)
+                        (propertize "..." 'face 'magit-dimmed)))
         (magit-insert-heading)
-        (magit-insert-section (magithub-ci-status-meta
-                               `(magithub-ci-ref . ,ref))
-          (insert
-           (propertize
-            (concat
-             indent
-             (propertize (concat "Checks for ref: "
-                                 (propertize ref 'face 'magit-branch-local))
-                         'face 'magit-dimmed))
-            'keymap magit-magithub-ci-status-section-map))
-          (magit-insert-heading))
         (dolist (status (alist-get 'statuses checks))
           (magit-insert-section (magithub-ci-status
                                  `(magithub-ci-url . ,(alist-get 'target_url status)))
-            (insert indent)
-            (insert (magithub-ci--status-propertized status))
+            (insert indent (magithub-ci--status-propertized status "*"))
             (magit-insert-heading)))))))
 
 (defun magithub-ci--status-header (checks)
@@ -231,12 +222,14 @@ we'll hit the API) if Magithub is offline."
   (or (cdr (assoc-string status-string magithub-ci-status-alist))
       magithub-ci-status--unknown))
 
-(defun magithub-ci--status-propertized (status)
+(defun magithub-ci--status-propertized (status &optional override-status-text)
   (let ((status-string (alist-get 'state status))
         (description   (alist-get 'description status))
         (context       (alist-get 'context status)))
     (let-alist (magithub-ci--status-spec status-string)
-      (concat (propertize (or .display status-string)
+      (concat (propertize (or override-status-text
+                              .display
+                              status-string)
                           'face .face)
               (when description
                 (format " %s" description))
