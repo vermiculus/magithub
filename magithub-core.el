@@ -220,10 +220,14 @@ current repository."
                     (and magithub-cache-ignore-class
                          (eq magithub-cache-ignore-class class))))
         no-value-sym cached-value)
+
     (unless recalc
       (setq no-value-sym (cl-gensym)
             cached-value (gethash entry magithub-cache--cache no-value-sym)
             recalc (eq cached-value no-value-sym)))
+
+    (when (eq magithub-cache t)
+      (setq recalc nil))
 
     (let ((v (if recalc
                  (prog1 (puthash entry
