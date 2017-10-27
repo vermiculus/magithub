@@ -70,6 +70,7 @@
              (?O "Toggle online/offline" magithub-toggle-online)
              "Meta"
              (?` "Toggle Magithub-Status integration" magithub-enabled-toggle)
+             (?~ "Toggle CI status header" magithub-ci-toggle)
              (?& "Request a feature or report a bug" magithub--meta-new-issue)
              (?h "Ask for help on Gitter" magithub--meta-help)))
 

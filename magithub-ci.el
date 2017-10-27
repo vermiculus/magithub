@@ -63,9 +63,6 @@ If magithub.ci.enabled is not set, CI is considered to be enabled."
   (when (derived-mode-p 'magit-status-mode)
     (magit-refresh)))
 
-(magit-define-popup-action 'magithub-dispatch-popup
-  ?~ "Toggle CI for this repository" #'magithub-ci-toggle ?`)
-
 (defun magithub-pull-request-pr->branch (pull-request)
   "Does not handle cases where the local branch has been renamed."
   (let-alist pull-request .head.ref))
