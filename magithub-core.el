@@ -535,7 +535,8 @@ If SPARSE-REPO is null, the current context is used."
              (ghub-404 nil)))
         (when (eq magithub-cache 'when-present)
           (let ((magithub-cache nil))
-            (magithub-repo sparse-repo))))))
+            (magithub-repo sparse-repo)))
+        sparse-repo)))
 
 ;;; Repository utilities
 (defvar magit-magithub-repo-section-map
