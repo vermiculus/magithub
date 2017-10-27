@@ -68,38 +68,43 @@ If magithub.ci.enabled is not set, CI is considered to be enabled."
   (let-alist pull-request .head.ref))
 
 (define-error 'magithub-error-ambiguous-branch "Ambiguous Branch" 'magithub-error)
-(defun magithub-pull-request-branch->pr (branch)
+(defun magithub-pull-request-branch->pr--ghub (branch)
   "This is a hueristic; it's not 100% accurate.
-It may fail if branch.BRANCH.magithub.sourcePR is unset AND the
-fork has multiple branches named BRANCH."
-  (if-let ((source (magit-get "branch" branch "magithub" "sourcePR")))
-      (magithub-pull-request (magithub-repo) (string-to-number source))
-    ;; PR not recorded; search for it
-    (let ((repo (magithub-repo-from-remote (magit-get-push-remote branch))))
-      (when (alist-get 'fork repo)
-        (let* ((guess-head (format "%s:%s" (magit-get-push-remote branch) branch))
-               (prs (ghubp-get-repos-owner-repo-pulls (magithub-repo) :head guess-head)))
-          (pcase (length prs)
-            (0)    ; this branch does not seem to correspond to any PR
-            (1 (magit-set (number-to-string (alist-get 'number (car prs)))
-                          "branch" branch "magithub" "sourcePR")
-               (car prs))
-            (_ ;; todo: currently unhandled
-             (signal 'magithub-error-ambiguous-branch
-                     (list :prs prs
-                           :guess-head guess-head
-                           :repo-from-remote (alist-get 'full_name repo)
-                           :source-repo (alist-get 'full_name (magithub-repo)))))))))))
+It may fail if the fork has multiple branches named BRANCH."
+  (let ((repo (magithub-repo-from-remote (magit-get-push-remote branch))))
+    (when (alist-get 'fork repo)
+      (let* ((guess-head (format "%s:%s" (magit-get-push-remote branch) branch))
+             (prs (ghubp-get-repos-owner-repo-pulls (magithub-repo) :head guess-head)))
+        (pcase (length prs)
+          (0)    ; this branch does not seem to correspond to any PR
+          (1 (magit-set (number-to-string (alist-get 'number (car prs)))
+                        "branch" branch "magithub" "sourcePR")
+             (car prs))
+          (_ ;; todo: currently unhandled
+           (signal 'magithub-error-ambiguous-branch
+                   (list :prs prs
+                         :guess-head guess-head
+                         :repo-from-remote (alist-get 'full_name repo)
+                         :source-repo (alist-get 'full_name (magithub-repo))))))))))
 
+(defun magithub-pull-request-branch->pr--gitconfig (branch)
+  "Gets a pull request object from branch.BRANCH.magithub.sourcePR"
+  (when-let ((source (magit-get "branch" branch "magithub" "sourcePR")))
+    (magithub-pull-request (magithub-repo) (string-to-number source))))
 
 (defun magithub-ci-status--get-default-ref (&optional branch)
   "The ref to use for CI status based on BRANCH.
 
 Handles cases where the local branch's name is different than its
 remote counterpart."
-  (if-let ((pull-request (magithub-pull-request-branch->pr (magit-get-current-branch))))
+  (setq branch (or branch (magit-get-current-branch)))
+  (if-let ((pull-request
+            (or (magithub-pull-request-branch->pr--gitconfig branch)
+                (and (not (magithub-offline-p))
+                     (with-demoted-errors "Error: %S"
+                       (magithub-pull-request-branch->pr--ghub branch))))))
       (let-alist pull-request .head.sha)
-    (when-let ((push-branch (magit-get-push-branch (or branch (magit-get-current-branch)))))
+    (when-let ((push-branch (magit-get-push-branch branch)))
       (cdr (magit-split-branch-name push-branch)))))
 
 (defun magithub-ci-status (ref)
