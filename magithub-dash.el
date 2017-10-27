@@ -29,6 +29,24 @@
 (require 'magithub-notification)
 (require 'magithub-issue)
 
+(defcustom magithub-dashboard-show-unread-notifications nil
+  "Show unread notifications in the dashboard."
+  :type 'boolean
+  :group 'magithub)
+
+(magit-define-popup magithub-dashboard-popup
+  "Popup console for the dashboard."
+  'magithub-commands
+  :actions '("Notifications"
+             (?r "Toggle showing unread notifications"
+                 magithub-dashboard-show-unread-notifications-toggle)))
+
+(defun magithub-dashboard-show-unread-notifications-toggle ()
+  (interactive)
+  (setq magithub-dashboard-show-unread-notifications
+        (not magithub-dashboard-show-unread-notifications))
+  (magit-refresh-buffer))
+
 ;;;###autoload
 (defun magithub-dashboard ()
   "View your GitHub dashboard."
@@ -53,6 +71,7 @@ Runs `magithub-dash-sections-hook'."
   (let ((m (copy-keymap magit-mode-map)))
     (define-key m (kbd "5") #'magit-section-show-level-5)
     (define-key m (kbd "M-5") #'magit-section-show-level-5-all)
+    (define-key m (kbd ";") #'magithub-dashboard-popup)
     m)
   "Keymap for `magihtub-dash-mode'.")
 
@@ -107,25 +126,39 @@ See also `magithub-dash-headers-hook'."
 
 (defun magithub-dash-insert-notifications (&optional notifications)
   "Insert NOTIFICATIONS into the buffer bucketed by repository."
-  (when (setq notifications (or notifications (magithub-notifications t)))
-    (let ((bucketed (magithub-core-bucket notifications (apply-partially #'alist-get 'repository)))
-          (unread (-filter #'magithub-notification-unread-p notifications))
-          (hide (null unread)))
-      (magit-insert-section (magithub-notifications notifications hide)
-        (magit-insert-heading
-          (format "%s (%d unread of %d)"
-                  (propertize "Notifications" 'face 'magit-section-heading)
-                  (length unread)
-                  (length notifications)))
-        (magithub-for-each-bucket bucketed repo repo-notifications
-          (setq hide (null (-filter #'magithub-notification-unread-p repo-notifications)))
-          (magit-insert-section (magithub-repo repo hide)
+  (when (magithub--api-available-p)
+    (setq notifications (or notifications (magithub-notifications
+                                           magithub-dashboard-show-unread-notifications)))
+    (if notifications
+        (let* ((bucketed (magithub-core-bucket notifications (apply-partially #'alist-get 'repository)))
+               (unread (-filter #'magithub-notification-unread-p notifications))
+               (hide (null unread)))
+          (magit-insert-section (magithub-notifications notifications hide)
             (magit-insert-heading
-              (concat (propertize (magithub-repo-name repo) 'face 'magithub-repo)
-                      (propertize "..." 'face 'magit-dimmed)))
-            (mapc #'magithub-notification-insert-section repo-notifications)
+              (if magithub-dashboard-show-unread-notifications
+                  (format "%s (%d unread of %d)"
+                          (propertize "Notifications" 'face 'magit-section-heading)
+                          (length unread)
+                          (length notifications))
+                (format "%s (%d)"
+                        (propertize "Notifications" 'face 'magit-section-heading)
+                        (length notifications))))
+            (magithub-for-each-bucket bucketed repo repo-notifications
+              (setq hide (null (-filter #'magithub-notification-unread-p repo-notifications)))
+              (magit-insert-section (magithub-repo repo hide)
+                (magit-insert-heading
+                  (concat (propertize (magithub-repo-name repo) 'face 'magithub-repo)
+                          (propertize "..." 'face 'magit-dimmed)))
+                (mapc #'magithub-notification-insert-section repo-notifications)
+                (insert "\n")))
             (insert "\n")))
-        (insert "\n")))))
+      (magit-insert-section (magithub-notifications)
+        (magit-insert-heading "Notifications")
+        (insert (propertize (if magithub-dashboard-show-unread-notifications
+                                "No notifications"
+                              "No unread notifications")
+                            'face 'magit-dimmed)
+                "\n\n")))))
 
 (defun magithub-dash-insert-issues (&optional issues title)
   "Insert ISSUES bucketed by their source repository.
