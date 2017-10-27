@@ -47,8 +47,7 @@
   (magithub-cache :user-demographics
     '(ghubp-get-user)
     :message
-    "user object for the currently-authenticated user"
-    :context nil))
+    "user object for the currently-authenticated user"))
 
 (defun magithub-user (user)
   "Return the full object for USER."

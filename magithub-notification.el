@@ -49,8 +49,10 @@ See also Info node `(elisp)Time of Day'."
       (push `(:since ,(format-time-string "%FT%T%z" since)) args))
     (when before
       (push `(:before ,(format-time-string "%FT%T%z" before)) args))
-    (ghubp-unpaginate
-     (apply #'ghubp-get-notifications (apply #'append args)))))
+    (magithub-cache :notification
+      `(ghubp-unpaginate
+        (ghubp-get-notifications ,@(apply #'append args))))))
+
 
 (defun magithub-notification-unread-p (notification)
   "Non-nil if NOTIFICATION has been read."
@@ -89,7 +91,8 @@ get a more verbose explanation."
                                              .subject.url))))
         (unless url
           (user-error "No target URL found"))
-        (let-alist (magithub-cache :noexpire `(ghubp-follow-get ,url))
+        (let-alist (magithub-cache :notification
+                     `(ghubp-follow-get ,url))
           (unless .html_url
             (user-error "No target URL found"))
           (browse-url .html_url)))

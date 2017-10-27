@@ -53,7 +53,6 @@ Runs `magithub-dash-sections-hook'."
   (let ((m (copy-keymap magit-mode-map)))
     (define-key m (kbd "5") #'magit-section-show-level-5)
     (define-key m (kbd "M-5") #'magit-section-show-level-5-all)
-    (define-key m (kbd "g") #'magithub-refresh)
     (dolist (s '("u" "U" "s" "S"))
       (define-key m (kbd s) nil))
     m)
@@ -135,9 +134,7 @@ See also `magithub-dash-headers-hook'."
 
 If ISSUES is not defined, all issues assigned to the current user
 will be used."
-  (setq issues (or issues (magithub-cache :issues
-                            '(ghubp-get-issues)
-                            :context nil))
+  (setq issues (or issues (magithub-cache :issues '(ghubp-get-issues)))
         title (or title "Issues Assigned to Me"))
   (when-let ((user-repo-issue-buckets
               ;; bucket by user then by repo

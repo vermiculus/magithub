@@ -37,11 +37,12 @@
 This tests everything from checking API availability to
 determining that we're in a GitHub repository to actually making
 cached API calls."
-  (should (magithub-source--sparse-repo))
-  (should (magithub-repo))
-  (should (let ((magithub-cache nil)) ; force API call
-            (magithub-repo)))
-  (should (let ((magithub-cache t))   ; force cache read
-            (magithub-repo))))
+  (let ((magithub--api-last-checked (current-time)))
+    (should (magithub-source--sparse-repo))
+    (should (magithub-repo))
+    (should (let ((magithub-cache t))     ; force API call
+              (magithub-repo)))
+    (should (let ((magithub-cache nil))   ; force cache read
+              (magithub-repo)))))
 
 ;;; magithub-test.el ends here

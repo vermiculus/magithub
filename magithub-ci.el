@@ -244,10 +244,8 @@ we'll hit the API) if Magithub is offline."
                 (propertize (format " %s" context)
                             'face 'magit-dimmed))))))
 
-(magithub--deftoggle magithub-toggle-ci-status-header
-  magit-status-headers-hook #'magithub-maybe-insert-ci-status-header "the CI header")
-
-(magithub-toggle-ci-status-header)
+(magithub--deftoggle magithub-toggle-ci-status-header "CI header" t
+  magit-status-headers-hook #'magithub-maybe-insert-ci-status-header)
 
 (provide 'magithub-ci)
 ;;; magithub-ci.el ends here

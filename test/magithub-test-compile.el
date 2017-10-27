@@ -9,7 +9,8 @@
                  (format "magithub-test-compile--%s"
                          (file-name-base f)))
                ()
-             (should (let ((byte-compile-error-on-warn t))
+             (should (let ((byte-compile-error-on-warn t)
+                           (inhibit-magit-refresh t))
                        (byte-compile-file ,f)))))
         files)))
 

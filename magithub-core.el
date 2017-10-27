@@ -84,8 +84,7 @@ If it does not exist, it will be created."
   "Enable Magithub for this repository."
   (interactive)
   (magit-set "true" "magithub" "enabled")
-  (when (derived-mode-p 'magit-status-mode)
-    (magit-refresh))
+  (magit-refresh)
   (message "Magithub is now enabled in this repository"))
 
 (defmacro magithub-in-data-dir (&rest forms)
@@ -102,8 +101,7 @@ created automatically."
   "Disable Magithub for this repository."
   (interactive)
   (magit-set "false" "magithub" "enabled")
-  (when (derived-mode-p 'magit-status-mode)
-    (magit-refresh))
+  (magit-refresh)
   (message "Magithub is now disabled in this repository"))
 
 (defcustom magithub-enabled-by-default t
@@ -127,7 +125,7 @@ created automatically."
     (magithub-enable)))
 
 ;;; Caching; Online/Offline mode
-(defvar magithub-cache 'expire
+(defvar magithub-cache 'when-present
   "Determines how the cache behaves.
 
 If nil, the cache will not be used to read cached data.  It will
@@ -136,67 +134,44 @@ still be updated and written to disk.
 If t, *only* the cache will be used.  This constitutes Magithub's
 'offline' mode.
 
-If `expire', the cache will expire with the passage of time
-according to `magithub-cache-class-refresh-seconds-alist'.  This
-is the default behavior.
+If `when-present', we'll use the cached value when present, but
+we'll make a request if there's no appropriate value.  (Note that
+an API response of nil is considered an appropriate value.)")
 
-A fourth value, `hard-refresh-offline', counts towards both
-`magithub-offline-p' and `magithub-cache--always-p'.  It should
-only be let-bound by `magithub-refresh'.")
+(defun magithub-offline-p ()
+  "Non-nil if Magithub is not supposed to make API requests."
+  (eq magithub-cache t))
 
-(defun magithub-go-offline (&optional no-refresh)
-  "Take Magithub offline.
-No API requests will be made; all information displayed will be
-retrieved from the cache."
-  (interactive)
-  (setq magithub-cache t)
-  (unless no-refresh
-    (when (derived-mode-p 'magit-status-mode)
-      (magit-refresh)))
-  (message "Magithub is now offline everywhere"))
-
-(defun magithub-go-online ()
-  "Take Magithub online.
-API requests will be made to refresh expired caches."
-  (interactive)
-  (setq magithub-cache 'expire)
-  (when (derived-mode-p 'magit-status-mode)
-    (magit-refresh))
-  (message "Magithub is now online everywhere"))
-
-(defun magithub-toggle-offline ()
-  "See `magithub-go-online' and `magithub-go-offline'.
-Uses `magithub-offline-p' as the check."
+(defun magithub-toggle-online ()
+  "Toggle online status.
+Runs either `magithub-go-online' or `magithub-go-offline'
+depending on `magithub-offline-p'."
   (interactive)
   (if (magithub-offline-p)
       (magithub-go-online)
     (magithub-go-offline)))
 
-(defun magithub-offline-p ()
-  "Non-nil if Magithub is not supposed to make API requests."
-  (memq magithub-cache '(t hard-refresh-offline)))
+(defun magithub-go-online ()
+  "Take Magithub online.
+API requests will be made to refresh expired caches."
+  (interactive)
+  (setq magithub-cache 'when-present)
+  (magit-refresh)
+  (message "Magithub is now online everywhere"))
 
-(defun magithub-cache--always-eval-p ()
-  "True if the cache should always re-evaluate its source forms."
-  (memq magithub-cache '(nil hard-refresh-offline)))
-(defun magithub-cache--never-eval-p  ()
-  "True if the cache should never re-evaluate its source forms."
-  (eq magithub-cache t))
+(defun magithub-go-offline ()
+  "Take Magithub offline.
+No API requests will be made; all information displayed will be
+retrieved from the cache."
+  (interactive)
+  (setq magithub-cache t)
+  (magit-refresh)
+  (message "Magithub is now offline everywhere"))
 
 (defcustom magithub-cache-file "cache"
   "Use this file for Magithub's persistent cache."
   :group 'magithub
   :type 'file)
-
-(defvar magithub-cache-class-refresh-seconds-alist
-  '((:issues . 600)
-    (:ci-status . 15)
-    (:repo-demographics . 86400)
-    (:user-demographics . 86400)
-    (:label . 3600))
-  "The maximum age of each type of information.
-The number of seconds that have to pass for GitHub data to be
-considered outdated.")
 
 (defvar magithub-cache--cache
   (or (ignore-errors
@@ -220,34 +195,17 @@ idle timer runs.")
       (insert-file-contents magithub-cache-file)
       (read (current-buffer)))))
 
-(defun magithub-cache--expired-p (saved-time class &optional default)
-  "True if a cached value has expired.
+(defvar magithub-cache-ignore-class nil
+  "Class to ignore in `magithub-cache'.
+See also `magithub-cache-without-cache'.")
 
-* CLASS is the class of the cached value.
-* SAVED-TIME is when the cached value was last computed.
-
-If `magithub-cache-class-refresh-seconds-alist' does not contain
-a expiry time for CLASS, a class of t is checked, then
-DEFAULT (or 0) is used.  If the expiry time for CLASS is nil,
-however, that cache never expires."
-  (let* ((a magithub-cache-class-refresh-seconds-alist)
-         (expire-seconds (thread-last (or default 0)
-                           (alist-get t a)
-                           (alist-get class a))))
-    (cond
-     ((null a) t)
-     ((null expire-seconds) nil)
-     (t (thread-last (time-since saved-time)
-          (time-to-seconds)
-          (< expire-seconds))))))
-
-(cl-defun magithub-cache (expiry-class form &key message (context 'repo))
+(cl-defun magithub-cache (class form &key message)
   "The cached value for FORM if available.
 
-If FORM has not been cached or its EXPIRY-CLASS dictates the
-cache has expired, FORM will be re-evaluated.
+If FORM has not been cached or its CLASS dictates the cache has
+expired, FORM will be re-evaluated.
 
-EXPIRY-CLASS: See `magithub-cache-class-refresh-seconds-alist'.
+CLASS: The kind of data this is; see `magithub-cache-ignore-class'.
 
 MESSAGE may be specified for intensive functions.  We'll display
 this with `with-temp-message' while the form is evaluating.
@@ -256,31 +214,25 @@ CONTEXT is a symbol specifying the cache context.  If it's the
 special symbol `repo' (the default), we'll use the context of the
 current repository."
   (declare (indent defun))
+  (let ((entry (list (ghubp-get-context) class form))
+        (recalc (or (null magithub-cache)
+                    (and magithub-cache-ignore-class
+                         (eq magithub-cache-ignore-class class))))
+        no-value-sym cached-value)
+    (unless recalc
+      (setq no-value-sym (cl-gensym)
+            cached-value (gethash entry magithub-cache--cache no-value-sym)
+            recalc (eq cached-value no-value-sym)))
 
-  (when (eq context 'repo)
-    (setq context (magithub-source--sparse-repo)))
-
-  (let* ((not-there (cl-gensym))
-         (cached-value (gethash (cons context form) magithub-cache--cache not-there)))
-    (cdr
-     (if (and (not (magithub-cache--never-eval-p))
-              (or (magithub-cache--always-eval-p)
-                  (eq cached-value not-there)
-                  (magithub-cache--expired-p (car cached-value) expiry-class)))
-         (let ((current-time (current-time))
-               (v (with-temp-message
-                      (if (magithub-debug-mode 'forms)
-                          (let ((print-quoted t))
-                            (format "%s -- %S" message form))
-                        message)
-                    (eval form))))
-           (prog1 (puthash (cons context form) (cons current-time v) magithub-cache--cache)
-             (setq magithub-cache--needs-write t)
-             (run-with-idle-timer 10 nil #'magithub-cache-write-to-disk)))
-       (unless (eq not-there cached-value)
-         (when (magithub-debug-mode 'forms)
-           (magithub-debug-message "using cached value for form: %S" form))
-         cached-value)))))
+    (let ((v (if recalc
+                 (prog1 (puthash entry
+                                 (with-temp-message message
+                                   (eval form))
+                                 magithub-cache--cache)
+                   (setq magithub-cache--needs-write t)
+                   (run-with-idle-timer 600 nil #'magithub-cache-write-to-disk))
+               cached-value)))
+      v)))
 
 (defun magithub-cache-invalidate ()
   "Clear the cache from memory."
@@ -289,35 +241,8 @@ current repository."
      (remhash k magithub-cache--cache))
    magithub-cache--cache))
 
-(defun magithub-cache-invalidate--confirm ()
-  "True if the user really does want to invalidate the cache."
-  (yes-or-no-p
-   (concat (if (magithub--api-available-p 'ignore-offline-mode) "Are"
-             "GitHub doesn't seem to be responding; are")
-           " you sure you want to refresh all GitHub data? ")))
-
-(defun magithub-refresh (&optional force)
-  "Refresh all GitHub data.  With a prefix argument, invalidate cache."
-  (interactive "P")
-  (setq force (and force t))           ; force `force' to be a boolean
-  (unless (or (not force)
-              (magithub--api-available-p 'ignore-offline-mode))
-    (user-error "Aborting"))
-  (let* ((offline (magithub-offline-p))
-         (magithub-cache (cond
-                          ((and force offline) 'hard-refresh-offline)
-                          (force nil)
-                          (offline t)
-                          (t 'expire))))
-    (when force
-      (unless (magithub-cache-invalidate--confirm)
-        (user-error "Aborting"))
-      (magithub-cache-invalidate))
-    (magit-refresh)))
-
 (defun magithub-maybe-report-offline-mode ()
   "Conditionally inserts the OFFLINE header.
-
 If this is a Magithub-enabled repository and we're offline, we
 insert a header notifying the user that all data shown is cached.
 To aid in determining if the cache should be refreshed, we report
@@ -326,34 +251,16 @@ the age of the oldest cached information."
              (magithub-offline-p))
     (magit-insert-section (magithub)
       (insert
-       (propertize
-        (concat
-         "Magithub is "
-         (propertize
-          "OFFLINE"
-          'face 'font-lock-warning-face
-          'help-echo "test")
-         "; you are seeing cached data"
-         (if-let ((oldest (car (magithub-cache--age
-                                (magithub-repo)))))
-             (format "%s (%s ago)"
-                     (format-time-string " as old as %D %r" oldest)
-                     (magithub-cache--time-out
-                      (time-subtract (current-time) oldest)))
-           ;; if the above is nil, that means the cache is empty.  If
-           ;; the cache is empty and we're about to print the
-           ;; magit-status buffer, we're probably going to have cached
-           ;; information by the time we finish showing the buffer
-           ;; (after which the user will see this message).
-           " (nothing cached)"))
-        'help-echo
-        (substitute-command-keys
-         "To update a section anyway, place point on the section and use C-u \\[magit-refresh]"))))))
+       (format "Magithub: %s; use %s to refresh GitHub content\n"
+               (propertize "OFFLINE" 'face 'magit-head)
+               (propertize
+                (substitute-command-keys "C-u \\[magit-refresh]")
+                'face 'magit-header-line-key))))))
 
-;;; If we're offline, display this at the top
 (eval-after-load "magit"
   '(add-hook 'magit-status-headers-hook
-             #'magithub-maybe-report-offline-mode))
+             #'magithub-maybe-report-offline-mode
+             'append))
 
 (defun magithub-cache--time-out (time)
   "Convert TIME into a human-readable string.
@@ -368,31 +275,10 @@ Returns \"Xd Xh Xm Xs\" (counting from zero)"
       (t            "%-jd %-Hh %-Mm %-Ss"))
      time)))
 
-(defun magithub-cache--age (&optional repo)
-  "Retrieve the oldest and newest times present in the cache.
-
-If REPO is non-nil, it is a repo object (as returned by
-`magithub-source--repo' and results will be filtered to that
-repository context."
-  (setq repo (magithub--repo-simplify repo))
-  (let (times)
-    (maphash (lambda (k v) (when (or (null repo) (equal (car k) repo))
-                             (push (car v) times)))
-             magithub-cache--cache)
-    (when times
-      (setq times (sort times #'time-less-p))
-      (cons (car times) (car (last times))))))
-
 (defun magithub-cache-write-to-disk ()
   "Write the cache to disk.
 The cache is writtin to `magithub-cache-file' in
 `magithub-data-dir'"
-  (maphash
-   (lambda (k v)
-     (when (magithub-cache--expired-p
-            (car v) :pre-write-trim 86400)
-       (remhash k magithub-cache--cache)))
-   magithub-cache--cache)
   (if (active-minibuffer-window)
       (run-with-idle-timer 10 nil #'magithub-cache-write-to-disk) ;defer
     (when magithub-cache--needs-write
@@ -406,9 +292,7 @@ The cache is writtin to `magithub-cache-file' in
 (defmacro magithub-cache-without-cache (class &rest body)
   "For CLASS, execute BODY without using CLASS's caches."
   (declare (indent 1))
-  `(let ((magithub-cache-class-refresh-seconds-alist
-          (cons (cons ,class 0)
-                magithub-cache-class-refresh-seconds-alist)))
+  `(let ((magithub-cache-ignore-class ,class))
      ,@body))
 
 (add-hook 'kill-emacs-hook
@@ -467,11 +351,11 @@ Could be one of several strings:
 and possibly others as error handlers are added to
 `magithub--api-available-p'.")
 
-(defun magithub--api-available-p (&optional ignore-offline-mode)
+(defun magithub--api-available-p ()
   "Non-nil if the API is available.
 Pings the API a maximum of once every ten seconds."
   (when (magithub-enabled-p)
-    (unless (and (not ignore-offline-mode) (magithub-offline-p))
+    (unless (magithub-offline-p)
       (magithub-debug-message "checking if the API is available")
       (prog1
           (when
@@ -536,7 +420,7 @@ Pings the API a maximum of once every ten seconds."
 
                 api-status)))
         (when magithub--api-offline-reason
-          (magithub-go-offline 'no-refresh)
+          (magithub-go-offline)
           (run-with-idle-timer 2 nil #'magithub--api-offline-reason))))))
 
 (defun magithub--api-offline-reason ()
@@ -642,11 +526,9 @@ If SPARSE-REPO is null, the current context is used."
                (or (ghubp-get-repos-owner-repo ',sparse-repo)
                    (and (not (magithub--api-available-p))
                         sparse-repo))
-             (ghub-404
-              ;; Repo may not exist; ignore 404
-              nil))
-          :context nil)
-        (when (eq magithub-cache 'expire)
+             ;; Repo may not exist; ignore 404
+             (ghub-404 nil)))
+        (when (eq magithub-cache 'when-present)
           (let ((magithub-cache nil))
             (magithub-repo sparse-repo))))))
 
@@ -825,25 +707,27 @@ allowed."
   "Non-nil if Magithub should do its thing."
   (and (magithub-enabled-p)
        (magithub-github-repository-p)
-       (or (and (magithub-offline-p)
-                ;; if we're offline, source-repo will get the cached value
-                (magithub-repo))
-           (and (magithub--api-available-p)
-                ;; otherwise, we only want to query the API if it's available
-                (magithub-repo)))))
+       (and (or (magithub-offline-p)
+                (magithub--api-available-p))
+            ;; if we're offline, source-repo will get the cached value
+            ;; otherwise, we only want to query the API if it's available
+            (magithub-repo))))
 
-(defmacro magithub--deftoggle (name hook func s)
+(defmacro magithub--deftoggle (name doc on-by-default hook func)
   "Define a section-toggle command."
   (declare (indent defun))
-  `(defun ,name ()
-     ,(concat "Toggle the " s " section.")
-     (interactive)
-     (if (memq ,func ,hook)
-         (remove-hook ',hook ,func)
-       (add-hook ',hook ,func t))
-     (when (derived-mode-p 'magit-status-mode)
-       (magit-refresh))
-     (memq ,func ,hook)))
+  `(prog1 (defun ,name ()
+            ,(concat "Toggle the " doc " section.")
+            (interactive)
+            (if (memq ,func ,hook)
+                (remove-hook ',hook ,func)
+              (add-hook ',hook ,func t))
+            (magit-refresh)
+            (memq ,func ,hook))
+     ,(when on-by-default
+        `(eval-after-load "magit"
+           '(let ((inhibit-magit-refresh t))
+              (add-hook ',hook ,func t))))))
 
 (defun magithub--zip-case (p e)
   "Get an appropriate value for element E given property/function P."
@@ -1081,10 +965,20 @@ See also `magithub-core-bucket'."
   (interactive)
   (magit-section-show-level -5))
 
+(defun magithub-refresh ()
+  (interactive (user-error "This is no longer an interactive function; use C-u magit-refresh instead :-)"))
+  (when (and current-prefix-arg
+             (magithub-usable-p)
+             (y-or-n-p "Refresh GitHub data? ")
+             (or (magithub--api-available-p)
+                 (y-or-n-p "GitHub doesn't seem to responding, are you sure? ")))
+    (magithub-cache-invalidate)))
+
 (eval-after-load "magit"
-  '(dolist (hook '(magit-revision-mode-hook git-commit-setup-hook))
-     (add-hook hook #'magithub-bug-reference-mode-on)))
+  '(progn
+     (dolist (hook '(magit-revision-mode-hook git-commit-setup-hook))
+       (add-hook hook #'magithub-bug-reference-mode-on))
+     (add-hook 'magit-pre-refresh-hook #'magithub-refresh)))
 
 (provide 'magithub-core)
-
 ;;; magithub-core.el ends here

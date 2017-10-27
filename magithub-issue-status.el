@@ -18,7 +18,6 @@ we'll hit the API) if Magithub is offline."
 (defvar magit-magithub-issue-section-map
   (let ((map (make-sparse-keymap)))
     (define-key map [remap magit-visit-thing] #'magithub-issue-browse)
-    (define-key map [remap magit-refresh] #'magithub-issue-refresh)
     (define-key map "L" #'magithub-issue-add-labels)
     (define-key map "N" #'magithub-issue-personal-note)
     map)
@@ -27,14 +26,12 @@ we'll hit the API) if Magithub is offline."
 (defvar magit-magithub-issue-list-section-map
   (let ((map (make-sparse-keymap)))
     (define-key map [remap magit-visit-thing] #'magithub-issue-browse)
-    (define-key map [remap magit-refresh] #'magithub-issue-refresh)
     map)
   "Keymap for `magithub-issue-list' sections.")
 
 (defvar magit-magithub-pull-request-section-map
   (let ((map (make-sparse-keymap)))
     (define-key map [remap magit-visit-thing] #'magithub-pull-browse)
-    (define-key map [remap magit-refresh] #'magithub-issue-refresh)
     (define-key map "L" #'magithub-issue-add-labels)
     map)
   "Keymap for `magithub-pull-request' sections.")
@@ -42,7 +39,6 @@ we'll hit the API) if Magithub is offline."
 (defvar magit-magithub-pull-request-list-section-map
   (let ((map (make-sparse-keymap)))
     (define-key map [remap magit-visit-thing] #'magithub-pull-browse)
-    (define-key map [remap magit-refresh] #'magithub-issue-refresh)
     map)
   "Keymap for `magithub-pull-request-list' sections.")
 
@@ -150,12 +146,9 @@ Interactively, this finds the issue at point."
   (when (magithub-usable-p)
     (number-to-string (length (magithub-pull-requests)))))
 
-(magithub--deftoggle magithub-toggle-issues
-  magit-status-sections-hook #'magithub-issue--insert-issue-section "issues")
-(magithub--deftoggle magithub-toggle-pull-requests
-  magit-status-sections-hook #'magithub-issue--insert-pr-section "pull requests")
-
-(magithub-toggle-pull-requests)
-(magithub-toggle-issues)
+(magithub--deftoggle magithub-toggle-issues "issues" t
+  magit-status-sections-hook #'magithub-issue--insert-issue-section)
+(magithub--deftoggle magithub-toggle-pull-requests "pull requests" t
+  magit-status-sections-hook #'magithub-issue--insert-pr-section)
 
 (provide 'magithub-issue-status)
