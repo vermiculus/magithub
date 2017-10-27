@@ -42,9 +42,11 @@ response."
                                (car v)
                                (magithub-mock-data-crunch (cdr v))))))
     (if (file-readable-p filename)
-        (with-temp-buffer
-          (insert-file-contents-literally filename)
-          (read (current-buffer)))
+        (prog1 (with-temp-buffer
+                 (insert-file-contents-literally filename)
+                 (read (current-buffer)))
+          (message "Found %S" filename))
+      (message "Did not find %S" filename)
       (if (and (not (getenv "AUTOTEST"))
                (y-or-n-p (format "Request not mocked; mock now?")))
           (progn
