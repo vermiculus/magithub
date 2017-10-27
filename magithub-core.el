@@ -189,7 +189,7 @@ When non-nil, the cache will be written to disk next time the
 idle timer runs.")
 
 (defun magithub-cache-read-from-disk ()
-  "Returns the cache as read from disk `magithub-cache-file'."
+  "Returns the cache as read from `magithub-cache-file'."
   (when (file-readable-p magithub-cache-file)
     (with-temp-buffer
       (insert-file-contents magithub-cache-file)
@@ -287,7 +287,7 @@ The cache is writtin to `magithub-cache-file' in
          (insert (prin1-to-string magithub-cache--cache))
          (write-file magithub-cache-file)))
       (setq magithub-cache--needs-write nil)
-      (magithub-debug-message "wrote cache to disk"))))
+      (magithub-debug-message "wrote cache to disk: %S" (expand-file-name magithub-cache-file magithub-dir)))))
 
 (defmacro magithub-cache-without-cache (class &rest body)
   "For CLASS, execute BODY without using CLASS's caches."
