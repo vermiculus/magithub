@@ -53,8 +53,6 @@ Runs `magithub-dash-sections-hook'."
   (let ((m (copy-keymap magit-mode-map)))
     (define-key m (kbd "5") #'magit-section-show-level-5)
     (define-key m (kbd "M-5") #'magit-section-show-level-5-all)
-    (dolist (s '("u" "U" "s" "S"))
-      (define-key m (kbd s) nil))
     m)
   "Keymap for `magihtub-dash-mode'.")
 
