@@ -280,7 +280,7 @@ Returns \"Xd Xh Xm Xs\" (counting from zero)"
 The cache is writtin to `magithub-cache-file' in
 `magithub-data-dir'"
   (if (active-minibuffer-window)
-      (run-with-idle-timer 10 nil #'magithub-cache-write-to-disk) ;defer
+      (run-with-idle-timer 600 nil #'magithub-cache-write-to-disk) ;defer
     (when magithub-cache--needs-write
       (magithub-in-data-dir
        (with-temp-buffer
