@@ -173,16 +173,17 @@ remote counterpart."
     map)
   "Keymap for `magithub-ci-status' header section.")
 
-(defun magithub-ci-refresh (even-if-offline)
+(defun magithub-ci-refresh ()
   "Invalidate the CI cache and refresh the buffer.
 If EVEN-IF-OFFLINE is non-nil, we'll still refresh (that is,
 we'll hit the API) if Magithub is offline."
-  (interactive "P")
-  (let ((magithub-cache (if even-if-offline nil magithub-cache)))
-    (magithub-cache-without-cache :ci-status
-      (ignore (magithub-ci-status (magithub-ci-status--get-default-ref)))))
-  (when (derived-mode-p 'magit-status-mode)
-    (magit-refresh)))
+  (interactive)
+  (when (and (magithub-offline-p)
+             (not (y-or-n-p "Magithub offline; refresh anyway? ")))
+    (user-error "Aborted"))
+  (magithub-cache-without-cache :ci-status
+    (magithub-ci-status (magithub-ci-status--get-default-ref)))
+  (magit-refresh))
 
 (defun magithub-insert-ci-status-header ()
   (let* ((ref (magithub-ci-status--get-default-ref))
