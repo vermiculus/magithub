@@ -55,8 +55,8 @@
     `(ghubp-get-users-username ',user)))
 
 (defun magithub-assignee--verify-manage ()
-  (unless (magithub-repo-admin-p)
-    (user-error "You don't have permission to manage assignees in this repository")))
+  (or (magithub-repo-admin-p)
+      (user-error "You don't have permission to manage assignees in this repository")))
 
 (defun magithub-assignee-add (issue user)
   (interactive (when (magithub-assignee--verify-manage)

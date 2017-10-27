@@ -541,6 +541,12 @@ concatenate `.owner.login' and `.name' with `/'."
     (if .full_name .full_name
       (concat .owner.login "/" .name))))
 
+(defun magithub-repo-admin-p (&optional repo)
+  "Non-nil if the currently-authenticated user can manage REPO.
+REPO defaults to the current repository."
+  (let-alist (magithub-repo repo)
+    .permissions.admin))
+
 (defun magithub--repo-simplify (repo)
   "Convert full repository object REPO to a sparse repository object."
   (let (login name)
