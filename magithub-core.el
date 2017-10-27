@@ -190,10 +190,11 @@ idle timer runs.")
 
 (defun magithub-cache-read-from-disk ()
   "Returns the cache as read from `magithub-cache-file'."
-  (when (file-readable-p magithub-cache-file)
-    (with-temp-buffer
-      (insert-file-contents magithub-cache-file)
-      (read (current-buffer)))))
+  (magithub-in-data-dir
+   (when (file-readable-p magithub-cache-file)
+     (with-temp-buffer
+       (insert-file-contents magithub-cache-file)
+       (read (current-buffer))))))
 
 (defvar magithub-cache-ignore-class nil
   "Class to ignore in `magithub-cache'.
@@ -278,7 +279,7 @@ Returns \"Xd Xh Xm Xs\" (counting from zero)"
 (defun magithub-cache-write-to-disk ()
   "Write the cache to disk.
 The cache is writtin to `magithub-cache-file' in
-`magithub-data-dir'"
+`magithub-dir'"
   (if (active-minibuffer-window)
       (run-with-idle-timer 600 nil #'magithub-cache-write-to-disk) ;defer
     (when magithub-cache--needs-write
