@@ -146,9 +146,9 @@ Interactively, this finds the issue at point."
   (when (magithub-usable-p)
     (number-to-string (length (magithub-pull-requests)))))
 
-(magithub--deftoggle magithub-toggle-issues "issues" t
-  magit-status-sections-hook #'magithub-issue--insert-issue-section)
 (magithub--deftoggle magithub-toggle-pull-requests "pull requests" t
   magit-status-sections-hook #'magithub-issue--insert-pr-section)
+(magithub--deftoggle magithub-toggle-issues "issues" t
+  magit-status-sections-hook #'magithub-issue--insert-issue-section)
 
 (provide 'magithub-issue-status)
