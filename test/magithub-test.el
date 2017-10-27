@@ -8,6 +8,7 @@
 
 (require 'ert)
 (require 'magithub-core)
+(require 'ghub+)
 
 (setq ghubp-request-override-function
       #'magithub-mock-ghub-request)
