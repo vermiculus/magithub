@@ -360,6 +360,7 @@ and possibly others as error handlers are added to
 (defun magithub--api-available-p ()
   "Non-nil if the API is available.
 Pings the API a maximum of once every ten seconds."
+  (setq magithub--api-offline-reason nil)
   (when (magithub-enabled-p)
     (magithub-debug-message "checking if the API is available")
     (prog1 (when
