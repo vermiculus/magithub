@@ -126,39 +126,38 @@ See also `magithub-dash-headers-hook'."
 
 (defun magithub-dash-insert-notifications (&optional notifications)
   "Insert NOTIFICATIONS into the buffer bucketed by repository."
-  (when (magithub--api-available-p)
-    (setq notifications (or notifications (magithub-notifications
-                                           magithub-dashboard-show-unread-notifications)))
-    (if notifications
-        (let* ((bucketed (magithub-core-bucket notifications (apply-partially #'alist-get 'repository)))
-               (unread (-filter #'magithub-notification-unread-p notifications))
-               (hide (null unread)))
-          (magit-insert-section (magithub-notifications notifications hide)
-            (magit-insert-heading
-              (if magithub-dashboard-show-unread-notifications
-                  (format "%s (%d unread of %d)"
-                          (propertize "Notifications" 'face 'magit-section-heading)
-                          (length unread)
-                          (length notifications))
-                (format "%s (%d)"
+  (setq notifications (or notifications (magithub-notifications
+                                         magithub-dashboard-show-unread-notifications)))
+  (if notifications
+      (let* ((bucketed (magithub-core-bucket notifications (apply-partially #'alist-get 'repository)))
+             (unread (-filter #'magithub-notification-unread-p notifications))
+             (hide (null unread)))
+        (magit-insert-section (magithub-notifications notifications hide)
+          (magit-insert-heading
+            (if magithub-dashboard-show-unread-notifications
+                (format "%s (%d unread of %d)"
                         (propertize "Notifications" 'face 'magit-section-heading)
-                        (length notifications))))
-            (magithub-for-each-bucket bucketed repo repo-notifications
-              (setq hide (null (-filter #'magithub-notification-unread-p repo-notifications)))
-              (magit-insert-section (magithub-repo repo hide)
-                (magit-insert-heading
-                  (concat (propertize (magithub-repo-name repo) 'face 'magithub-repo)
-                          (propertize "..." 'face 'magit-dimmed)))
-                (mapc #'magithub-notification-insert-section repo-notifications)
-                (insert "\n")))
-            (insert "\n")))
-      (magit-insert-section (magithub-notifications)
-        (magit-insert-heading "Notifications")
-        (insert (propertize (if magithub-dashboard-show-unread-notifications
-                                "No notifications"
-                              "No unread notifications")
-                            'face 'magit-dimmed)
-                "\n\n")))))
+                        (length unread)
+                        (length notifications))
+              (format "%s (%d)"
+                      (propertize "Notifications" 'face 'magit-section-heading)
+                      (length notifications))))
+          (magithub-for-each-bucket bucketed repo repo-notifications
+            (setq hide (null (-filter #'magithub-notification-unread-p repo-notifications)))
+            (magit-insert-section (magithub-repo repo hide)
+              (magit-insert-heading
+                (concat (propertize (magithub-repo-name repo) 'face 'magithub-repo)
+                        (propertize "..." 'face 'magit-dimmed)))
+              (mapc #'magithub-notification-insert-section repo-notifications)
+              (insert "\n")))
+          (insert "\n")))
+    (magit-insert-section (magithub-notifications)
+      (magit-insert-heading "Notifications")
+      (insert (propertize (if magithub-dashboard-show-unread-notifications
+                              "No notifications"
+                            "No unread notifications")
+                          'face 'magit-dimmed)
+              "\n\n"))))
 
 (defun magithub-dash-insert-issues (&optional issues title)
   "Insert ISSUES bucketed by their source repository.
