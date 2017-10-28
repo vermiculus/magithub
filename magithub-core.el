@@ -737,7 +737,7 @@ allowed."
   "Non-nil if Magithub should do its thing."
   (and (magithub-enabled-p)
        (magithub-github-repository-p)
-       (magithub-repo)))
+       (magithub-source--sparse-repo)))
 
 (defmacro magithub--deftoggle (name doc on-by-default hook func)
   "Define a section-toggle command."
