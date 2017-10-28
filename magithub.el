@@ -46,6 +46,7 @@
 (require 'cl-lib)
 (require 's)
 (require 'dash)
+(require 'ghub+)
 
 (require 'magithub-core)
 (require 'magithub-issue)
