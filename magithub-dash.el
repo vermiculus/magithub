@@ -84,7 +84,8 @@ Runs `magithub-dash-sections-hook'."
 
 (defvar magithub-dash-headers-hook
   '(magithub-dash-insert-user-name-header
-    magithub-dash-insert-ratelimit-header)
+    magithub-dash-insert-ratelimit-header
+    magithub-maybe-report-offline-mode)
   "Headers inserted by `magithub-dash-insert-headers'.")
 
 (defun magithub-dash-insert-headers ()
