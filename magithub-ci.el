@@ -181,7 +181,7 @@ If EVEN-IF-OFFLINE is non-nil, we'll still refresh (that is,
 we'll hit the API) if Magithub is offline."
   (interactive)
   (when (and (magithub-offline-p)
-             (not (y-or-n-p "Magithub offline; refresh anyway? ")))
+             (not (y-or-n-p "Magithub offline; refresh statuses anyway? ")))
     (user-error "Aborted"))
   (magithub-cache-without-cache :ci-status
     (magithub-ci-status (magithub-ci-status--get-default-ref)))
