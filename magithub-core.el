@@ -1006,10 +1006,10 @@ See also `magithub-core-bucket'."
       ;; so we do the next best thing: as soon as emacs is idle (i.e.,
       ;; magit is done refreshing), we reset magithub-cache back to
       ;; its old value.
-      (setq magithub-cache  (pcase old-cache-value
-                              (`t 'refreshing-when-offline)
-                              (`nil nil)
-                              (`when-present 'refreshing)))
+      (setq magithub-cache (pcase old-cache-value
+                             (`t 'refreshing-when-offline)
+                             (`nil nil)
+                             (`when-present 'refreshing)))
       (run-with-idle-timer 0 nil (lambda ()
                                    (setq magithub-cache old-cache-value)
                                    (message "(magithub): buffer data refreshed"))))))
