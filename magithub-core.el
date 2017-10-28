@@ -998,7 +998,6 @@ See also `magithub-core-bucket'."
              (y-or-n-p "Refresh GitHub data? ")
              (or (magithub--api-available-p)
                  (y-or-n-p "GitHub doesn't seem to responding, are you sure? ")))
-    (magithub-cache-invalidate)
     (let ((old-cache-value magithub-cache))
       ;; `magithub-refresh' is part of `magit-pre-refresh-hook' and
       ;; our requests are made as part of `magit-refresh'.  There's no
