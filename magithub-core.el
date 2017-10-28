@@ -200,7 +200,7 @@ idle timer runs.")
   "Class to ignore in `magithub-cache'.
 See also `magithub-cache-without-cache'.")
 
-(cl-defun magithub-cache (class form &key message)
+(cl-defun magithub-cache (class form &key message after-update)
   "The cached value for FORM if available.
 
 If FORM has not been cached or its CLASS dictates the cache has
@@ -211,9 +211,7 @@ CLASS: The kind of data this is; see `magithub-cache-ignore-class'.
 MESSAGE may be specified for intensive functions.  We'll display
 this with `with-temp-message' while the form is evaluating.
 
-CONTEXT is a symbol specifying the cache context.  If it's the
-special symbol `repo' (the default), we'll use the context of the
-current repository."
+AFTER-UPDATE is a function to run after the cache is updated."
   (declare (indent defun))
   (let ((entry (list (ghubp-get-context) class form))
         (recalc (or (null magithub-cache)
@@ -224,20 +222,20 @@ current repository."
     (unless recalc
       (setq no-value-sym (cl-gensym)
             cached-value (gethash entry magithub-cache--cache no-value-sym)
-            recalc (eq cached-value no-value-sym)))
+            recalc (and (not (eq magithub-cache t))
+                        (eq cached-value no-value-sym))
+            cached-value (if (eq cached-value no-value-sym) nil cached-value)))
 
-    (when (eq magithub-cache t)
-      (setq recalc nil))
-
-    (let ((v (if recalc
-                 (prog1 (puthash entry
-                                 (with-temp-message message
-                                   (eval form))
-                                 magithub-cache--cache)
-                   (setq magithub-cache--needs-write t)
-                   (run-with-idle-timer 600 nil #'magithub-cache-write-to-disk))
-               cached-value)))
-      v)))
+    (or (and recalc
+             (prog1 (puthash entry
+                             (with-temp-message message
+                               (eval form))
+                             magithub-cache--cache)
+               (setq magithub-cache--needs-write t)
+               (run-with-idle-timer 600 nil #'magithub-cache-write-to-disk)
+               (when (functionp after-update)
+                 (funcall after-update))))
+        cached-value)))
 
 (defun magithub-cache-invalidate ()
   "Clear the cache from memory."

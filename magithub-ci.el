@@ -119,7 +119,9 @@ remote counterpart."
             :message
             (format "Getting CI status for %s..."
                     (if (magit-branch-p ref) (format "branch `%s'" ref)
-                      (substring ref 0 6))))
+                      (substring ref 0 6)))
+            :after-update
+            (lambda () (message "(magithub): new statuses retrieved")))
         (ghub-404
          '((state . "error")
            (total_count . 0)
