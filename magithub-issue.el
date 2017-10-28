@@ -126,10 +126,11 @@ default."
 
 (defun magithub-issue-personal-note-file (issue-or-pr)
   "Return an absolute filename appropriate for ISSUE-OR-PR."
-  (let-alist issue-or-pr
+  (let-alist `((repo . ,(magithub-repo))
+               (issue . ,issue-or-pr))
     (expand-file-name
-     (format "magithub/notes/%d.org" .number)
-     (magit-git-dir))))
+     (format "%s/%s/notes/%d.org" .repo.owner.login .repo.name .issue.number)
+     magithub-dir)))
 
 (magithub-interactive-issue-or-pr personal-note (issue-or-pr)
   "Write a personal note about %s.
