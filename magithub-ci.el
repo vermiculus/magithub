@@ -209,10 +209,11 @@ we'll hit the API) if Magithub is offline."
 
 (defun magithub-ci--status-header (checks)
   (pcase (alist-get 'total_count checks)
-    (0 (format "%s  (%s)"
+    (0 (format "%s  %s"
                (magithub-ci--status-propertized checks)
                (or (alist-get 'magithub-message checks)
-                   "it seems checks have not yet begun")))
+                   (propertize "it seems checks have not yet begun"
+                               'face 'magit-dimmed))))
     (1 (magithub-ci--status-propertized checks))
     (_ (let* ((overall-status (alist-get 'state checks))
               (status-spec (magithub-ci--status-spec overall-status))
