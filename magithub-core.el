@@ -252,16 +252,24 @@ To aid in determining if the cache should be refreshed, we report
 the age of the oldest cached information."
   (when (and (magithub-usable-p)
              (magithub-offline-p))
-    (magit-insert-section (magithub)
+    (magit-insert-section (magithub nil t)
       (insert
-       (format "Magithub: %s; use %s to refresh GitHub content or %s to go back online\n"
+       (format "Magithub: %s; use %s to refresh GitHub content or %s to go back online%s\n"
                (propertize "OFFLINE" 'face 'magit-head)
                (propertize
                 (substitute-command-keys "C-u \\[magit-refresh]")
                 'face 'magit-header-line-key)
                (propertize
                 (substitute-command-keys "\\[magithub-dispatch-popup] O")
-                'face 'magit-header-line-key))))))
+                'face 'magit-header-line-key)
+               (propertize "..." 'face 'magit-dimmed)))
+      (magit-insert-heading)
+      (let* ((msg "When Magithub is offline, no API requests are ever made automatically.  Even when online, cached API responses never expire, so they must be updated manually with %s.")
+             (msg (s-word-wrap (- fill-column 10) msg))
+             (msg (format msg (propertize
+                               (substitute-command-keys "C-u \\[magit-refresh]")
+                               'face 'magit-header-line-key))))
+        (insert (format "%s\n" (replace-regexp-in-string (rx bol) (make-string 10 ?\ ) msg)))))))
 
 (eval-after-load "magit"
   '(add-hook 'magit-status-headers-hook
