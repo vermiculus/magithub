@@ -254,7 +254,7 @@ the age of the oldest cached information."
              (magithub-offline-p))
     (magit-insert-section (magithub)
       (insert
-       (format "Magithub: %s; use %s to refresh GitHub content or %s to go online\n"
+       (format "Magithub: %s; use %s to refresh GitHub content or %s to go back online\n"
                (propertize "OFFLINE" 'face 'magit-head)
                (propertize
                 (substitute-command-keys "C-u \\[magit-refresh]")
