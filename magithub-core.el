@@ -1009,7 +1009,9 @@ See also `magithub-core-bucket'."
                               (`t 'refreshing-when-offline)
                               (`nil nil)
                               (`when-present 'refreshing)))
-      (run-with-idle-timer 0 nil (lambda () (setq magithub-cache old-cache-value))))))
+      (run-with-idle-timer 0 nil (lambda ()
+                                   (setq magithub-cache old-cache-value)
+                                   (message "(magithub): buffer data refreshed"))))))
 
 (eval-after-load "magit"
   '(progn
