@@ -72,6 +72,7 @@ Runs `magithub-dash-sections-hook'."
     (define-key m (kbd "5") #'magit-section-show-level-5)
     (define-key m (kbd "M-5") #'magit-section-show-level-5-all)
     (define-key m (kbd ";") #'magithub-dashboard-popup)
+    (define-key m (kbd "H") #'magithub-dispatch-popup)
     m)
   "Keymap for `magihtub-dash-mode'.")
 
