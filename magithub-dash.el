@@ -98,7 +98,7 @@ See also `magithub-dash-headers-hook'."
     (when .login
       (let ((login (propertize .login 'face 'magithub-user)))
         (magit-insert-section (magithub-user user)
-          (insert (format "%-10s " "User:")
+          (insert (format "%-10s" "User:")
                   (if .name
                       (format "%s (%s)" .name login)
                     login)
@@ -112,13 +112,12 @@ See also `magithub-dash-headers-hook'."
         (let* ((seconds-until-reset (time-to-seconds
                                      (time-subtract .reset
                                                     (current-time))))
-               (indent (make-string 11 ?\ ))
                (ratio (/ (float .remaining) .limit)))
           (insert
-           (format "%-10s %s - %d/%d requests; %s until reset\n" "RateLimit:"
+           (format "%-10s%s - %d/%d requests; %s until reset\n" "Requests:"
                    (cond
                     ((< 0.50 ratio) (propertize "OK" 'face 'success))
-                    ((< 0.25 ratio) (propertize "Running low..." 'face 'warning) )
+                    ((< 0.25 ratio) (propertize "Running low..." 'face 'warning))
                     (t (propertize "Danger!" 'face 'error)))
                    .remaining
                    .limit

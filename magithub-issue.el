@@ -202,7 +202,8 @@ See also `magithub-issue-insert-sections'."
                             (format " %s  %%-12s" (make-string pad-num-to-len ?\ )))))))
 
 (defvar magithub-issue-details-hook
-  '(magithub-issue-detail-insert-created
+  '(magithub-issue-detail-insert-personal-notes
+    magithub-issue-detail-insert-created
     magithub-issue-detail-insert-updated
     magithub-issue-detail-insert-author
     magithub-issue-detail-insert-assignees
@@ -254,6 +255,21 @@ Each function takes two arguments:
       (magit-insert-section (magithub-assignee)
         (insert (propertize "none" 'face 'magit-dimmed))))
     (insert "\n")))
+
+(defvar magit-magithub-note-section-map
+  (let ((m (make-sparse-keymap)))
+    (define-key m [remap magit-visit-thing]
+      #'magithub-issue-personal-note)
+    m))
+
+(defun magithub-issue-detail-insert-personal-notes (issue fmt)
+  "Insert a link to ISSUE's notes."
+  (insert (format fmt "My notes:"))
+  (magit-insert-section (magithub-note)
+    (insert (if (magithub-issue-has-personal-note-p issue)
+                (propertize "visit your note" 'face 'link)
+              (propertize "create a new note" 'face 'magit-dimmed))))
+  (insert "\n"))
 
 (defun magithub-issue-detail-insert-body-preview (issue fmt)
   "Insert a preview of ISSUE's body using FMT."
