@@ -73,15 +73,13 @@ status buffer.  Should take two issue-objects as arguments."
   :type 'function
   :group 'magithub)
 
-(defun magithub-issue-sort-ascending (a b)
+(magithub-defsort magithub-issue-sort-ascending #'<
   "Lower issue numbers come first."
-  (< (plist-get a :number)
-     (plist-get b :number)))
+  (apply-partially #'alist-get :number))
 
-(defun magithub-issue-sort-descending (a b)
+(magithub-defsort magithub-issue-sort-descending #'>
   "Higher issue numbers come first."
-  (< (plist-get b :number)
-     (plist-get a :number)))
+  (apply-partially #'alist-get :number))
 
 (defun magithub-issue--sort (issues)
   "Sort ISSUES by `magithub-issue-sort-function'."

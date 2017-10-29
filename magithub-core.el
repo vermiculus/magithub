@@ -977,6 +977,14 @@ See also `magithub-core-bucket'."
          (-let (((,key . ,values) (pop ,buckets-sym)))
            ,@body)))))
 
+(defmacro magithub-defsort (symbol compare doc accessor)
+  "Define SYMBOL to be a sort over two objects.
+COMPARE is used on the application of ACCESSOR to each argument."
+  (declare (doc-string 3) (indent 2))
+  `(defun ,symbol (a b) ,doc (,(eval compare)
+                              (funcall ,accessor a)
+                              (funcall ,accessor b))))
+
 (defun magithub-core-color-completing-read (prompt)
   "Generic completing-read for a color."
   (let* ((colors (list-colors-duplicates))
