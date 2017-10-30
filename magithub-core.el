@@ -200,6 +200,9 @@ idle timer runs.")
   "Class to ignore in `magithub-cache'.
 See also `magithub-cache-without-cache'.")
 
+(defvar magithub-cache--refreshed-forms nil
+  "Forms that have been refreshed this session.
+See also `magithub-refresh'.")
 (cl-defun magithub-cache (class form &key message after-update)
   "The cached value for FORM if available.
 
@@ -213,11 +216,14 @@ this with `with-temp-message' while the form is evaluating.
 
 AFTER-UPDATE is a function to run after the cache is updated."
   (declare (indent defun))
-  (let ((entry (list (ghubp-get-context) class form))
-        (recalc (or (null magithub-cache)
-                    (and magithub-cache-ignore-class
-                         (eq magithub-cache-ignore-class class))))
-        no-value-sym cached-value)
+  (let* ((entry (list (ghubp-get-context) class form))
+         (refreshing (memq magithub-cache '(refreshing refreshing-when-offline)))
+         (recalc (or (null magithub-cache)
+                     (and refreshing
+                          (not (member entry magithub-cache--refreshed-forms)))
+                     (and magithub-cache-ignore-class
+                          (eq magithub-cache-ignore-class class))))
+         no-value-sym cached-value)
 
     (unless recalc
       (setq no-value-sym (cl-gensym)
@@ -233,6 +239,8 @@ AFTER-UPDATE is a function to run after the cache is updated."
                              magithub-cache--cache)
                (setq magithub-cache--needs-write t)
                (run-with-idle-timer 600 nil #'magithub-cache-write-to-disk)
+               (when refreshing
+                 (push entry magithub-cache--refreshed-forms))
                (when (functionp after-update)
                  (funcall after-update))))
         cached-value)))
@@ -1026,7 +1034,8 @@ COMPARE is used on the application of ACCESSOR to each argument."
                              (`nil nil)
                              (`when-present 'refreshing)))
       (run-with-idle-timer 0 nil (lambda ()
-                                   (setq magithub-cache old-cache-value)
+                                   (setq magithub-cache old-cache-value
+                                         magithub-cache--refreshed-forms nil)
                                    (message "(magithub): buffer data refreshed"))))))
 
 (eval-after-load "magit"
