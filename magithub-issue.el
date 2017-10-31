@@ -139,7 +139,7 @@ This is stored in `magit-git-dir' and is unrelated to
     (let-alist issue-or-pr
       (let ((note-file (magithub-issue-personal-note-file issue-or-pr)))
         (make-directory (file-name-directory note-file) t)
-        (with-current-buffer (find-file note-file)
+        (with-current-buffer (find-file-other-window note-file)
           (rename-buffer (format "*magithub note for #%d*" .number)))))))
 
 (defun magithub-issue-has-personal-note-p (issue-or-pr)
