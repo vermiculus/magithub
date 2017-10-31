@@ -34,17 +34,17 @@
 
 (defface magithub-issue-title
   '((((class color))))
-  "Face used for GitHub repository names."
+  "Face used for issue titles."
   :group 'magithub-faces)
 
 (defface magithub-issue-number
   '((((class color)) :inherit magit-dimmed))
-  "Face used for GitHub repository names."
+  "Face used for issue numbers."
   :group 'magithub-faces)
 
 (defface magithub-user
   '((((class color)) :inherit magit-log-author))
-  "Face used for GitHub repository names."
+  "Face used for usernames."
   :group 'magithub-faces)
 
 (defface magithub-ci-no-status
