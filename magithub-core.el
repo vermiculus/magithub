@@ -1016,6 +1016,9 @@ COMPARE is used on the application of ACCESSOR to each argument."
   (magit-section-show-level -5))
 
 (defun magithub-refresh ()
+  "Refresh GitHub data.
+Use directly at your own peril; this is intended for use with
+`magit-pre-refresh-hook'."
   (interactive (user-error "This is no longer an interactive function; use C-u magit-refresh instead :-)"))
   (when (and current-prefix-arg
              (magithub-usable-p)
