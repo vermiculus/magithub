@@ -195,7 +195,9 @@ See also `magithub-issue-insert-sections'."
         (magit-insert-heading
           (format (format "%%%ds  %%s" (1+ pad-num-to-len)) ;1+ accounts for #
                   (propertize (format "#%d" .number) 'face 'magithub-issue-number)
-                  (propertize .title                 'face 'magithub-issue-title)))
+                  (propertize .title                 'face (if (magithub-issue-has-personal-note-p issue)
+                                                               'magithub-issue-title-with-note
+                                                             'magithub-issue-title))))
         (run-hook-with-args 'magithub-issue-details-hook issue
                             (format " %s  %%-12s" (make-string pad-num-to-len ?\ )))))))
 

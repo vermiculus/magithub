@@ -5,7 +5,7 @@
 ;; Author: Sean Allred <code@seanallred.com>
 ;; Keywords: git, tools, vc
 ;; Homepage: https://github.com/vermiculus/magithub
-;; Package-Requires: ((emacs "25") (magit "2.8.0") (s "20170428.1026") (ghub+ "0.2"))
+;; Package-Requires: ((emacs "25") (magit "2.8") (s "20170428.1026") (ghub+ "0.2") (git-commit "2.8"))
 ;; Package-Version: 0.1.3
 
 ;; This program is free software; you can redistribute it and/or modify

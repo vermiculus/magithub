@@ -26,6 +26,7 @@
 
 (require 'faces)
 (require 'magit)
+(require 'git-commit)
 
 (defface magithub-repo
   '((((class color)) :inherit magit-branch-remote))
@@ -41,6 +42,11 @@
   '((((class color)) :inherit magit-dimmed))
   "Face used for issue numbers."
   :group 'magithub-faces)
+
+(defface magithub-issue-title-with-note
+  '((((class color)) :inherit magithub-issue-title :inherit (git-commit-summary)))
+  "Face used for issue titles when the issue has an attached note.
+See also `magithub-issue-personal-note'.")
 
 (defface magithub-user
   '((((class color)) :inherit magit-log-author))
