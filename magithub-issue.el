@@ -258,8 +258,7 @@ Each function takes two arguments:
 
 (defvar magit-magithub-note-section-map
   (let ((m (make-sparse-keymap)))
-    (define-key m [remap magit-visit-thing]
-      #'magithub-issue-personal-note)
+    (define-key m [remap magit-visit-thing] #'magithub-issue-personal-note)
     m))
 
 (defun magithub-issue-detail-insert-personal-notes (issue fmt)
