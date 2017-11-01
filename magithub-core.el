@@ -808,6 +808,12 @@ If a prop is nil, the entire element is used."
   (null preds))
 
 (defun magithub-section-type (section)
+  "If SECTION is a magithub-type section, return the type.
+For example, if
+
+  (eq (magit-section-type SECTION) \\='magithub-issue)
+
+return the interned symbol `issue'."
   (let* ((type (magit-section-type section))
          (name (symbol-name type)))
     (and (string-prefix-p "magithub-" name)
@@ -822,19 +828,14 @@ This alist defines equivalencies such that a search for the
 general type will also return sections of a specialized type.")
 
 (defun magithub-thing-at-point (type)
-  "Determine the thing of TYPE at point.
-If TYPE is `all', an alist of types to objects is returned."
-  (let ((sec (magit-current-section)))
-    (if (eq type 'all)
-        (let (all)
-          (while sec
-            (when-let ((type (magithub-section-type sec)))
-              (push (cons type (magit-section-value sec))
-                    all))
-            (setq sec (magit-section-parent sec)))
-          all)
-      (while (and sec
-                  (not (let ((this-type (magithub-section-type sec)))
+  "Determine the thing of TYPE at point."
+  (let ((search-sym (intern (concat "magithub-" (symbol-name type))))
+        this-section)
+    (if (and (boundp search-sym) (symbol-value search-sym))
+        (symbol-value search-sym)
+      (setq this-section (magit-current-section))
+      (while (and this-section
+                  (not (let ((this-type (magithub-section-type this-section)))
                          (or
                           ;; exact match
                           (eq type this-type)
@@ -842,8 +843,8 @@ If TYPE is `all', an alist of types to objects is returned."
                           (thread-last magithub-thing-type-specializations
                             (alist-get type)
                             (memq this-type))))))
-        (setq sec (magit-section-parent sec)))
-      (and sec (magit-section-value sec)))))
+        (setq this-section (magit-section-parent this-section)))
+      (and this-section (magit-section-value this-section)))))
 
 (defun magithub-verify-manage-labels (&optional interactive)
   "Verify the user has permission to manage labels.
