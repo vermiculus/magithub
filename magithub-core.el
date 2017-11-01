@@ -926,14 +926,12 @@ BODY is the function implementation."
     `(list
       (defun ,isym ,(cons 'issue (cdr args))
         ,(format (concat doc "\n\nSee also `%S'.") "ISSUE" psym)
-        (interactive (list (or (magithub-thing-at-point 'issue)
-                               (magithub-issue-completing-read-issues))))
+        (interactive (list (magithub-interactive-issue)))
         (let ((issue-or-pr issue))
           ,@body))
       (defun ,psym ,(cons 'pull-request (cdr args))
         ,(format (concat doc "\n\nSee also `%S'.") "PULL-REQUEST" isym)
-        (interactive (list (or (magithub-thing-at-point 'pull-request)
-                               (magithub-issue-completing-read-pull-requests))))
+        (interactive (list (magithub-interactive-pull-request)))
         (let ((issue-or-pr pull-request))
           ,@body)))))
 

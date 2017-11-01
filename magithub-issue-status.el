@@ -119,15 +119,13 @@ buffer."
 (defun magithub-issue-browse (issue)
   "Visits ISSUE in the browser.
 Interactively, this finds the issue at point."
-  (interactive (list (or (magithub-thing-at-point 'issue)
-                         (magithub-issue-completing-read-issues))))
+  (interactive (list (magithub-interactive-issue)))
   (magithub-issue--browse issue))
 
 (defun magithub-pull-browse (pr)
   "Visits PR in the browser.
 Interactively, this finds the pull request at point."
-  (interactive (list (or (magithub-thing-at-point 'pull-request)
-                         (magithub-issue-completing-read-pull-requests))))
+  (interactive (list (magithub-interactive-pull-request)))
   (magithub-issue--browse pr))
 
 (defun magithub-issue--browse (issue-or-pr)

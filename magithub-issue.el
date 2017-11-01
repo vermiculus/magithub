@@ -108,6 +108,12 @@ default."
   (interactive (list (magithub-thing-at-point 'pull-request)))
   (magithub-issue--completing-read
    "Pull Request: " default (list #'magithub-issue--issue-is-pull-p)))
+(defun magithub-interactive-issue ()
+  (or (magithub-thing-at-point 'issue)
+      (magithub-issue-completing-read-issues)))
+(defun magithub-interactive-pull-request ()
+  (or (magithub-thing-at-point 'pull-request)
+      (magithub-issue-completing-read-pull-requests)))
 
 (defun magithub-issue-find (number)
   "Return the issue or pull request with the given NUMBER."
