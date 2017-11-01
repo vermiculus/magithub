@@ -82,8 +82,8 @@
 
 (defun magithub-assignee-remove (issue user)
   (interactive (when (magithub-assignee--verify-manage)
-                 (list (magit-section-parent-value (magit-current-section))
-                       (magit-section-value (magit-current-section)))))
+                 (list (magithub-thing-at-point 'issue)
+                       (magithub-thing-at-point 'user))))
   (let-alist `((repo . ,(magithub-issue-repo issue))
                (issue . ,issue)
                (user . ,user))
@@ -118,16 +118,17 @@
    (lambda (user) (let-alist user .login))
    nil t default-user))
 
-(defun magithub-user-visit (user)
-  "Visit USER."
-  (interactive (list (magit-section-value (magit-current-section))))
+(defalias 'magithub-user-visit #'magithub-user-browse)
+(defun magithub-user-browse (user)
+  "Open USER on GitHub."
+  (interactive (list (magithub-thing-at-point 'user)))
   (if user
       (browse-url (alist-get 'html_url user))
     (user-error "No user here")))
 
 (defun magithub-user-email (user)
   "Email USER."
-  (interactive (list (magit-section-value (magit-current-section))))
+  (interactive (list (magithub-thing-at-point 'user)))
   (when (and (string= (alist-get 'login (magithub-user-me))
                       (alist-get 'login user))
              (not (y-or-n-p "Email yourself? ")))

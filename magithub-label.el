@@ -32,10 +32,12 @@ prompted for again."
      prompt remaining-labels
      (lambda (l) (alist-get 'name l)))))
 
+(defalias 'magithub-label-visit #'magithub-label-browse)
 (defun magithub-label-browse (label)
   "Visit LABEL with `browse-url'.
 In the future, this will likely be replaced with a search on
 issues and pull requests with the label LABEL."
+  (interactive (list (magithub-thing-at-point 'label)))
   (unless (string= ghub-base-url "https://api.github.com")
     (user-error "Label browsing not yet supported on GitHub Enterprise; pull requests welcome!"))
   (let-alist (magithub-repo)
@@ -84,16 +86,10 @@ from `magithub-label'.  Customize that to affect all labels."
   (when (derived-mode-p 'magit-status-mode)
     (magit-refresh)))
 
-(defun magithub-label-visit (label)
-  "Visit LABEL."
-  (interactive (list (magit-section-value (magit-current-section))))
-  (magithub-label-browse label))
-
 (defun magithub-label-remove (issue label)
   "From ISSUE, remove LABEL."
-  (interactive (let ((s (magit-current-section)))
-                 (list (magit-section-parent-value s)
-                       (magit-section-value s))))
+  (interactive (list (magithub-thing-at-point 'issue)
+                     (magithub-thing-at-point 'label)))
   (if (and issue label)
       (let-alist `((label . ,label)
                    (issue . ,issue)

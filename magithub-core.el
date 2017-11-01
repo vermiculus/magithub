@@ -561,14 +561,14 @@ If SPARSE-REPO is null, the current context is used."
 
 (defun magithub-repo-visit (repo)
   "Visit REPO on GitHub."
-  (interactive (list (magit-section-value (magit-current-section))))
+  (interactive (list (magithub-thing-at-point 'repo)))
   (if-let ((url (alist-get 'html_url repo)))
       (browse-url url)
     (user-error "No URL for repo")))
 
 (defun magithub-repo-visit-issues (repo)
   "Visit REPO's issues on GitHub."
-  (interactive (list (magit-section-value (magit-current-section))))
+  (interactive (list (magithub-thing-at-point 'repo)))
   (if-let ((url (alist-get 'html_url repo)))
       (browse-url (format "%s/issues" url))
     (user-error "No URL for repo")))

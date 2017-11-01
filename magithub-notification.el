@@ -92,9 +92,10 @@ get a more verbose explanation."
                            "(Unknown)"))
       .reason)))
 
-(defun magithub-notification-visit (notification)
+(defalias 'magithub-notification-visit #'magithub-notification-browse)
+(defun magithub-notification-browse (notification)
   "Visits the URL pointed to by NOTIFICATION."
-  (interactive (list (magit-section-value (magit-current-section))))
+  (interactive (list (magithub-thing-at-point 'notification)))
   (if notification
       (let ((url (let-alist notification (or .subject.latest_comment_url
                                              .subject.url))))
