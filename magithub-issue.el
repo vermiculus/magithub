@@ -32,6 +32,35 @@
 (require 'magithub-user)
 
 ;; Core
+(defmacro magithub-interactive-issue-or-pr (sym args doc &rest body)
+  "Declare an interactive form that works on both issues and PRs.
+SYM is a postfix for the function symbol.  An appropriate prefix
+will be added for both the issue-version and PR-version.
+
+ARGS should be a list of one element, the symbol ISSUE-OR-PR.
+
+DOC is a doc-string.
+
+BODY is the function implementation."
+  (declare (indent defun)
+           (doc-string 3))
+  (unless (eq (car args) 'issue-or-pr)
+    (error "For clarity, the first argument must be ISSUE-OR-PR"))
+  (let* ((snam (symbol-name sym))
+         (isym (intern (concat "magithub-issue-" snam)))
+         (psym (intern (concat "magithub-pull-request-" snam))))
+    `(list
+      (defun ,isym ,(cons 'issue (cdr args))
+        ,(format (concat doc "\n\nSee also `%S'.") "ISSUE" psym)
+        (interactive (list (magithub-interactive-issue)))
+        (let ((issue-or-pr issue))
+          ,@body))
+      (defun ,psym ,(cons 'pull-request (cdr args))
+        ,(format (concat doc "\n\nSee also `%S'.") "PULL-REQUEST" isym)
+        (interactive (list (magithub-interactive-pull-request)))
+        (let ((issue-or-pr pull-request))
+          ,@body)))))
+
 (defun magithub--issue-list (&rest params)
   "Return a list of issues for the current repository.
 The response is unpaginated, so avoid doing this with PARAMS that
