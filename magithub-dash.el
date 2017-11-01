@@ -108,6 +108,9 @@ See also `magithub-dash-headers-hook'."
 
 (defun magithub-dash-insert-ratelimit-header ()
   "If API requests are being rate-limited, insert relevant information."
+  (when-let ((ratelimit (ghubp-ratelimit)))
+    (when (time-less-p (alist-get 'reset ratelimit) (current-time))
+      (ghub-get "/rate_limit")))
   (let-alist (ghubp-ratelimit)
     (when .limit
       (magit-insert-section (magithub-ratelimit)
