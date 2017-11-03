@@ -353,14 +353,7 @@ Each function takes two arguments:
   "Insert ISSUE's labels using FMT."
   (let-alist issue
     (insert (format fmt "Labels:"))
-    (if-let ((labels .labels) (l t))
-        (while (setq l (pop labels))
-          (magit-insert-section (magithub-label l)
-            (insert (magithub-label-propertize l)))
-          (when labels
-            (insert " ")))
-      (magit-insert-section (magithub-label)
-        (insert (propertize "none" 'face 'magit-dimmed))))
+    (magithub-label-insert-list .labels)
     (insert "\n")))
 
 (provide 'magithub-issue)

@@ -118,4 +118,21 @@ from `magithub-label'.  Customize that to affect all labels."
             (magit-refresh)))
       (user-error "Aborted"))))
 
+(defun magithub-label-insert (label)
+  "Insert LABEL into the buffer.
+If you need to insert many labels, use
+`magithub-label-insert-list'."
+  (magit-insert-section (magithub-label label)
+    (insert (magithub-label-propertize label))))
+
+(defun magithub-label-insert-list (label-list)
+  "Insert LABEL-LIST intro the buffer."
+  (if (null label-list)
+      (magit-insert-section (magithub-label)
+        (insert (propertize "none" 'face 'magit-dimmed)))
+    (while label-list
+      (magithub-label-insert (pop label-list))
+      (when label-list
+        (insert " ")))))
+
 (provide 'magithub-label)
