@@ -86,21 +86,26 @@ from `magithub-label'.  Customize that to affect all labels."
   (when (derived-mode-p 'magit-status-mode)
     (magit-refresh)))
 
+(defun magithub-label--verify-manage ()
+  (or (magithub-repo-admin-p)
+      (user-error "You don't have permission to manage labels in this repository")))
+
 (defun magithub-label-remove (issue label)
   "From ISSUE, remove LABEL."
-  (interactive (list (magithub-thing-at-point 'issue)
-                     (magithub-thing-at-point 'label)))
-  (if (and issue label)
-      (let-alist `((label . ,label)
-                   (issue . ,issue)
-                   (repo . ,(magithub-issue-repo issue)))
-        (if (yes-or-no-p (format "Remove label %S from this issue? " .label.name))
-            (prog1 (ghubp-delete-repos-owner-repo-issues-number-labels-name
-                    (magithub-issue-repo issue) issue label)
-              (magithub-cache-without-cache :issues
-                (magit-refresh-buffer)))
-          (user-error "Aborted")))
-    (user-error "No label here")))
+  (interactive (and (magithub-label--verify-manage)
+                    (list (magithub-thing-at-point 'issue)
+                          (magithub-thing-at-point 'label))))
+  (unless issue
+    (user-error "No issue here"))
+  (unless label
+    (user-error "No label here"))
+  (let-alist label
+    (if (yes-or-no-p (format "Remove label %S from this issue? " .name))
+        (prog1 (ghubp-delete-repos-owner-repo-issues-number-labels-name
+                (magithub-issue-repo issue) issue label)
+          (magithub-cache-without-cache :issues
+            (magit-refresh-buffer)))
+      (user-error "Aborted"))))
 
 (defun magithub-label-add (issue labels)
   "To ISSUE, add LABELS."
