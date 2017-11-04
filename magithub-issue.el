@@ -310,39 +310,27 @@ Each function takes two arguments:
   (let-alist issue
     (let (label-string label-len prefix width did-cut maxchar text)
       (setq label-string (format fmt "Preview:"))
-      (setq label-len (length label-string))
-      (setq prefix (make-string label-len ?\ ))
-      (setq width (- fill-column label-len))
-      (setq maxchar (* 3 width))
-      (setq did-cut (< maxchar (length .body)))
-      (setq maxchar (if did-cut (- maxchar 3) maxchar))
-      (setq text (if did-cut (substring .body 0 maxchar) .body))
-      (setq text (replace-regexp-in-string "" "" text))
-      (setq text (s-word-wrap width (s-trim text)))
+      (insert label-string)
 
-      (insert
-       (concat
-        label-string
-        (if (or (null .body) (string= .body ""))
-            (concat (propertize "none" 'face 'magit-dimmed))
-          (concat
-           (s-trim
-            (with-temp-buffer
-              (insert text)
-              (goto-char 0)
-              (forward-line)
-              (let ((lines 1))
-                (while (and (not (eobp))
-                            (< (setq lines (1+ lines)) 4))
-                  (insert prefix)
-                  (forward-line))
-                (unless (eobp)
-                  (delete-region (point) (point-max))
-                  (setq did-cut t)))
-              (buffer-string)))
-           (when did-cut
-             (propertize "..." 'face 'magit-dimmed))))
-        "\n")))))
+      (if (or (null .body) (string= .body ""))
+          (concat (propertize "none" 'face 'magit-dimmed))
+
+        (setq label-len (length label-string))
+        (setq width (- fill-column label-len))
+        (setq maxchar (* 3 width))
+        (setq did-cut (< maxchar (length .body)))
+        (setq maxchar (if did-cut (- maxchar 3) maxchar))
+        (setq text (if did-cut (substring .body 0 (min (length .body) (* 4 width))) .body))
+        (setq text (replace-regexp-in-string "" "" text))
+        (setq text (let ((fill-column width))
+                     (thread-last text
+                       (magithub-fill-gfm)
+                       (magithub-indent-text label-len)
+                       (s-trim))))
+        (insert text)
+        (when did-cut
+          (insert (propertize "..." 'face 'magit-dimmed)))
+        (insert "\n")))))
 
 (defvar magit-magithub-repo-issues-section-map
   (let ((m (make-sparse-keymap)))

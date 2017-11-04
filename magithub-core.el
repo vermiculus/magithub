@@ -1011,6 +1011,29 @@ Use directly at your own peril; this is intended for use with
                                          magithub-cache--refreshed-forms nil)
                                    (message "(magithub): buffer data refreshed"))))))
 
+(defun magithub-wash-gfm (text)
+  "Wash TEXT as it comes from the API."
+  (with-temp-buffer
+    (insert text)
+    (goto-char (point-min))
+    (while (search-forward "" nil t)
+      (delete-char -1))
+    (s-trim (buffer-string))))
+
+(defun magithub-fill-gfm (text)
+  "Fill TEXT according to GFM rules."
+  (with-temp-buffer
+    (gfm-mode)                          ;autoloaded
+    (insert text)
+    ;; re font-lock-ensure: see jrblevin/markdown-mode#251
+    (font-lock-ensure)
+    (fill-region (point-min) (point-max))
+    (buffer-string)))
+
+(defun magithub-indent-text (indent text)
+  "Indent TEXT by INDENT spaces."
+  (replace-regexp-in-string (rx bol) (make-string indent ?\ ) text))
+
 (eval-after-load "magit"
   '(progn
      (dolist (hook '(magit-revision-mode-hook git-commit-setup-hook))
