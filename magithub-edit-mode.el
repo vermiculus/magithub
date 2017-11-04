@@ -35,6 +35,7 @@
 
 (defvar-local magithub-edit-submit-function nil)
 (defvar-local magithub-edit-cancel-function nil)
+(defvar-local magithub-edit-previous-buffer nil)
 
 (defface magithub-edit-title
   '((t :inherit markdown-header-face-1))
@@ -49,10 +50,31 @@
 
 (defun magithub-edit-submit ()
   (interactive)
-  (call-interactively magithub-edit-submit-function))
+  (magithub-edit--done magithub-edit-submit-function))
 (defun magithub-edit-cancel ()
   (interactive)
-  (call-interactively magithub-edit-cancel-function))
+  (magithub-edit--done magithub-edit-cancel-function))
+(defun magithub-edit--done (callback)
+  (let ((prevbuf magithub-edit-previous-buffer)
+        newbuf)
+    (save-excursion
+      (when-let ((newbuf (call-interactively callback)))
+        (when (bufferp newbuf)
+          (switch-to-buffer newbuf))))
+    (kill-buffer)
+    (when prevbuf
+      (let ((switch-to-buffer-preserve-window-point t))
+        (switch-to-buffer prevbuf)))))
+(defun magithub-edit-new (buffer-name submit-func cancel-func setup)
+  (declare (indent 3))
+  (let ((prevbuf (current-buffer)))
+    (with-current-buffer (get-buffer-create buffer-name)
+      (magithub-edit-mode)
+      (funcall setup)
+      (setq magithub-edit-previous-buffer prevbuf
+            magithub-edit-submit-function submit-func
+            magithub-edit-cancel-function cancel-func)
+      (switch-to-buffer-other-window (current-buffer)))))
 
 (provide 'magithub-edit-mode)
 ;;; magithub-edit-mode.el ends here

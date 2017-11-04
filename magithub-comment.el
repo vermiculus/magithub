@@ -52,7 +52,8 @@
   (make-directory (magithub-repo-data-dir repo) t)
   (with-temp-buffer
     (insert comment)
-    (write-file (magithub-comment-draft-file repo issue))))
+    (write-file (magithub-comment-draft-file repo issue)))
+  (message "Draft saved"))
 
 (defun magithub-comment-draft-load (repo issue)
   "Load the draft reply to REPO/ISSUE."
@@ -62,6 +63,12 @@
                (insert-file-contents file)
                (buffer-string)))
         "")))
+
+(defun magithub-comment-draft-delete (repo issue)
+  "Delete the draft file for REPO/ISSUE if it exists."
+  (let ((f (magithub-comment-draft-file repo issue)))
+    (when (file-exists-p f)
+      (delete-file f magit-delete-by-moving-to-trash))))
 
 (defun magithub-comment-insert (comment)
   "Insert a single issue COMMENT."
@@ -78,26 +85,39 @@
       (insert (magithub-fill-gfm (magithub-wash-gfm (s-trim .body)))
               "\n\n"))))
 
+;;;###autoload
 (defun magithub-comment-new (issue)
   "Comment on ISSUE in a new buffer."
-  (interactive (list (magithub-interactive-issue)))
+  (interactive (let ((issue (magithub-interactive-issue)))
+                 (prog1 (list issue)
+                   (unless (derived-mode-p 'magithub-issue-view-mode)
+                     (magithub-issue-view-issue issue)))))
   (let ((issueref (magithub-issue-reference issue))
         (repo (magithub-issue-repo issue)))
-    (with-current-buffer (get-buffer-create (concat "reply to " issueref))
-      (magithub-edit-mode)
-      (setq-local magithub-issue issue)
-      (setq-local magithub-repo repo)
-      (setq-local magithub-edit-submit-function #'magithub-issue-comment-submit)
-      (setq-local magithub-edit-cancel-function #'kill-buffer)
-      (magit-set-header-line-format
-       (substitute-command-keys
-        (format "replying to %s | %s | %s"
-                issueref
-                "submit: \\[magithub-edit-commit]"
-                "cancel: \\[magithub-edit-cancel]")))
-      (insert (magithub-comment-draft-load repo issue))
-      (goto-char (point-min))
-      (switch-to-buffer-other-window (current-buffer)))))
+    (magithub-edit-new
+        (concat "reply to " issueref)
+        #'magithub-issue-comment-submit
+        #'magithub-issue-comment-cancel
+      (lambda ()
+        (setq-local magithub-issue issue)
+        (setq-local magithub-repo repo)
+        (magit-set-header-line-format
+         (substitute-command-keys
+          (format "replying to %s | %s | %s"
+                  issueref
+                  "submit: \\[magithub-edit-commit]"
+                  "cancel: \\[magithub-edit-cancel]")))
+        (when-let ((draft (magithub-comment-draft-load repo issue)))
+          (insert draft)
+          (message "Loaded draft"))
+        (goto-char (point-min))))))
+
+(defun magithub-issue-comment-cancel (repo issue comment-text)
+  "Cancel current comment."
+  (interactive (list (magithub-thing-at-point 'repo)
+                     (magithub-thing-at-point 'issue)
+                     (buffer-string)))
+  (magithub-comment-draft-save repo issue comment-text))
 
 (defun magithub-issue-comment-submit (issue comment &optional repo)
   "On ISSUE, submit a new COMMENT.
@@ -126,10 +146,9 @@ not provided."
   (ghubp-post-repos-owner-repo-issues-number-comments
    repo issue `((body . ,comment)))
   (message "Success")
-  (kill-buffer)
-  (magithub-issue-view-issue issue)
-  (delete-file (magithub-comment-draft-file repo issue)
-               magit-delete-by-moving-to-trash))
+  (magithub-cache-without-cache :issues
+    (magithub-issue-view-issue issue))
+  (magithub-comment-draft-delete repo issue))
 
 (provide 'magithub-comment)
 ;;; magithub-comment.el ends here
