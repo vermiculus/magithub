@@ -20,7 +20,7 @@ we'll hit the API) if Magithub is offline."
     (set-keymap-parent map magithub-map)
     (define-key map [remap magit-visit-thing] #'magithub-issue-visit)
     (define-key map [remap magithub-browse-thing] #'magithub-issue-browse)
-    (define-key map [remap magithub-reply-thing] #'magithub-issue-comment-new)
+    (define-key map [remap magithub-reply-thing] #'magithub-comment-new)
     (define-key map "L" #'magithub-issue-add-labels)
     (define-key map "N" #'magithub-issue-personal-note)
     map)

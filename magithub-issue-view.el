@@ -32,6 +32,12 @@
 (define-derived-mode magithub-issue-view-mode magit-mode
   "Issue View" "View GitHub issues with Magithub.")
 
+(defvar magithub-issue-view-mode-map
+  (let ((m (make-composed-keymap (list magithub-map) magit-mode-map)))
+    (define-key m [remap magithub-reply-thing] #'magithub-comment-new)
+    (define-key m [remap magithub-browse-thing] #'magithub-issue-browse)
+    m))
+
 (defvar-local magithub-issue nil
   "The issue object associated with a buffer.")
 (defun magithub-issue-view-refresh-buffer (issue &rest _)

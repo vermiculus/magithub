@@ -289,7 +289,6 @@ the age of the oldest cached information."
 
 (defun magithub-cache--time-out (time)
   "Convert TIME into a human-readable string.
-
 Returns \"Xd Xh Xm Xs\" (counting from zero)"
   (let ((seconds (time-to-seconds time)))
     (format-time-string
