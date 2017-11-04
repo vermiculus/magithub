@@ -1034,6 +1034,27 @@ Use directly at your own peril; this is intended for use with
   "Indent TEXT by INDENT spaces."
   (replace-regexp-in-string (rx bol) (make-string indent ?\ ) text))
 
+(defun magithub-add-thing ()
+  (interactive)
+  (user-error "There is no thing at point that could be added to"))
+(defun magithub-browse-thing ()
+  (interactive)
+  (user-error "There is no thing at point that could be browsed"))
+(defun magithub-edit-thing ()
+  (interactive)
+  (user-error "There is no thing at point that could be replied to"))
+(defun magithub-reply-thing ()
+  (interactive)
+  (user-error "There is no thing at point that could be replied to"))
+
+(defvar magithub-map
+  (let ((m (make-sparse-keymap)))
+    (define-key m "a" #'magithub-add-thing)
+    (define-key m "w" #'magithub-browse-thing)
+    (define-key m "e" #'magithub-edit-thing)
+    (define-key m "r" #'magithub-reply-thing)
+    m))
+
 (eval-after-load "magit"
   '(progn
      (dolist (hook '(magit-revision-mode-hook git-commit-setup-hook))

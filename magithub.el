@@ -303,11 +303,11 @@ Features:
 
 (defun magithub-visit-thing ()
   (interactive)
-  (let-alist (magithub-thing-at-point 'all)
-    (cond (.label (magithub-label-browse .label))
-          (.issue (magithub-issue-browse .issue))
-          (.pull-request (magithub-pull-browse .pull-request))
-          (t (message "Nothing recognizable at point")))))
+  (user-error
+   (with-temp-buffer
+     (use-local-map magithub-map)
+     (substitute-command-keys
+      "Deprecated; use `\\[magithub-browse-thing]' instead"))))
 
 (provide 'magithub)
 ;;; magithub.el ends here

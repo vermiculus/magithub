@@ -3,9 +3,11 @@
 
 (defvar magit-magithub-label-section-map
   (let ((m (make-sparse-keymap)))
+    (set-keymap-parent m magithub-map)
     (define-key m [remap magit-visit-thing]  #'magithub-label-visit)
     (define-key m [remap magit-delete-thing] #'magithub-label-remove)
-    (define-key m (kbd "a") #'magithub-label-add)
+    (define-key m [remap magithub-browse-thing] #'magithub-label-browse)
+    (define-key m [remap magithub-add-thing] #'magithub-label-add)
     m)
   "Keymap for label sections.")
 

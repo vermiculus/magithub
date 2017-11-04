@@ -293,6 +293,7 @@ Each function takes two arguments:
 
 (defvar magit-magithub-note-section-map
   (let ((m (make-sparse-keymap)))
+    (set-keymap-parent m magithub-map)
     (define-key m [remap magit-visit-thing] #'magithub-issue-personal-note)
     m))
 
