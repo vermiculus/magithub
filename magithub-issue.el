@@ -31,6 +31,17 @@
 (require 'magithub-core)
 (require 'magithub-user)
 
+(defvar magit-magithub-repo-issues-section-map
+  (let ((m (make-sparse-keymap)))
+    (define-key m [remap magit-visit-thing] #'magithub-repo-visit-issues)
+    m))
+
+(defvar magit-magithub-note-section-map
+  (let ((m (make-sparse-keymap)))
+    (set-keymap-parent m magithub-map)
+    (define-key m [remap magit-visit-thing] #'magithub-issue-personal-note)
+    m))
+
 ;; Core
 (defmacro magithub-interactive-issue-or-pr (sym args doc &rest body)
   "Declare an interactive form that works on both issues and PRs.
@@ -291,12 +302,6 @@ Each function takes two arguments:
         (insert (propertize "none" 'face 'magit-dimmed))))
     (insert "\n")))
 
-(defvar magit-magithub-note-section-map
-  (let ((m (make-sparse-keymap)))
-    (set-keymap-parent m magithub-map)
-    (define-key m [remap magit-visit-thing] #'magithub-issue-personal-note)
-    m))
-
 (defun magithub-issue-detail-insert-personal-notes (issue fmt)
   "Insert a link to ISSUE's notes."
   (insert (format fmt "My notes:"))
@@ -332,11 +337,6 @@ Each function takes two arguments:
         (when did-cut
           (insert (propertize "..." 'face 'magit-dimmed)))
         (insert "\n")))))
-
-(defvar magit-magithub-repo-issues-section-map
-  (let ((m (make-sparse-keymap)))
-    (define-key m [remap magit-visit-thing] #'magithub-repo-visit-issues)
-    m))
 
 (defun magithub-issue-detail-insert-labels (issue fmt)
   "Insert ISSUE's labels using FMT."
