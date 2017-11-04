@@ -41,6 +41,8 @@ prompted for again."
 In the future, this will likely be replaced with a search on
 issues and pull requests with the label LABEL."
   (interactive (list (magithub-thing-at-point 'label)))
+  (unless label
+    (user-error "No label found at point to browse"))
   (unless (string= ghub-base-url "https://api.github.com")
     (user-error "Label browsing not yet supported on GitHub Enterprise; pull requests welcome!"))
   (let-alist (magithub-repo)
