@@ -74,7 +74,8 @@ It may fail if the fork has multiple branches named BRANCH."
   (let ((repo (magithub-repo-from-remote (magit-get-push-remote branch))))
     (when (alist-get 'fork repo)
       (let* ((guess-head (format "%s:%s" (magit-get-push-remote branch) branch))
-             (prs (ghubp-get-repos-owner-repo-pulls (magithub-repo) :head guess-head)))
+             (prs (magithub-cache :ci-status
+                    `(ghubp-get-repos-owner-repo-pulls ',(magithub-repo) :head ,guess-head))))
         (pcase (length prs)
           (0)    ; this branch does not seem to correspond to any PR
           (1 (magit-set (number-to-string (alist-get 'number (car prs)))
