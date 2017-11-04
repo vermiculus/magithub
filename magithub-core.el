@@ -479,9 +479,9 @@ URL may be of several different formats:
                      "@"
                      (group (+? any)) ;domain  -- github.com
                      ":"
-                     (group (+? (| alnum "-" "."))) ;owner.login -- vermiculus
+                     (group (+? (| alnum "-" "." "_"))) ;owner.login -- vermiculus
                      "/"
-                     (group (+? (| alnum "-" "."))) ;name -- magithub
+                     (group (+? (| alnum "-" "." "_"))) ;name -- magithub
                      (? ".git")
                      eol)
                  url)
@@ -502,9 +502,9 @@ URL may be of several different formats:
                      "://"
                      (group (+? any)) ;domain -- github.com
                      "/"
-                     (group (+? (| alnum "-" "."))) ;owner.login -- vermiculus
+                     (group (+? (| alnum "-" "." "_"))) ;owner.login -- vermiculus
                      "/"
-                     (group (+? (| alnum "-" "."))) ;name -- magithub
+                     (group (+? (| alnum "-" "." "_"))) ;name -- magithub
                      (? ".git")
                      eol)
                  url)
