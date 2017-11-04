@@ -198,7 +198,9 @@ idle timer runs.")
 
 (defvar magithub-cache-ignore-class nil
   "Class to ignore in `magithub-cache'.
-See also `magithub-cache-without-cache'.")
+See also `magithub-cache-without-cache'.
+
+If t, all classes are ignored.")
 
 (defvar magithub-cache--refreshed-forms nil
   "Forms that have been refreshed this session.
@@ -222,7 +224,8 @@ AFTER-UPDATE is a function to run after the cache is updated."
                      (and refreshing
                           (not (member entry magithub-cache--refreshed-forms)))
                      (and magithub-cache-ignore-class
-                          (eq magithub-cache-ignore-class class))))
+                          (or (eq magithub-cache-ignore-class t)
+                              (eq magithub-cache-ignore-class class)))))
          no-value-sym cached-value)
 
     (unless recalc
@@ -312,7 +315,9 @@ The cache is writtin to `magithub-cache-file' in
       (magithub-debug-message "wrote cache to disk: %S" (expand-file-name magithub-cache-file magithub-dir)))))
 
 (defmacro magithub-cache-without-cache (class &rest body)
-  "For CLASS, execute BODY without using CLASS's caches."
+  "For CLASS, execute BODY without using CLASS's caches.
+Use t to ignore previously cached values completely.
+See also `magithub-cache-ignore-class'."
   (declare (indent 1))
   `(let ((magithub-cache-ignore-class ,class))
      ,@body))
