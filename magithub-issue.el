@@ -94,6 +94,12 @@ See also `ghubp-get-repos-owner-repo-issues'."
   (and (alist-get 'number issue)
        (not (magithub-issue--issue-is-pull-p issue))))
 
+(defun magithub-issue-comments (issue)
+  "Get comments on ISSUE."
+  (let ((repo (magithub-issue-repo issue)))
+    (magithub-cache :issues
+      `(ghubp-get-repos-owner-repo-issues-number-comments ',repo ',issue))))
+
 ;; Finding issues and pull requests
 (defun magithub-issues ()
   "Return a list of issue objects that are actually issues."
@@ -214,6 +220,23 @@ This is stored in `magit-git-dir' and is unrelated to
         (magithub-repo
          `((owner (login . ,(match-string 1 .url)))
            (name . ,(match-string 2 .url))))))))
+
+(defun magithub-issue-reference (issue)
+  "Return a string like \"owner/repo#number\" for ISSUE."
+  (let-alist `((repo . ,(magithub-issue-repo issue))
+               (issue . ,issue))
+    (format "%s/%s#%d" .repo.owner.login .repo.name .issue.number)))
+
+(defun magithub-issue-from-reference (string)
+  "Parse an issue from an \"owner/repo#number\" STRING."
+  (when (string-match (rx bos (group (+ any))
+                          "/" (group (+ any))
+                          "#" (group (+ digit))
+                          eos)
+                      string)
+    (magithub-issue `((owner (login . ,(match-string 1 string)))
+                      (name . ,(match-string 2 string)))
+                    (string-to-number (match-string 3 string)))))
 
 (defun magithub-issue-insert-sections (issues)
   "Insert ISSUES into the buffer with alignment.

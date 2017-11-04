@@ -18,6 +18,7 @@ we'll hit the API) if Magithub is offline."
 (defvar magit-magithub-issue-section-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map magithub-map)
+    (define-key map [remap magit-visit-thing] #'magithub-issue-visit)
     (define-key map [remap magithub-browse-thing] #'magithub-issue-browse)
     (define-key map "L" #'magithub-issue-add-labels)
     (define-key map "N" #'magithub-issue-personal-note)
@@ -27,6 +28,7 @@ we'll hit the API) if Magithub is offline."
 (defvar magit-magithub-issues-list-section-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map magithub-map)
+    (define-key map [remap magit-visit-thing] #'magithub-issue-visit)
     (define-key map [remap magithub-browse-thing] #'magithub-issue-browse)
     map)
   "Keymap for `magithub-issue-list' sections.")
@@ -34,6 +36,7 @@ we'll hit the API) if Magithub is offline."
 (defvar magit-magithub-pull-request-section-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map magithub-map)
+    (define-key map [remap magit-visit-thing] #'magithub-pull-visit)
     (define-key map [remap magithub-browse-thing] #'magithub-pull-browse)
     (define-key map "L" #'magithub-issue-add-labels)
     map)
@@ -42,6 +45,7 @@ we'll hit the API) if Magithub is offline."
 (defvar magit-magithub-pull-requests-list-section-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map magithub-map)
+    (define-key map [remap magit-visit-thing] #'magithub-pull-visit)
     (define-key map [remap magithub-browse-thing] #'magithub-pull-browse)
     map)
   "Keymap for `magithub-pull-request-list' sections.")
@@ -126,11 +130,23 @@ Interactively, this finds the issue at point."
   (interactive (list (magithub-interactive-issue)))
   (magithub-issue--browse issue))
 
+(defun magithub-issue-visit (issue)
+  "Visits ISSUE in Emacs.
+Interactively, this finds the issue at point."
+  (interactive (list (magithub-interactive-issue)))
+  (magithub-issue-view-issue issue))
+
 (defun magithub-pull-browse (pr)
   "Visits PR in the browser.
 Interactively, this finds the pull request at point."
   (interactive (list (magithub-interactive-pull-request)))
   (magithub-issue--browse pr))
+
+(defun magithub-pull-visit (pr)
+  "Visits PR in Emacs.
+Interactively, this finds the pull request at point."
+  (interactive (list (magithub-interactive-pull-request)))
+  (magithub-issue-view-issue pr))
 
 (defun magithub-issue--browse (issue-or-pr)
   "Visits ISSUE-OR-PR in the browser.
