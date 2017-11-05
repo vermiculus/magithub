@@ -31,7 +31,7 @@
 (require 'magithub-issue)
 (require 'magithub-edit-mode)
 
-(declare-function magithub-issue-view-issue "magithub-issue-view.el" (issue))
+(declare-function magithub-issue-view "magithub-issue-view.el" (issue))
 
 (defvar magit-magithub-comment-section-map
   (let ((m (make-sparse-keymap)))
@@ -131,26 +131,26 @@
   (interactive (let ((issue (magithub-interactive-issue)))
                  (prog1 (list issue)
                    (unless (derived-mode-p 'magithub-issue-view-mode)
-                     (magithub-issue-view-issue issue)))))
+                     (magithub-issue-view issue)))))
   (let ((issueref (magithub-issue-reference issue))
         (repo (magithub-issue-repo issue)))
     (magithub-edit-new
-     (concat "reply to " issueref)
-     #'magithub-issue-comment-submit
-     #'magithub-issue-comment-cancel
-     (lambda ()
-       (setq-local magithub-issue issue)
-       (setq-local magithub-repo repo)
-       (magit-set-header-line-format
-        (substitute-command-keys
-         (format "replying to %s | %s | %s"
-                 issueref
-                 "submit: \\[magithub-edit-submit]"
-                 "cancel: \\[magithub-edit-cancel]")))
-       (when-let ((draft (magithub-comment-draft-load repo issue)))
-         (insert draft)
-         (message "Loaded draft"))
-       (goto-char (point-min))))))
+        (concat "reply to " issueref)
+        #'magithub-issue-comment-submit
+        #'magithub-issue-comment-cancel
+      (lambda ()
+        (setq-local magithub-issue issue)
+        (setq-local magithub-repo repo)
+        (magit-set-header-line-format
+         (substitute-command-keys
+          (format "replying to %s | %s | %s"
+                  issueref
+                  "submit: \\[magithub-edit-submit]"
+                  "cancel: \\[magithub-edit-cancel]")))
+        (when-let ((draft (magithub-comment-draft-load repo issue)))
+          (insert draft)
+          (message "Loaded draft"))
+        (goto-char (point-min))))))
 
 (defun magithub-issue-comment-cancel (repo issue comment-text)
   "Cancel current comment."

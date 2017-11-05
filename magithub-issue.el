@@ -34,7 +34,7 @@
 (require 'magithub-user)
 (require 'magithub-label)
 
-(declare-function magithub-issue-view-issue "magithub-issue-view.el" (issue))
+(declare-function magithub-issue-view "magithub-issue-view.el" (issue))
 
 (defvar-local magithub-issue nil
   "The issue object associated with a buffer.")
@@ -509,7 +509,7 @@ Interactively, this finds the issue at point."
   "Visits ISSUE in Emacs.
 Interactively, this finds the issue at point."
   (interactive (list (magithub-interactive-issue)))
-  (magithub-issue-view-issue issue))
+  (magithub-issue-view issue))
 
 (defun magithub-pull-browse (pr)
   "Visits PR in the browser.
@@ -521,7 +521,7 @@ Interactively, this finds the pull request at point."
   "Visits PR in Emacs.
 Interactively, this finds the pull request at point."
   (interactive (list (magithub-interactive-pull-request)))
-  (magithub-issue-view-issue pr))
+  (magithub-issue-view pr))
 
 (defun magithub-issue--browse (issue-or-pr)
   "Visits ISSUE-OR-PR in the browser.

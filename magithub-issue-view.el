@@ -87,7 +87,7 @@ See also `magithub-issue-view--lock-value'."
                                               number)))))
 
 ;;;###autoload
-(defun magithub-issue-view-issue (issue)
+(defun magithub-issue-view (issue)
   "View ISSUE in a new buffer."
   (interactive (list (magithub-interactive-issue)))
   (let ((magit-generate-buffer-name-function #'magithub-issue-view--buffer-name))
