@@ -23,7 +23,8 @@ before_install:
 install:
 - cask install
 script:
-- cask build
+- cask build 2>&1 | tee build.log
+- ! grep -oe '.*:Warning:.*' build.log
 - cask exec ert-runner
 notifications:
   email:
