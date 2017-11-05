@@ -3,7 +3,7 @@
 
 (package-file "magithub.el")
 
-(files "*.el")
+(files "magithub*.el")
 
 (development
  (depends-on "cask")

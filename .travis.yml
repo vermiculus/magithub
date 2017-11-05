@@ -23,6 +23,7 @@ before_install:
 install:
 - cask install
 script:
+- cask build
 - cask exec ert-runner
 notifications:
   email:
