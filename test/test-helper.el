@@ -17,8 +17,6 @@
     (setq dir (expand-file-name "test" dir))
     (expand-file-name file dir)))
 
-(load-file (magithub-in-test-dir "magithub-test-compile.el"))
-
 (defun magithub-mock-data-crunch (data)
   "Crunch DATA into a string appropriate for a filename."
   (substring (sha1 (prin1-to-string data)) 0 8))
