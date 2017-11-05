@@ -92,7 +92,7 @@ from `magithub-label'.  Customize that to affect all labels."
     (magit-refresh)))
 
 (defun magithub-label--verify-manage ()
-  (or (magithub-repo-admin-p)
+  (or (magithub-repo-push-p)
       (user-error "You don't have permission to manage labels in this repository")))
 
 (defun magithub-label-remove (issue label)
@@ -114,7 +114,7 @@ from `magithub-label'.  Customize that to affect all labels."
 
 (defun magithub-label-add (issue labels)
   "To ISSUE, add LABELS."
-  (interactive (list (magit-section-parent-value (magit-current-section))
+  (interactive (list (magithub-thing-at-point 'issue)
                      (magithub-label-read-labels "Add labels: ")))
   (if (not (and issue labels))
       (user-error "No issue/labels")

@@ -29,6 +29,8 @@
 (require 'magithub-notification)
 (require 'magithub-issue)
 
+(declare-function magithub-dispatch-popup "magithub.el")
+
 (defcustom magithub-dashboard-show-unread-notifications nil
   "Show unread notifications in the dashboard."
   :type 'boolean
@@ -55,26 +57,27 @@
          (lambda (&rest _) "*magithub-dash*")))
     (magit-mode-setup #'magithub-dash-mode)))
 
-(define-derived-mode magithub-dash-mode
-  magit-mode "Magithub-Dash"
-  "Major mode for your GitHub dashboard."
-  (use-local-map magithub-dash-map))
-
-(defun magithub-dash-refresh-buffer (&rest args)
-  "Refresh the dashboard.
-Runs `magithub-dash-sections-hook'."
-  (interactive)
-  (magit-insert-section (magithub-dash-buf)
-    (run-hooks 'magithub-dash-sections-hook)))
-
 (defvar magithub-dash-map
-  (let ((m (copy-keymap magit-mode-map)))
+  (let ((m (make-sparse-keymap)))
+    (set-keymap-parent m magit-mode-map)
     (define-key m (kbd "5") #'magit-section-show-level-5)
     (define-key m (kbd "M-5") #'magit-section-show-level-5-all)
     (define-key m (kbd ";") #'magithub-dashboard-popup)
     (define-key m (kbd "H") #'magithub-dispatch-popup)
     m)
   "Keymap for `magihtub-dash-mode'.")
+
+(define-derived-mode magithub-dash-mode
+  magit-mode "Magithub-Dash"
+  "Major mode for your GitHub dashboard."
+  (use-local-map magithub-dash-map))
+
+(defun magithub-dash-refresh-buffer (&rest _args)
+  "Refresh the dashboard.
+Runs `magithub-dash-sections-hook'."
+  (interactive)
+  (magit-insert-section (magithub-dash-buf)
+    (run-hooks 'magithub-dash-sections-hook)))
 
 (defvar magithub-dash-sections-hook
   '(magithub-dash-insert-headers

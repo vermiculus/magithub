@@ -95,5 +95,10 @@ Feel free to customize any part of this face, but be aware that
   "Face used for notification reasons."
   :group 'magithub-faces)
 
+(defface magithub-deleted-thing
+  '((t :background "red4" :inherit magit-section-highlight))
+  "Face used for things about to be deleted."
+  :group 'magithub-faces)
+
 (provide 'magithub-faces)
 ;;; magithub-faces.el ends here

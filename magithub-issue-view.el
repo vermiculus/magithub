@@ -28,9 +28,7 @@
 
 (require 'magithub-core)
 (require 'magithub-issue)
-
-(define-derived-mode magithub-issue-view-mode magit-mode
-  "Issue View" "View GitHub issues with Magithub.")
+(require 'magithub-comment)
 
 (defvar magithub-issue-view-mode-map
   (let ((m (make-composed-keymap (list magithub-map) magit-mode-map)))
@@ -38,8 +36,23 @@
     (define-key m [remap magithub-browse-thing] #'magithub-issue-browse)
     m))
 
-(defvar-local magithub-issue nil
-  "The issue object associated with a buffer.")
+(define-derived-mode magithub-issue-view-mode magit-mode
+  "Issue View" "View GitHub issues with Magithub.")
+
+(defvar magithub-issue-view-headers-hook
+  '(magithub-issue-view-insert-title
+    magithub-issue-view-insert-author
+    magithub-issue-view-insert-state
+    magithub-issue-view-insert-asked
+    magithub-issue-view-insert-labels)
+  "Header information for each issue.")
+
+(defvar magithub-issue-view-sections-hook
+  '(magithub-issue-view-insert-headers
+    magithub-issue-view-insert-body
+    magithub-issue-view-insert-comments)
+  "Sections to be inserted for each issue.")
+
 (defun magithub-issue-view-refresh-buffer (issue &rest _)
   (setq-local magithub-issue issue)
   (setq-local magithub-repo (magithub-issue-repo issue))
@@ -73,25 +86,12 @@ See also `magithub-issue-view--lock-value'."
                                                 (name . ,repo))
                                               number)))))
 
+;;;###autoload
 (defun magithub-issue-view-issue (issue)
   "View ISSUE in a new buffer."
   (interactive (list (magithub-interactive-issue)))
   (let ((magit-generate-buffer-name-function #'magithub-issue-view--buffer-name))
     (magit-mode-setup-internal #'magithub-issue-view-mode (list issue) t)))
-
-(defvar magithub-issue-view-headers-hook
-  '(magithub-issue-view-insert-title
-    magithub-issue-view-insert-author
-    magithub-issue-view-insert-state
-    magithub-issue-view-insert-asked
-    magithub-issue-view-insert-labels)
-  "Header information for each issue.")
-
-(defvar magithub-issue-view-sections-hook
-  '(magithub-issue-view-insert-headers
-    magithub-issue-view-insert-body
-    magithub-issue-view-insert-comments)
-  "Sections to be inserted for each issue.")
 
 (cl-defun magithub-issue-view-insert--generic (title text &optional type section-value &key face)
   "Insert a generic header line with TITLE: VALUE"
@@ -131,7 +131,7 @@ See also `magithub-issue-view--lock-value'."
   "Insert labels."
   (magit-insert-section (magithub-label)
     (insert (format "%-10s" "Labels:"))
-    (magithub-issue-insert-labels-sections magithub-issue)
+    (magithub-label-insert-list (alist-get 'labels magithub-issue))
     (magit-insert-heading)))
 
 (defun magithub-issue-view-insert-body ()

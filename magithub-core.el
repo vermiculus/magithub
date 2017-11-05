@@ -31,6 +31,7 @@
 (require 'ghub)
 (require 'bug-reference)
 (require 'cl-lib)
+(require 'markdown-mode)
 
 (require 'magithub-faces)
 
@@ -581,15 +582,19 @@ If SPARSE-REPO is null, the current context is used."
   "Return the full name of REPO.
 If the `full_name' object is present, use that.  Otherwise,
 concatenate `.owner.login' and `.name' with `/'."
-  (let-alist repo
-    (if .full_name .full_name
-      (concat .owner.login "/" .name))))
+  (let-alist repo (or .full_name (concat .owner.login "/" .name))))
 
 (defun magithub-repo-admin-p (&optional repo)
   "Non-nil if the currently-authenticated user can manage REPO.
 REPO defaults to the current repository."
-  (let-alist (magithub-repo repo)
+  (let-alist (magithub-repo (or repo (magithub-thing-at-point 'repo)))
     .permissions.admin))
+
+(defun magithub-repo-push-p (&optional repo)
+  "Non-nil if the currently-authenticated user can manage REPO.
+REPO defaults to the current repository."
+  (let-alist (magithub-repo (or repo (magithub-thing-at-point 'repo)))
+    .permissions.push))
 
 (defun magithub--repo-simplify (repo)
   "Convert full repository object REPO to a sparse repository object."

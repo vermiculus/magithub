@@ -28,6 +28,12 @@
 (require 'markdown-mode)
 (require 'git-commit)
 
+(defvar magithub-edit-mode-map
+  (let ((m (make-sparse-keymap)))
+    (define-key m (kbd "C-c C-c") #'magithub-edit-submit)
+    (define-key m (kbd "C-c C-k") #'magithub-edit-cancel)
+    m))
+
 ;;;###autoload
 (define-derived-mode magithub-edit-mode gfm-mode "Magithub-Edit"
   "Major mode for editing GitHub issues and pull requests."
@@ -42,21 +48,16 @@
   "Face used for the title in issues and pull requests."
   :group 'magithub-faces)
 
-(defvar magithub-edit-mode-map
-  (let ((m (make-sparse-keymap)))
-    (define-key m (kbd "C-c C-c") #'magithub-edit-submit)
-    (define-key m (kbd "C-c C-k") #'magithub-edit-cancel)
-    m))
-
 (defun magithub-edit-submit ()
   (interactive)
-  (magithub-edit--done magithub-edit-submit-function))
+  (magithub-edit--done magithub-edit-submit-function)
+  (magithub-cache-without-cache t
+    (magit-refresh-buffer)))
 (defun magithub-edit-cancel ()
   (interactive)
   (magithub-edit--done magithub-edit-cancel-function))
 (defun magithub-edit--done (callback)
-  (let ((prevbuf magithub-edit-previous-buffer)
-        newbuf)
+  (let ((prevbuf magithub-edit-previous-buffer))
     (save-excursion
       (when-let ((newbuf (call-interactively callback)))
         (when (bufferp newbuf)

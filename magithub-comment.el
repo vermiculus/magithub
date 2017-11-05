@@ -27,11 +27,17 @@
 (require 'magit)
 
 (require 'magithub-core)
+(require 'magithub-repo)
+(require 'magithub-issue)
+(require 'magithub-edit-mode)
+
+(declare-function magithub-issue-view-issue "magithub-issue-view.el" (issue))
 
 (defvar magit-magithub-comment-section-map
   (let ((m (make-sparse-keymap)))
     (set-keymap-parent m magithub-map)
     (define-key m [remap magithub-browse-thing] #'magithub-comment-browse)
+    (define-key m [remap magit-delete-thing] #'magithub-comment-delete)
     m))
 
 (defun magithub-comment-browse (comment)
@@ -40,6 +46,40 @@
     (user-error "No comment found"))
   (let-alist comment
     (browse-url .html_url)))
+
+(declare-function face-remap-remove-relative "face-remap.el" (cookie))
+(defun magithub-comment-delete (comment)
+  (interactive (list (magithub-thing-at-point 'comment)))
+  (unless comment
+    (user-error "No comment found"))
+  (let ((repo (magithub-comment-source-repo comment))
+        (author (let-alist comment .user.login))
+        (me (let-alist (magithub-user-me) .login)))
+    (unless (or (string= author me)
+                (magithub-repo-admin-p repo))
+      (user-error "You don't have permission to delete this comment"))
+    (let ((cookie (face-remap-add-relative 'magit-section-highlight
+                                           ;;'magit-diff-removed-highlight
+                                           ;;:strike-through t
+                                           ;;:background "red4"
+                                           ;;
+                                           'magithub-deleted-thing
+                                           )))
+      (unwind-protect
+          (unless (yes-or-no-p "Are you sure you wish to delete this comment? ")
+            (user-error "Aborted"))
+        (face-remap-remove-relative cookie)))
+    (ghubp-delete-repos-owner-repo-issues-comments-id repo comment)
+    (magithub-cache-without-cache :issues
+      (magit-refresh-buffer))
+    (message "Comment deleted")))
+
+(defun magithub-comment-source-issue (comment)
+  (magithub-cache :comment
+    `(ghubp-follow-get ,(alist-get 'issue_url comment))))
+
+(defun magithub-comment-source-repo (comment)
+  (magithub-issue-repo (magithub-comment-source-issue comment)))
 
 (defun magithub-comment-draft-file (repo issue)
   "Get the filepath of the comment draft for REPO/ISSUE."
@@ -95,22 +135,22 @@
   (let ((issueref (magithub-issue-reference issue))
         (repo (magithub-issue-repo issue)))
     (magithub-edit-new
-        (concat "reply to " issueref)
-        #'magithub-issue-comment-submit
-        #'magithub-issue-comment-cancel
-      (lambda ()
-        (setq-local magithub-issue issue)
-        (setq-local magithub-repo repo)
-        (magit-set-header-line-format
-         (substitute-command-keys
-          (format "replying to %s | %s | %s"
-                  issueref
-                  "submit: \\[magithub-edit-commit]"
-                  "cancel: \\[magithub-edit-cancel]")))
-        (when-let ((draft (magithub-comment-draft-load repo issue)))
-          (insert draft)
-          (message "Loaded draft"))
-        (goto-char (point-min))))))
+     (concat "reply to " issueref)
+     #'magithub-issue-comment-submit
+     #'magithub-issue-comment-cancel
+     (lambda ()
+       (setq-local magithub-issue issue)
+       (setq-local magithub-repo repo)
+       (magit-set-header-line-format
+        (substitute-command-keys
+         (format "replying to %s | %s | %s"
+                 issueref
+                 "submit: \\[magithub-edit-submit]"
+                 "cancel: \\[magithub-edit-cancel]")))
+       (when-let ((draft (magithub-comment-draft-load repo issue)))
+         (insert draft)
+         (message "Loaded draft"))
+       (goto-char (point-min))))))
 
 (defun magithub-issue-comment-cancel (repo issue comment-text)
   "Cancel current comment."
@@ -146,8 +186,6 @@ not provided."
   (ghubp-post-repos-owner-repo-issues-number-comments
    repo issue `((body . ,comment)))
   (message "Success")
-  (magithub-cache-without-cache :issues
-    (magithub-issue-view-issue issue))
   (magithub-comment-draft-delete repo issue))
 
 (provide 'magithub-comment)

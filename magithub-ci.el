@@ -31,7 +31,7 @@
 (require 's)
 
 (require 'magithub-core)
-(require 'magithub-pr)
+(require 'magithub-issue)
 
 (defun magithub-ci-enabled-p ()
   "Non-nil if CI is enabled for this repository.

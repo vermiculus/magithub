@@ -57,7 +57,7 @@
     `(ghubp-get-users-username ',user)))
 
 (defun magithub-assignee--verify-manage ()
-  (or (magithub-repo-admin-p)
+  (or (magithub-repo-push-p)
       (user-error "You don't have permission to manage assignees in this repository")))
 
 (defun magithub-assignee-add (issue user)
@@ -107,7 +107,7 @@
              (concat prompt
                      (if new-username (format " ['%s' not found]" new-username)))
              (alist-get 'login default-user)))
-      (when-let ((try (condition-case err
+      (when-let ((try (condition-case _err
                           (ghubp-get-users-username `((login . ,new-username)))
                         (ghub-404 nil))))
         (setq ret-user try)))

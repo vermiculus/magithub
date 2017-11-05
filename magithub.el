@@ -52,12 +52,12 @@
 (require 'magithub-issue)
 (require 'magithub-ci)
 (require 'magithub-proxy)
-(require 'magithub-issue-status)
 (require 'magithub-issue-post)
 (require 'magithub-issue-tricks)
 (require 'magithub-orgs)
 (require 'magithub-dash)
 
+;;;###autoload
 (magit-define-popup magithub-dispatch-popup
   "Popup console for dispatching other Magithub popups."
   'magithub-commands
