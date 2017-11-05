@@ -29,57 +29,58 @@
 (require 'git-commit)
 
 (defface magithub-repo
-  '((((class color)) :inherit magit-branch-remote))
+  '((t :inherit magit-branch-remote))
   "Face used for repository names."
   :group 'magithub-faces)
 
 (defface magithub-issue-title
-  '((((class color))))
+  '((t))
   "Face used for issue titles."
   :group 'magithub-faces)
 
 (defface magithub-issue-number
-  '((((class color)) :inherit magit-dimmed))
+  '((t :inherit magit-dimmed))
   "Face used for issue numbers."
   :group 'magithub-faces)
 
 (defface magithub-issue-title-with-note
-  '((((class color)) :inherit magithub-issue-title :inherit (git-commit-summary)))
+  '((t :inherit magithub-issue-title :inherit (git-commit-summary)))
   "Face used for issue titles when the issue has an attached note.
-See also `magithub-issue-personal-note'.")
+See also `magithub-issue-personal-note'."
+  :group 'magithub-faces)
 
 (defface magithub-user
-  '((((class color)) :inherit magit-log-author))
+  '((t :inherit magit-log-author))
   "Face used for usernames."
   :group 'magithub-faces)
 
 (defface magithub-ci-no-status
-  '((((class color)) :inherit magit-dimmed))
+  '((t :inherit magit-dimmed))
   "Face used when CI status is `no-status'."
   :group 'magithub-faces)
 
 (defface magithub-ci-error
-  '((((class color)) :inherit magit-signature-untrusted))
+  '((t :inherit magit-signature-untrusted))
   "Face used when CI status is `error'."
   :group 'magithub-faces)
 
 (defface magithub-ci-pending
-  '((((class color)) :inherit magit-signature-untrusted))
+  '((t :inherit magit-signature-untrusted))
   "Face used when CI status is `pending'."
   :group 'magithub-faces)
 
 (defface magithub-ci-success
-  '((((class color)) :inherit success))
+  '((t :inherit success))
   "Face used when CI status is `success'."
   :group 'magithub-faces)
 
 (defface magithub-ci-failure
-  '((((class color)) :inherit error))
+  '((t :inherit error))
   "Face used when CI status is `failure'"
   :group 'magithub-faces)
 
 (defface magithub-ci-unknown
-  '((((class color)) :inherit magit-signature-untrusted))
+  '((t :inherit magit-signature-untrusted))
   "Face used when CI status is `unknown'."
   :group 'magithub-faces)
 
@@ -90,7 +91,7 @@ Feel free to customize any part of this face, but be aware that
   :group 'magithub)
 
 (defface magithub-notification-reason
-  '((((class color)) :inherit magit-dimmed))
+  '((t :inherit magit-dimmed))
   "Face used for notification reasons."
   :group 'magithub-faces)
 
