@@ -24,7 +24,8 @@ install:
 - cask install
 script:
 - cask build 2>&1 | tee build.log
-- ! grep -oe '.*:Warning:.*' build.log
+- sh -c "! grep -oe '.*:Warning:.*' build.log"
+# travis doesn't like ! at the start of commands; see build #412 commit vs. parsed config
 - cask exec ert-runner
 notifications:
   email:
