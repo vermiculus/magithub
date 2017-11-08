@@ -14,19 +14,11 @@ env:
   - EMACS_VERSION=25.2
   - EMACS_VERSION=snapshot
 before_install:
-- export PATH="$HOME/bin:$PATH"
-- wget 'https://raw.githubusercontent.com/flycheck/emacs-travis/master/emacs-travis.mk'
-- make -f emacs-travis.mk install_emacs
-- make -f emacs-travis.mk install_cask
-- emacs --version
-- cask exec emacs --version
+- make setup-CI
 install:
-- cask install
+- make install
 script:
-- cask build 2>&1 | tee build.log
-- sh -c "! grep -oe '.*:Warning:.*' build.log"
-# travis doesn't like ! at the start of commands; see build #412 commit vs. parsed config
-- cask exec ert-runner
+- make test
 notifications:
   email:
     on_success: never
