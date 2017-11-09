@@ -4,10 +4,11 @@ clean:
 	rm -f *.elc
 	rm -rf .cask/
 
-install: clean
+install: .cask/
+.cask/:
 	cask --verbose install
 
-build: install
+build: .cask/
 	cask build 2>&1 | tee build.log
 
 test: test-build test-tag test-ert
