@@ -14,7 +14,7 @@ test: test-build test-tag test-ert
 
 # make sure the build errors if the package-version isn't up-to-date
 test-tag:
-	grep "Package-Version: $(git describe --tags | rev | cut -d- -f3- | rev)" magithub.el
+	grep "Package-Version: $(shell git describe --tags | rev | cut -d- -f3- | rev)" magithub.el
 
 # make sure there were no compile errors/warnings
 test-build: build
