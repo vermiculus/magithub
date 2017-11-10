@@ -269,7 +269,7 @@ the age of the oldest cached information."
        (format "Magithub: %s; use %s to refresh GitHub content or %s to go back online%s\n"
                (propertize "OFFLINE" 'face 'magit-head)
                (propertize
-                (substitute-command-keys "C-u \\[magit-refresh]")
+                (substitute-command-keys "\\[universal-argument] \\[magit-refresh]")
                 'face 'magit-header-line-key)
                (propertize
                 (substitute-command-keys "\\[magithub-dispatch-popup] O")
@@ -279,7 +279,7 @@ the age of the oldest cached information."
       (let* ((msg "When Magithub is offline, no API requests are ever made automatically.  Even when online, cached API responses never expire, so they must be updated manually with %s.")
              (msg (s-word-wrap (- fill-column 10) msg))
              (msg (format msg (propertize
-                               (substitute-command-keys "C-u \\[magit-refresh]")
+                               (substitute-command-keys "\\[universal-argument] \\[magit-refresh]")
                                'face 'magit-header-line-key))))
         (insert (format "%s\n" (replace-regexp-in-string (rx bol) (make-string 10 ?\ ) msg)))))))
 
@@ -998,7 +998,7 @@ COMPARE is used on the application of ACCESSOR to each argument."
   "Refresh GitHub data.
 Use directly at your own peril; this is intended for use with
 `magit-pre-refresh-hook'."
-  (interactive (user-error "This is no longer an interactive function; use C-u magit-refresh instead :-)"))
+  (interactive (user-error (substitute-command-keys "This is no longer an interactive function; use \\[universal-argument] \\[magit-refresh] instead :-)")))
   (when (and current-prefix-arg
              (magithub-usable-p)
              (y-or-n-p "Refresh GitHub data? ")
