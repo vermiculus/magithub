@@ -57,7 +57,7 @@
 (require 'magithub-orgs)
 (require 'magithub-dash)
 
-;;;###autoload
+;;;###autoload (autoload 'magithub-dispatch-popup "magithub" nil t)
 (magit-define-popup magithub-dispatch-popup
   "Popup console for dispatching other Magithub popups."
   'magithub-commands
