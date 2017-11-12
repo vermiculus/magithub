@@ -318,7 +318,7 @@ The cache is writtin to `magithub-cache-file' in
   "For CLASS, execute BODY without using CLASS's caches.
 Use t to ignore previously cached values completely.
 See also `magithub-cache-ignore-class'."
-  (declare (indent 1))
+  (declare (indent 1) (debug t))
   `(let ((magithub-cache-ignore-class ,class))
      ,@body))
 
