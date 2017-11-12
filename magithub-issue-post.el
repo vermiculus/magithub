@@ -6,6 +6,8 @@
 (eval-and-compile
   (require 'wid-edit))
 
+(declare-function magithub-issue-view "magithub-issue-view.el" (issue))
+
 (define-derived-mode magithub-issue-post-mode nil
   "Magithub Issue Post"
   "Major mode for posting GitHub issues and pull requests.")
@@ -256,7 +258,7 @@ See also URL
     (when (s-blank-p (alist-get 'title issue))
       (user-error "Title is required"))
     (when (yes-or-no-p "Are you sure you want to submit this issue? ")
-      (magithub-issue-browse
+      (magithub-issue-view
        (ghubp-post-repos-owner-repo-issues (magithub-repo) issue))
       (kill-buffer-and-window))))
 (defun magithub-issue-wsubmit-pull-request (&rest _)
@@ -270,7 +272,7 @@ See also URL
     (when (yes-or-no-p "Are you sure you want to submit this pull request? ")
       (when (y-or-n-p "Allow maintainers to modify this pull request? ")
         (push (cons 'maintainer_can_modify t) pull-request))
-      (magithub-issue-browse
+      (magithub-issue-view
        (ghubp-post-repos-owner-repo-pulls (magithub-repo) pull-request))
       (kill-buffer-and-window))))
 
