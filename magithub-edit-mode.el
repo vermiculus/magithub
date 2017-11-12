@@ -36,8 +36,7 @@
 
 ;;;###autoload
 (define-derived-mode magithub-edit-mode gfm-mode "Magithub-Edit"
-  "Major mode for editing GitHub issues and pull requests."
-  (font-lock-add-keywords nil `((,(git-commit-summary-regexp) 1 'magithub-edit-title t))))
+  "Major mode for editing GitHub issues and pull requests.")
 
 (defvar-local magithub-edit-submit-function nil)
 (defvar-local magithub-edit-cancel-function nil)
