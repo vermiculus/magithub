@@ -65,7 +65,8 @@ See also Info node `(elisp)Time of Day'."
 (defun magithub-notification-refresh ()
   (interactive)
   (magithub-cache-without-cache :notification
-    (magit-refresh)))
+    (magit-refresh))
+  (message "(magithub) notifcations refreshed"))
 
 (defun magithub-notification-unread-p (notification)
   "Non-nil if NOTIFICATION has been read."
