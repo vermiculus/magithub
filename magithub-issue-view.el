@@ -34,6 +34,7 @@
   (let ((m (make-composed-keymap (list magithub-map) magit-mode-map)))
     (define-key m [remap magithub-reply-thing] #'magithub-comment-new)
     (define-key m [remap magithub-browse-thing] #'magithub-issue-browse)
+    (define-key m [remap magit-refresh] #'magithub-issue-view-refresh)
     m))
 
 (define-derived-mode magithub-issue-view-mode magit-mode
@@ -52,6 +53,13 @@
     magithub-issue-view-insert-body
     magithub-issue-view-insert-comments)
   "Sections to be inserted for each issue.")
+
+(defun magithub-issue-view-refresh ()
+  "Refresh the current issue."
+  (interactive)
+  (magithub-cache-without-cache :issues
+    (magit-refresh))
+  (message "refreshed"))
 
 (defun magithub-issue-view-refresh-buffer (issue &rest _)
   (setq-local magithub-issue issue)
