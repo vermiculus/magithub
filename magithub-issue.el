@@ -466,7 +466,8 @@ buffer."
 
 (defun magithub-issue--insert-issue-section ()
   "Insert GitHub issues if appropriate."
-  (when (magithub-usable-p)
+  (when (and (magithub-usable-p)
+             (alist-get 'has_issues (magithub-repo)))
     (magithub-issue--insert-generic-section
      (magithub-issues-list)
      "Issues"
