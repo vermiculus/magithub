@@ -63,6 +63,28 @@ If magithub.ci.enabled is not set, CI is considered to be enabled."
   (when (derived-mode-p 'magit-status-mode)
     (magit-refresh)))
 
+(defvar magithub-ci--status-last-refreshed nil
+  "An alist of alists: repos to refs to times.
+For efficiency, repos are represented only by their full names.")
+
+(defun magithub-ci--status-last-refreshed-time (repo ref)
+  "The last time the statuses for REPO@REF were retrieved.
+This is a generalized variable and can be set with `setf'."
+  (declare (gv-setter
+            (lambda (time)
+              `(let ((repo (magithub-repo-name ,repo)))
+                 (if-let ((statuses (assoc repo magithub-ci--status-last-refreshed)))
+                     (if-let ((status (assoc ,ref (cdr statuses))))
+                         (setcdr status ,time)
+                       (push (cons ,ref ,time) (cdr statuses)))
+                   (push (cons repo (list (cons ,ref ,time)))
+                         magithub-ci--status-last-refreshed))))))
+  '(thread-last magithub-ci--status-last-refreshed
+     (assoc (magithub-repo-name repo)) (cdr)
+     (assoc ref) (cdr))
+  (cdr (assoc ref (cdr (assoc (magithub-repo-name repo)
+                              magithub-ci--status-last-refreshed)))))
+
 (defun magithub-pull-request-pr->branch (pull-request)
   "Does not handle cases where the local branch has been renamed."
   (let-alist pull-request .head.ref))
@@ -122,7 +144,10 @@ remote counterpart."
                     (if (magit-branch-p ref) (format "branch `%s'" ref)
                       (substring ref 0 6)))
             :after-update
-            (lambda () (message "(magithub): new statuses retrieved")))
+            (lambda ()
+              (setf (magithub-ci--status-last-refreshed-time (magithub-repo) ref)
+                    (current-time))
+              (message "(magithub): new statuses retrieved")))
         (ghub-404
          '((state . "error")
            (total_count . 0)
@@ -202,6 +227,12 @@ we'll hit the API) if Magithub is offline."
                         (propertize ref 'face 'magit-refname)
                         (propertize "..." 'face 'magit-dimmed)))
         (magit-insert-heading)
+        (insert (propertize
+                 (format "%-10sas of %s\n" ""
+                         (if-let ((time (magithub-ci--status-last-refreshed-time (magithub-repo) ref)))
+                             (format-time-string "%a %b %d %T" time)
+                           "???"))
+                 'face 'magit-dimmed))
         (dolist (status (alist-get 'statuses checks))
           (magit-insert-section (magithub-ci-status
                                  `(magithub-ci-url . ,(alist-get 'target_url status)))
