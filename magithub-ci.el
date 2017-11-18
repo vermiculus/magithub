@@ -144,10 +144,11 @@ remote counterpart."
                     (if (magit-branch-p ref) (format "branch `%s'" ref)
                       (substring ref 0 6)))
             :after-update
-            (lambda ()
+            (lambda (status &rest _)
               (setf (magithub-ci--status-last-refreshed-time (magithub-repo) ref)
                     (current-time))
-              (message "(magithub): new statuses retrieved")))
+              (message "(magithub): new statuses retrieved -- overall: %s"
+                       (alist-get 'state status))))
         (ghub-404
          '((state . "error")
            (total_count . 0)

@@ -227,7 +227,7 @@ AFTER-UPDATE is a function to run after the cache is updated."
                      (and magithub-cache-ignore-class
                           (or (eq magithub-cache-ignore-class t)
                               (eq magithub-cache-ignore-class class)))))
-         no-value-sym cached-value)
+         no-value-sym cached-value new-value)
 
     (unless recalc
       (setq no-value-sym (cl-gensym)
@@ -237,16 +237,14 @@ AFTER-UPDATE is a function to run after the cache is updated."
             cached-value (if (eq cached-value no-value-sym) nil cached-value)))
 
     (or (and recalc
-             (prog1 (puthash entry
-                             (with-temp-message message
-                               (eval form))
-                             magithub-cache--cache)
+             (prog1 (setq new-value (with-temp-message message (eval form)))
+               (puthash entry new-value magithub-cache--cache)
                (setq magithub-cache--needs-write t)
                (run-with-idle-timer 600 nil #'magithub-cache-write-to-disk)
                (when refreshing
                  (push entry magithub-cache--refreshed-forms))
                (when (functionp after-update)
-                 (funcall after-update))))
+                 (funcall after-update new-value))))
         cached-value)))
 
 (defun magithub-cache-invalidate ()
