@@ -307,14 +307,16 @@ Each function takes two arguments:
   "Insert when ISSUE was created using FMT."
   (let-alist issue
     (insert (format fmt "Created:")
-            (propertize .created_at 'face 'magit-dimmed)
+            (propertize (magithub--format-time .created_at)
+                        'face 'magit-dimmed)
             "\n")))
 
 (defun magithub-issue-detail-insert-updated (issue fmt)
   "Insert when ISSUE was created using FMT."
   (let-alist issue
     (insert (format fmt "Updated:")
-            (propertize .updated_at 'face 'magit-dimmed)
+            (propertize (magithub--format-time .updated_at)
+                        'face 'magit-dimmed)
             "\n")))
 
 (defun magithub-issue-detail-insert-assignees (issue fmt)

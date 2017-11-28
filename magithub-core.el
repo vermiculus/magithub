@@ -32,6 +32,7 @@
 (require 'bug-reference)
 (require 'cl-lib)
 (require 'markdown-mode)
+(require 'parse-time)
 
 (require 'magithub-faces)
 
@@ -723,6 +724,29 @@ See /.github/ISSUE_TEMPLATE.md in this repository."
   (error err-message))
 
 ;;; Miscellaneous utilities
+
+(defcustom magithub-datetime-format "%c"
+  "The display format string for date-time values.
+See also `format-time-string'."
+  :group 'magithub
+  :type 'string)
+
+(defun magithub--parse-time-string (iso8601)
+  "Parse ISO8601 into a time value.
+ISO8601 is expected to not have a TZ component."
+  (parse-iso8601-time-string (concat iso8601 "+00:00")))
+
+(defun magithub--format-time (time)
+  "Format TIME according to `magithub-datetime-format'.
+TIME may be a time value or a string.
+
+Eventually, TIME will always be a time value."
+  ;; todo: ghub+ needs to convert time values for defined response fields
+  (format-time-string
+   magithub-datetime-format
+   (or (and (stringp time)
+            (magithub--parse-time-string time))
+       time)))
 
 (defun magithub--completing-read (prompt collection &optional format-function predicate require-match default)
   "Using PROMPT, get a list of elements in COLLECTION.

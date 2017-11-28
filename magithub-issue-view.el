@@ -132,7 +132,7 @@ See also `magithub-issue-view--lock-value'."
 (defun magithub-issue-view-insert-asked ()
   "Insert posted time."
   (let-alist magithub-issue
-    (magithub-issue-view-insert--generic "Posted:" .created_at
+    (magithub-issue-view-insert--generic "Posted:" (magithub--format-time .created_at)
       :face 'magit-dimmed)))
 
 (defun magithub-issue-view-insert-labels ()

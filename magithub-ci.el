@@ -231,7 +231,7 @@ we'll hit the API) if Magithub is offline."
         (insert (propertize
                  (format "%-10sas of %s\n" ""
                          (if-let ((time (magithub-ci--status-last-refreshed-time (magithub-repo) ref)))
-                             (format-time-string "%a %b %d %T" time)
+                             (magithub--format-time time)
                            "???"))
                  'face 'magit-dimmed))
         (dolist (status (alist-get 'statuses checks))
