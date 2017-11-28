@@ -174,13 +174,19 @@ default."
   (-find (lambda (i) (= (alist-get 'number i) number))
          (magithub--issue-list :filter "all" :state "all")))
 
-(defun magithub-issue (repo number)
-  "Retrieve in REPO issue NUMBER."
-  (magithub-cache :issues
-    `(ghubp-get-repos-owner-repo-issues-number
-      ',repo '((number . ,number)))
-    :message
-    (format "Getting issue %s#%d..." (magithub-repo-name repo) number)))
+(defun magithub-issue (repo number-or-issue)
+  "Retrieve in REPO issue NUMBER-OR-ISSUE.
+NUMBER-OR-ISSUE is either a number or an issue object.  If it's a
+number, the issue by that number is retrieved.  If it's an issue
+object, the same issue is retrieved."
+  (let ((num (or (and (numberp number-or-issue)
+                      number-or-issue)
+                 (alist-get 'number number-or-issue))))
+    (magithub-cache :issues
+      `(ghubp-get-repos-owner-repo-issues-number
+        ',repo '((number . ,num)))
+      :message
+      (format "Getting issue %s#%d..." (magithub-repo-name repo) num))))
 
 (defun magithub-issue-personal-note-file (issue-or-pr)
   "Return an absolute filename appropriate for ISSUE-OR-PR."

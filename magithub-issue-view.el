@@ -58,6 +58,8 @@
   "Refresh the current issue."
   (interactive)
   (magithub-cache-without-cache :issues
+    (when magithub-issue
+      (setq-local magithub-issue (magithub-issue magithub-repo magithub-issue)))
     (magit-refresh))
   (message "refreshed"))
 
