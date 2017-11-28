@@ -1030,12 +1030,13 @@ Use directly at your own peril; this is intended for use with
 (defun magithub-fill-gfm (text)
   "Fill TEXT according to GFM rules."
   (with-temp-buffer
-    (gfm-mode)                          ;autoloaded
-    (insert text)
-    ;; re font-lock-ensure: see jrblevin/markdown-mode#251
-    (font-lock-ensure)
-    (fill-region (point-min) (point-max))
-    (buffer-string)))
+    (delay-mode-hooks
+      (gfm-mode)                        ;autoloaded
+      (insert text)
+      ;; re font-lock-ensure: see jrblevin/markdown-mode#251
+      (font-lock-ensure)
+      (fill-region (point-min) (point-max))
+      (buffer-string))))
 
 (defun magithub-indent-text (indent text)
   "Indent TEXT by INDENT spaces."
