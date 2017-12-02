@@ -97,7 +97,8 @@ It may fail if the fork has multiple branches named BRANCH."
     (when (alist-get 'fork repo)
       (let* ((guess-head (format "%s:%s" (magit-get-push-remote branch) branch))
              (prs (magithub-cache :ci-status
-                    `(ghubp-get-repos-owner-repo-pulls ',(magithub-repo) :head ,guess-head))))
+                    `(magithub-request
+                      (ghubp-get-repos-owner-repo-pulls ',(magithub-repo) :head ,guess-head)))))
         (pcase (length prs)
           (0)    ; this branch does not seem to correspond to any PR
           (1 (magit-set (number-to-string (alist-get 'number (car prs)))
@@ -137,8 +138,9 @@ remote counterpart."
         (magithub-debug-message "skipping CI status checks while in rebase")
       (condition-case _
           (magithub-cache :ci-status
-            `(ghubp-get-repos-owner-repo-commits-ref-status
-              ',(magithub-repo) ,ref)
+            `(magithub-request
+              (ghubp-get-repos-owner-repo-commits-ref-status
+               ',(magithub-repo) ,ref))
             :message
             (format "Getting CI status for %s..."
                     (if (magit-branch-p ref) (format "branch `%s'" ref)

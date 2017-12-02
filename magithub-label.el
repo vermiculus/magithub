@@ -15,8 +15,9 @@
 (defun magithub-label-list ()
   "Return a list of issue and pull-request labels."
   (magithub-cache :label
-    '(ghubp-get-repos-owner-repo-labels
-      (magithub-repo))
+    `(magithub-request
+      (ghubp-get-repos-owner-repo-labels
+       (magithub-repo)))
     :message
     "Loading labels..."))
 
@@ -43,7 +44,7 @@ issues and pull requests with the label LABEL."
   (interactive (list (magithub-thing-at-point 'label)))
   (unless label
     (user-error "No label found at point to browse"))
-  (unless (string= ghub-base-url "https://api.github.com")
+  (unless (string= (ghubp-host) ghub-default-host)
     (user-error "Label browsing not yet supported on GitHub Enterprise; pull requests welcome!"))
   (let-alist (magithub-repo)
     (browse-url (format "%s/%s/%s/labels/%s"
@@ -106,8 +107,9 @@ from `magithub-label'.  Customize that to affect all labels."
     (user-error "No label here"))
   (let-alist label
     (if (yes-or-no-p (format "Remove label %S from this issue? " .name))
-        (prog1 (ghubp-delete-repos-owner-repo-issues-number-labels-name
-                (magithub-issue-repo issue) issue label)
+        (prog1 (magithub-request
+                (ghubp-delete-repos-owner-repo-issues-number-labels-name
+                 (magithub-issue-repo issue) issue label))
           (magithub-cache-without-cache :issues
             (magit-refresh-buffer)))
       (user-error "Aborted"))))
@@ -122,8 +124,9 @@ from `magithub-label'.  Customize that to affect all labels."
                              (s-join "," (ghubp-get-in-all '(name) labels))
                              (magithub-repo-name (magithub-issue-repo issue))
                              (alist-get 'number issue)))
-        (prog1 (ghubp-post-repos-owner-repo-issues-number-labels
-                (magithub-issue-repo issue) issue labels)
+        (prog1 (magithub-request
+                (ghubp-post-repos-owner-repo-issues-number-labels
+                 (magithub-issue-repo issue) issue labels))
           (magithub-cache-without-cache :issues
             (magit-refresh)))
       (user-error "Aborted"))))

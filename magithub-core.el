@@ -36,6 +36,9 @@
 
 (require 'magithub-faces)
 
+(defconst magithub-github-token-scopes '(repo user notifications)
+  "The authentication scopes Magithub requests.")
+
 ;;; Debugging utilities
 (defvar magithub-debug-mode nil
   "Controls what kinds of debugging information shows.
@@ -63,10 +66,7 @@ Respects `magithub-debug-mode' and `debug-on-error'."
 (defun magithub-debug--ghub-request-wrapper (oldfun &rest args)
   "Report ghub requests as they're being made.
 Intended as around-advice for `ghub-requst'."
-  (magithub-debug-message
-   "ghub-request%S" `(,(car args)
-                      ,(concat ghub-base-url (cadr args))
-                      ,@(cddr args)))
+  (magithub-debug-message "ghub-request%S" args)
   (unless (magithub-debug-mode 'dry-api)
     (apply oldfun args)))
 (advice-add #'ghub-request :around #'magithub-debug--ghub-request-wrapper)
@@ -387,7 +387,7 @@ Pings the API a maximum of once every ten seconds."
                (condition-case _
                    (progn
                      (magithub-debug-message "making sure authinfo is unlocked")
-                     (ghub--token))
+                     (ghubp-token 'magithub))
                  ;; Magithub only works when authenticated.
                  (ghub-auth-error
                   (prog1 nil
@@ -547,7 +547,8 @@ If SPARSE-REPO is null, the current context is used."
   (let ((sparse-repo (or sparse-repo (magithub-source--sparse-repo))))
     (or (magithub-cache :repo-demographics
           `(condition-case e
-               (or (ghubp-get-repos-owner-repo ',sparse-repo)
+               (or (magithub-request
+                    (ghubp-get-repos-owner-repo ',sparse-repo))
                    (and (not (magithub--api-available-p))
                         sparse-repo))
              ;; Repo may not exist; ignore 404
@@ -1086,6 +1087,11 @@ Use directly at your own peril; this is intended for use with
     (define-key m "e" #'magithub-edit-thing)
     (define-key m "r" #'magithub-reply-thing)
     m))
+
+(defmacro magithub-request (&rest body)
+  "Execute BODY authenticating as Magithub."
+  `(ghubp-override-context auth 'magithub
+     ,@body))
 
 (eval-after-load "magit"
   '(progn

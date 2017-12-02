@@ -259,7 +259,8 @@ See also URL
       (user-error "Title is required"))
     (when (yes-or-no-p "Are you sure you want to submit this issue? ")
       (magithub-issue-view
-       (ghubp-post-repos-owner-repo-issues (magithub-repo) issue))
+       (magithub-request
+        (ghubp-post-repos-owner-repo-issues (magithub-repo) issue)))
       (kill-buffer-and-window))))
 (defun magithub-issue-wsubmit-pull-request (&rest _)
   (interactive)
@@ -273,7 +274,8 @@ See also URL
       (when (y-or-n-p "Allow maintainers to modify this pull request? ")
         (push (cons 'maintainer_can_modify t) pull-request))
       (magithub-issue-view
-       (ghubp-post-repos-owner-repo-pulls (magithub-repo) pull-request))
+       (magithub-request
+        (ghubp-post-repos-owner-repo-pulls (magithub-repo) pull-request)))
       (kill-buffer-and-window))))
 
 (defun magithub-issue-wcancel (&rest _)

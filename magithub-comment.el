@@ -69,14 +69,16 @@
           (unless (yes-or-no-p "Are you sure you wish to delete this comment? ")
             (user-error "Aborted"))
         (face-remap-remove-relative cookie)))
-    (ghubp-delete-repos-owner-repo-issues-comments-id repo comment)
+    (magithub-request
+     (ghubp-delete-repos-owner-repo-issues-comments-id repo comment))
     (magithub-cache-without-cache :issues
       (magit-refresh-buffer))
     (message "Comment deleted")))
 
 (defun magithub-comment-source-issue (comment)
   (magithub-cache :comment
-    `(ghubp-follow-get ,(alist-get 'issue_url comment))))
+    `(magithub-request
+      (ghubp-follow-get ,(alist-get 'issue_url comment)))))
 
 (defun magithub-comment-source-repo (comment)
   (magithub-issue-repo (magithub-comment-source-issue comment)))
@@ -184,8 +186,9 @@ not provided."
                             (magithub-issue-reference issue)))
     (user-error "Aborted"))
   ;; confirmed; submit the issue
-  (ghubp-post-repos-owner-repo-issues-number-comments
-   repo issue `((body . ,comment)))
+  (magithub-request
+   (ghubp-post-repos-owner-repo-issues-number-comments
+    repo issue `((body . ,comment))))
   (message "Success")
   (magithub-comment-draft-delete repo issue))
 

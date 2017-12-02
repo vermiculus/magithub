@@ -104,7 +104,7 @@ create the new repository.  You must be a member of this
 organization."
   (interactive (if (or (not (magit-toplevel)) (magithub-github-repository-p))
                    (list nil nil)
-                 (let* ((ghub-username (ghub--username)) ;performance
+                 (let* ((ghub-username (ghubp-username)) ;performance
                         (account (magithub--read-user-or-org))
                         (priv (yes-or-no-p "Will this be a private repository? "))
                         (reponame (magithub--read-repo-name account))
@@ -123,9 +123,10 @@ organization."
         (call-interactively #'magithub-create))
     (with-temp-message "Creating repository on GitHub..."
       (setq repo
-            (if org
-                (ghubp-post-orgs-org-repos org repo)
-              (ghubp-post-user-repos repo))))
+            (magithub-request
+             (if org
+                 (ghubp-post-orgs-org-repos org repo)
+               (ghubp-post-user-repos repo)))))
     (magithub--random-message "Creating repository on GitHub...done!")
     (magit-status-internal default-directory)
     (magit-remote-add "origin" (magithub-repo--clone-url repo))
@@ -140,7 +141,7 @@ Candidates will include the current user and all organizations,
 public and private, of which they're a part.  If there is only
 one candidate (i.e., no organizations), the single candidate will
 be returned without prompting the user."
-  (let ((user (ghub--username))
+  (let ((user (ghubp-username))
         (orgs (ghubp-get-in-all '(login)
                 (magithub-orgs-list)))
         candidates)
@@ -176,7 +177,8 @@ be returned without prompting the user."
     (user-error "Not a GitHub repository"))
   (let* ((repo (magithub-repo))
          (fork (with-temp-message "Forking repository on GitHub..."
-                 (ghubp-post-repos-owner-repo-forks repo))))
+                 (magithub-request
+                  (ghubp-post-repos-owner-repo-forks repo)))))
     (when (y-or-n-p "Create a spinoff branch? ")
       (call-interactively #'magit-branch-spinoff))
     (magithub--random-message
@@ -192,7 +194,7 @@ be returned without prompting the user."
 (defun magithub-clone--get-repo ()
   "Prompt for a user and a repository.
 Returns a sparse repository object."
-  (let ((user (ghub--username))
+  (let ((user (ghubp-username))
         (repo-regexp  (rx bos (group (+ (not (any " "))))
                           "/" (group (+ (not (any " ")))) eos))
         repo)
@@ -223,7 +225,8 @@ See also `magithub-preferred-remote-method'."
                    (user-error "Already in a GitHub repo")
                  (let ((repo (magithub-clone--get-repo)))
                    (condition-case _
-                       (let* ((repo (ghubp-get-repos-owner-repo repo))
+                       (let* ((repo (magithub-request
+                                     (ghubp-get-repos-owner-repo repo)))
                               (dirname (read-directory-name
                                         "Destination: "
                                         magithub-clone-default-directory
@@ -235,7 +238,8 @@ See also `magithub-preferred-remote-method'."
   ;; Argument validation
   (unless (called-interactively-p 'any)
     (condition-case _
-        (setq repo (ghubp-get-repos-owner-repo repo))
+        (setq repo (magithub-request
+                    (ghubp-get-repos-owner-repo repo)))
       (ghub-404
        (let-alist repo
          (user-error "Repository %s/%s does not exist"

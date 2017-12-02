@@ -88,10 +88,11 @@ will return a ton of issues.
 See also `ghubp-get-repos-owner-repo-issues'."
   (cl-assert (cl-evenp (length params)))
   (magithub-cache :issues
-    `(ghubp-unpaginate
-      (ghubp-get-repos-owner-repo-issues
-       ',(magithub-repo)
-       ,@params))
+    `(magithub-request
+      (ghubp-unpaginate
+       (ghubp-get-repos-owner-repo-issues
+        ',(magithub-repo)
+        ,@params)))
     :message
     "Retrieving issue list..."))
 
@@ -106,7 +107,8 @@ See also `ghubp-get-repos-owner-repo-issues'."
   "Get comments on ISSUE."
   (let ((repo (magithub-issue-repo issue)))
     (magithub-cache :issues
-      `(ghubp-get-repos-owner-repo-issues-number-comments ',repo ',issue))))
+      `(magithub-request
+        (ghubp-get-repos-owner-repo-issues-number-comments ',repo ',issue)))))
 
 ;; Finding issues and pull requests
 (defun magithub-issues ()
@@ -183,8 +185,9 @@ object, the same issue is retrieved."
                       number-or-issue)
                  (alist-get 'number number-or-issue))))
     (magithub-cache :issues
-      `(ghubp-get-repos-owner-repo-issues-number
-        ',repo '((number . ,num)))
+      `(magithub-request
+        (ghubp-get-repos-owner-repo-issues-number
+         ',repo '((number . ,num))))
       :message
       (format "Getting issue %s#%d..." (magithub-repo-name repo) num))))
 
@@ -224,7 +227,8 @@ This is stored in `magit-git-dir' and is unrelated to
   (let-alist issue
     (save-match-data
       (when (string-match (concat (rx bos)
-                                  (regexp-quote ghub-base-url)
+                                  "https://"
+                                  (regexp-quote (ghubp-host))
                                   (rx "/repos/"
                                       (group (+ (not (any "/")))) "/"
                                       (group (+ (not (any "/")))) "/issues/")
@@ -466,8 +470,9 @@ buffer."
        (list issue (magithub--completing-read-multiple
                     "Add labels: " (magithub-label-list) fmt
                     nil nil current-labels)))))
-  (when (ghubp-patch-repos-owner-repo-issues-number
-         (magithub-repo) issue `((labels . ,labels)))
+  (when (magithub-request
+         (ghubp-patch-repos-owner-repo-issues-number
+          (magithub-repo) issue `((labels . ,labels))))
     (setcdr (assq 'labels issue) labels))
   (when (derived-mode-p 'magit-status-mode)
     (magit-refresh)))
@@ -558,8 +563,9 @@ Interactively, this finds the issue at point."
 (defun magithub-pull-request (repo number)
   "Retrieve a pull request in REPO by NUMBER."
   (magithub-cache :issues
-    `(ghubp-get-repos-owner-repo-pulls-number
-      ',repo '((number . ,number)))
+    `(magithub-request
+      (ghubp-get-repos-owner-repo-pulls-number
+       ',repo '((number . ,number))))
     :message
     (format "Getting pull request %s#%d..."
             (magithub-repo-name repo)
@@ -587,9 +593,10 @@ PULL-REQUEST is the full object; not just the issue subset."
   (interactive (list
                 (let ((pr (or (magithub-thing-at-point 'pull-request)
                               (magithub-issue-completing-read-pull-requests))))
-                  (ghubp-get-repos-owner-repo-pulls-number
-                   (magithub-repo)
-                   `((number . ,(alist-get 'number pr)))))))
+                  (magithub-request
+                   (ghubp-get-repos-owner-repo-pulls-number
+                    (magithub-repo)
+                    `((number . ,(alist-get 'number pr))))))))
   (let-alist pull-request
     (let ((remote .user.login)
           (branch (format "%s/%s" .user.login .head.ref)))
