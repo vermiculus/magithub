@@ -91,10 +91,14 @@
 
 (defun magithub-comment-draft-save (repo issue comment)
   "Save a draft reply to REPO/ISSUE as COMMENT."
+  (interactive (list (magithub-thing-at-point 'repo)
+                     (magithub-thing-at-point 'issue)
+                     (buffer-string)))
   (make-directory (magithub-repo-data-dir repo) t)
   (with-temp-buffer
     (insert comment)
     (write-file (magithub-comment-draft-file repo issue)))
+  (set-buffer-modified-p nil)
   (message "Draft saved"))
 
 (defun magithub-comment-draft-load (repo issue)
@@ -128,6 +132,12 @@
       (insert (magithub-fill-gfm (magithub-wash-gfm (s-trim .body)))
               "\n\n"))))
 
+(defvar magithub-comment-edit-map
+  (let ((m (make-sparse-keymap)))
+    (define-key m [remap save-buffer] #'magithub-comment-draft-save)
+    m)
+  "Local map for comment-edit buffers.")
+
 ;;;###autoload
 (defun magithub-comment-new (issue)
   "Comment on ISSUE in a new buffer."
@@ -141,6 +151,7 @@
         (concat "reply to " issueref)
         #'magithub-issue-comment-submit
         #'magithub-issue-comment-cancel
+        magithub-comment-edit-map
       (lambda ()
         (setq-local magithub-issue issue)
         (setq-local magithub-repo repo)
@@ -155,12 +166,10 @@
           (message "Loaded draft"))
         (goto-char (point-min))))))
 
-(defun magithub-issue-comment-cancel (repo issue comment-text)
+(defun magithub-issue-comment-cancel ()
   "Cancel current comment."
-  (interactive (list (magithub-thing-at-point 'repo)
-                     (magithub-thing-at-point 'issue)
-                     (buffer-string)))
-  (magithub-comment-draft-save repo issue comment-text))
+  (interactive)
+  (call-interactively #'magithub-comment-draft-save))
 
 (defun magithub-issue-comment-submit (issue comment &optional repo)
   "On ISSUE, submit a new COMMENT.

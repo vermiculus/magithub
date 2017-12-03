@@ -65,11 +65,14 @@
     (when prevbuf
       (let ((switch-to-buffer-preserve-window-point t))
         (switch-to-buffer prevbuf)))))
-(defun magithub-edit-new (buffer-name submit-func cancel-func setup)
-  (declare (indent 3))
+(defun magithub-edit-new (buffer-name submit-func cancel-func local-map setup)
+  (declare (indent 4))
   (let ((prevbuf (current-buffer)))
     (with-current-buffer (get-buffer-create buffer-name)
       (magithub-edit-mode)
+      (use-local-map (let ((m local-map))
+                       (set-keymap-parent m magithub-edit-mode-map)
+                       m))
       (funcall setup)
       (setq magithub-edit-previous-buffer prevbuf
             magithub-edit-submit-function submit-func
