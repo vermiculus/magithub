@@ -24,6 +24,8 @@
 
 ;;; Code:
 
+(require 'magithub-issue-view)
+
 (defvar magit-magithub-notification-section-map
   (let ((m (make-sparse-keymap)))
     (set-keymap-parent m magithub-map)
@@ -103,16 +105,14 @@ get a more verbose explanation."
   "Visits the URL pointed to by NOTIFICATION."
   (interactive (list (magithub-thing-at-point 'notification)))
   (if notification
-      (let ((url (let-alist notification (or .subject.latest_comment_url
-                                             .subject.url))))
-        (unless url
-          (user-error "No target URL found"))
-        (let-alist (magithub-cache :notification
-                     `(magithub-request
-                       (ghubp-follow-get ,url)))
-          (unless .html_url
-            (user-error "No target URL found"))
-          (browse-url .html_url)))
+      (let-alist notification
+        (cond
+         ((string= .subject.type "Issue")
+          (magithub-issue-view (magithub-request (ghubp-follow-get .subject.url))))
+         (t (if-let ((url (or .subject.latest_comment_url .subject.url))
+                     (html-url (alist-get 'html_url (magithub-request (ghubp-follow-get url)))))
+                (browse-url .html_url)
+              (user-error "No target URL found")))))
     (user-error "No notification here")))
 
 (defvar magithub-notification-details-hook
