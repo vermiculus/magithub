@@ -1097,6 +1097,10 @@ Use directly at your own peril; this is intended for use with
   `(ghubp-override-context auth 'magithub
      ,@body))
 
+(defun magithub-debug-section (section)
+  (interactive (list (magit-current-section)))
+  (pp-eval-expression `(magit-section-value ,section)))
+
 (eval-after-load "magit"
   '(progn
      (dolist (hook '(magit-revision-mode-hook git-commit-setup-hook))
