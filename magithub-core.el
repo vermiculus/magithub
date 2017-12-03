@@ -790,18 +790,22 @@ allowed."
 (defmacro magithub--deftoggle (name doc on-by-default hook func)
   "Define a section-toggle command."
   (declare (indent defun))
-  `(prog1 (defun ,name ()
-            ,(concat "Toggle the " doc " section.")
-            (interactive)
-            (if (memq ,func ,hook)
-                (remove-hook ',hook ,func)
-              (add-hook ',hook ,func t))
-            (magit-refresh)
-            (memq ,func ,hook))
-     ,(when on-by-default
-        `(eval-after-load "magit"
-           '(let ((inhibit-magit-refresh t))
-              (add-hook ',hook ,func t))))))
+  (let ((Senabled (cl-gensym)))
+    `(prog1 (defun ,name ()
+              ,(concat "Toggle the " doc " section.")
+              (interactive)
+              (let (,Senabled)
+                (setq ,Senabled (not (memq ,func ,hook)))
+                (if ,Senabled
+                    (remove-hook ',hook ,func)
+                  (add-hook ',hook ,func t))
+                (magit-refresh)
+                (message (concat ,(concat doc " section ") (if ,Senabled "enabled" "disabled")))
+                ,Senabled))
+       ,(when on-by-default
+          `(eval-after-load "magit"
+             '(let ((inhibit-magit-refresh t))
+                (add-hook ',hook ,func t)))))))
 
 (defun magithub--zip-case (p e)
   "Get an appropriate value for element E given property/function P."
