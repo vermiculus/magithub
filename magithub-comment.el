@@ -38,6 +38,7 @@
     (set-keymap-parent m magithub-map)
     (define-key m [remap magithub-browse-thing] #'magithub-comment-browse)
     (define-key m [remap magit-delete-thing] #'magithub-comment-delete)
+    (define-key m (kbd "SPC") #'magithub-comment-view)
     m))
 
 (defun magithub-comment-browse (comment)
@@ -131,6 +132,46 @@
           (insert (propertize created-at 'face 'magit-dimmed))))
       (insert (magithub-fill-gfm (magithub-wash-gfm (s-trim .body)))
               "\n\n"))))
+
+(define-derived-mode gfm-view-mode gfm-mode "GFM-View"
+  ;; Until jrblevin/markdown-mode#296 is addressed...
+  "Major mode for viewing GitHub markdown content.")
+
+(defvar gfm-view-mode-map
+  (let ((m (make-sparse-keymap)))
+    (define-key m "p" #'markdown-outline-previous)
+    (define-key m "n" #'markdown-outline-next)
+    (define-key m "q" #'magithub-comment-view-close)
+    m)
+  "Keymap for `gfm-view-mode'.")
+
+(defvar-local magithub-comment-view--parent-buffer nil
+  "The 'parent' buffer of the current comment-view.
+This variable is used to jump back to the issue that contained
+the comment; see `magithub-comment-view' and
+`magithub-comment-view-close'.")
+
+(defun magithub-comment-view (comment)
+  "View COMMENT in a new buffer."
+  (interactive (list (magithub-thing-at-point 'comment)))
+  (let ((prev (current-buffer)))
+    (with-current-buffer (get-buffer-create "*comment*")
+      (gfm-view-mode)
+      (setq-local magithub-comment-view--parent-buffer prev)
+      (insert (magithub-wash-gfm (alist-get 'body comment)))
+      (goto-char 0)
+      (read-only-mode)
+      (switch-to-buffer-other-window (current-buffer)))))
+
+(defun magithub-comment-view-close ()
+  "Close the current buffer."
+  (interactive)
+  (when (eq major-mode 'gfm-view-mode)
+    (let ((buf (current-buffer))
+          (prev magithub-comment-view--parent-buffer))
+      (when-let ((window (get-buffer-window prev)))
+        (select-window window))
+      (kill-buffer buf))))
 
 (defvar magithub-comment-edit-map
   (let ((m (make-sparse-keymap)))
