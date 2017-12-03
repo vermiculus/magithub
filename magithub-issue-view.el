@@ -57,9 +57,12 @@
 (defun magithub-issue-view-refresh ()
   "Refresh the current issue."
   (interactive)
-  (magithub-cache-without-cache :issues
-    (when magithub-issue
-      (setq-local magithub-issue (magithub-issue magithub-repo magithub-issue)))
+  (when magithub-issue
+    (magithub-cache-without-cache :issues
+      (setq-local magithub-issue
+                  (magithub-issue magithub-repo magithub-issue))
+      (magithub-issue-comments magithub-issue)))
+  (let ((magit-refresh-args (list magithub-issue)))
     (magit-refresh))
   (message "refreshed"))
 
