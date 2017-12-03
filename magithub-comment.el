@@ -135,7 +135,7 @@
 
 (define-derived-mode gfm-view-mode gfm-mode "GFM-View"
   ;; Until jrblevin/markdown-mode#296 is addressed...
-  "Major mode for viewing GitHub markdown content.")
+  "Major mode for viewing Github markdown content.")
 
 (defvar gfm-view-mode-map
   (let ((m (make-sparse-keymap)))

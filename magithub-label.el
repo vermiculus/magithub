@@ -45,7 +45,7 @@ issues and pull requests with the label LABEL."
   (unless label
     (user-error "No label found at point to browse"))
   (unless (string= (ghubp-host) ghub-default-host)
-    (user-error "Label browsing not yet supported on GitHub Enterprise; pull requests welcome!"))
+    (user-error "Label browsing not yet supported on Github Enterprise; pull requests welcome!"))
   (let-alist (magithub-repo)
     (browse-url (format "%s/%s/%s/labels/%s"
                         (ghubp-base-html-url)
@@ -54,7 +54,7 @@ issues and pull requests with the label LABEL."
 (defcustom magithub-label-color-replacement-alist nil
   "Make certain label colors easier to see.
 In your theme, you may find that certain colors are very
-difficult to see.  Customize this list to map GitHub's label
+difficult to see.  Customize this list to map Github's label
 colors to their Emacs replacements."
   :group 'magithub
   :type '(alist :key-type color :value-type color))

@@ -10,7 +10,7 @@
 
 (define-derived-mode magithub-issue-post-mode nil
   "Magithub Issue Post"
-  "Major mode for posting GitHub issues and pull requests.")
+  "Major mode for posting Github issues and pull requests.")
 
 (defvar-local magithub-issue--extra-data nil)
 (defvar-local magithub-issue--widgets nil

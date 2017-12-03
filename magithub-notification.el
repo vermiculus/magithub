@@ -84,7 +84,7 @@ See also Info node `(elisp)Time of Day'."
     ("subscribed" . "You're watching the repository.")
     ("team_mention" . "You were on a team that was mentioned."))
   "Human-readable description of possible notification reasons.
-Stripped from the GitHub API Docs:
+Stripped from the Github API Docs:
 
     URL `https://developer.github.com/v3/activity/notifications/#notification-reasons'.")
 

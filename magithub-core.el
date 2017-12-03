@@ -265,7 +265,7 @@ the age of the oldest cached information."
              (magithub-offline-p))
     (magit-insert-section (magithub nil t)
       (insert
-       (format "Magithub: %s; use %s to refresh GitHub content or %s to go back online%s\n"
+       (format "Magithub: %s; use %s to refresh Github content or %s to go back online%s\n"
                (propertize "OFFLINE" 'face 'magit-head)
                (propertize
                 (substitute-command-keys "\\[universal-argument] \\[magit-refresh]")
@@ -333,7 +333,7 @@ See also `magithub-cache-ignore-class'."
   ;; (eval-when-compile (date-to-time "1/1/1970"))
   '(14445 17280)
   "The last time the API was available.
-Used to avoid pinging GitHub multiple times a second.")
+Used to avoid pinging Github multiple times a second.")
 
 (defcustom magithub-api-timeout 3
   "Number of seconds we'll wait for the API to respond."
@@ -425,7 +425,7 @@ Pings the API a maximum of once every ten seconds."
                                                response))
 
                    ;; Sometimes, the API can take a long time to respond
-                   ;; (whether that's GitHub not responding or requests being
+                   ;; (whether that's Github not responding or requests being
                    ;; blocked by some client-side firewal).  Handle this
                    ;; possibility gracefully.
                    (magithub-api-timeout
@@ -462,7 +462,7 @@ See `magithub--api-offline-reason'."
 
 ;;; Repository parsing
 (defun magithub-github-repository-p ()
-  "Non-nil if \"origin\" points to GitHub or a whitelisted domain."
+  "Non-nil if \"origin\" points to Github or a whitelisted domain."
   (when-let ((origin (magit-get "remote" "origin" "url")))
     (-some? (lambda (domain) (s-contains? domain origin))
             (cons "github.com" (magit-get-all "hub" "host")))))
@@ -518,7 +518,7 @@ URL may be of several different formats:
                                (name . ,(match-string 3 url))))))))
 
 (defun magithub--url->repo (url)
-  "Tries to parse a remote url into a GitHub repository object"
+  "Tries to parse a remote url into a Github repository object"
   (cdr (assq 'sparse-repo (magithub--repo-parse-url url))))
 
 (defun magithub-source--remote ()
@@ -565,14 +565,14 @@ If SPARSE-REPO is null, the current context is used."
     m))
 
 (defun magithub-repo-visit (repo)
-  "Visit REPO on GitHub."
+  "Visit REPO on Github."
   (interactive (list (magithub-thing-at-point 'repo)))
   (if-let ((url (alist-get 'html_url repo)))
       (browse-url url)
     (user-error "No URL for repo")))
 
 (defun magithub-repo-visit-issues (repo)
-  "Visit REPO's issues on GitHub."
+  "Visit REPO's issues on Github."
   (interactive (list (magithub-thing-at-point 'repo)))
   (if-let ((url (alist-get 'html_url repo)))
       (browse-url (format "%s/issues" url))
@@ -607,14 +607,14 @@ REPO defaults to the current repository."
       (name . ,name))))
 
 (defun magithub-repo-remotes ()
-  "Return GitHub repositories in this repository.
+  "Return Github repositories in this repository.
 `magit-list-remotes' is filtered to those remotes that point to
-GitHub repositories."
+Github repositories."
   (delq nil (mapcar (lambda (r) (cons r (magithub-repo-from-remote r)))
                     (magit-list-remotes))))
 
 (defun magithub-read-repo (prompt)
-  "Using PROMPT, read a GitHub repository.
+  "Using PROMPT, read a Github repository.
 See also `magithub-repo-remotes'."
   (let* ((remotes (magithub-repo-remotes))
          (maxlen (->> remotes
@@ -896,7 +896,7 @@ of a signal (e.g., for interactive forms)."
         (signal 'error `(unauthorized manage-labels ,(progn .full_name)))))))
 
 (defun magithub-bug-reference-mode-on ()
-  "In GitHub repositories, configure `bug-reference-mode'."
+  "In Github repositories, configure `bug-reference-mode'."
   (interactive)
   (when (magithub-usable-p)
     (when-let ((repo (magithub-repo)))
@@ -1022,7 +1022,7 @@ COMPARE is used on the application of ACCESSOR to each argument."
   (magit-section-show-level -5))
 
 (defun magithub-refresh ()
-  "Refresh GitHub data.
+  "Refresh Github data.
 Use directly at your own peril; this is intended for use with
 `magit-pre-refresh-hook'."
   (interactive (user-error (substitute-command-keys "This is no longer an interactive function; use \\[universal-argument] \\[magit-refresh] instead :-)")))

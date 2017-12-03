@@ -38,7 +38,7 @@
     m))
 
 (define-derived-mode magithub-issue-view-mode magit-mode
-  "Issue View" "View GitHub issues with Magithub.")
+  "Issue View" "View Github issues with Magithub.")
 
 (defvar magithub-issue-view-headers-hook
   '(magithub-issue-view-insert-title

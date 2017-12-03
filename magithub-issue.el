@@ -478,7 +478,7 @@ buffer."
     (magit-refresh)))
 
 (defun magithub-issue--insert-issue-section ()
-  "Insert GitHub issues if appropriate."
+  "Insert Github issues if appropriate."
   (when (and (magithub-usable-p)
              (alist-get 'has_issues (magithub-repo)))
     (magithub-issue--insert-generic-section
@@ -488,7 +488,7 @@ buffer."
      magithub-issue-issue-filter-functions)))
 
 (defun magithub-issue--insert-pr-section ()
-  "Insert GitHub pull requests if appropriate."
+  "Insert Github pull requests if appropriate."
   (when (magithub-usable-p)
     (magithub-feature-maybe-idle-notify
      'pull-request-merge
