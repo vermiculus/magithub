@@ -1024,9 +1024,9 @@ Use directly at your own peril; this is intended for use with
   (interactive (user-error (substitute-command-keys "This is no longer an interactive function; use \\[universal-argument] \\[magit-refresh] instead :-)")))
   (when (and current-prefix-arg
              (magithub-usable-p)
-             (y-or-n-p "Refresh GitHub data? ")
+             (y-or-n-p "Refresh Github data? ")
              (or (magithub--api-available-p)
-                 (y-or-n-p "GitHub doesn't seem to responding, are you sure? ")))
+                 (y-or-n-p "Github doesn't seem to be responding, are you sure? ")))
     (let ((old-cache-value magithub-cache))
       ;; `magithub-refresh' is part of `magit-pre-refresh-hook' and
       ;; our requests are made as part of `magit-refresh'.  There's no
