@@ -108,7 +108,8 @@ See also `ghubp-get-repos-owner-repo-issues'."
   (let ((repo (magithub-issue-repo issue)))
     (magithub-cache :issues
       `(magithub-request
-        (ghubp-get-repos-owner-repo-issues-number-comments ',repo ',issue)))))
+        (ghubp-unpaginate
+         (ghubp-get-repos-owner-repo-issues-number-comments ',repo ',issue))))))
 
 ;; Finding issues and pull requests
 (defun magithub-issues ()
