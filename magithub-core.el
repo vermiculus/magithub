@@ -1094,6 +1094,7 @@ Use directly at your own peril; this is intended for use with
 
 (defmacro magithub-request (&rest body)
   "Execute BODY authenticating as Magithub."
+  (declare (debug t))
   `(ghubp-override-context auth 'magithub
      ,@body))
 
