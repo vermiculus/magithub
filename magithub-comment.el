@@ -188,7 +188,7 @@ be considered.
 If INITIAL-CONTENT is specified, it will be inserted as the
 initial contents of the reply if there is no draft."
   (interactive (let ((issue (magithub-interactive-issue)))
-                 (prog1 (list issue initial-content current-prefix-arg)
+                 (prog1 (list issue current-prefix-arg)
                    (unless (derived-mode-p 'magithub-issue-view-mode)
                      (magithub-issue-view issue)))))
   (let* ((issueref (magithub-issue-reference issue))
