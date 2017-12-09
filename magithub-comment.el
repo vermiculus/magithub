@@ -39,6 +39,7 @@
     (define-key m [remap magithub-browse-thing] #'magithub-comment-browse)
     (define-key m [remap magit-delete-thing] #'magithub-comment-delete)
     (define-key m (kbd "SPC") #'magithub-comment-view)
+    (define-key m [remap magithub-reply-thing] #'magithub-comment-reply)
     m))
 
 (defun magithub-comment-browse (comment)
@@ -105,11 +106,10 @@
 (defun magithub-comment-draft-load (repo issue)
   "Load the draft reply to REPO/ISSUE."
   (let ((file (magithub-comment-draft-file repo issue)))
-    (or (and (file-exists-p file)
-             (with-temp-buffer
-               (insert-file-contents file)
-               (buffer-string)))
-        "")))
+    (and (file-exists-p file)
+         (with-temp-buffer
+           (insert-file-contents file)
+           (buffer-string)))))
 
 (defun magithub-comment-draft-delete (repo issue)
   "Delete the draft file for REPO/ISSUE if it exists."
@@ -180,14 +180,28 @@ the comment; see `magithub-comment-view' and
   "Local map for comment-edit buffers.")
 
 ;;;###autoload
-(defun magithub-comment-new (issue)
-  "Comment on ISSUE in a new buffer."
+(defun magithub-comment-new (issue &optional discard-draft initial-content)
+  "Comment on ISSUE in a new buffer.
+If prefix argument DISCARD-DRAFT is specified, the draft will not
+be considered.
+
+If INITIAL-CONTENT is specified, it will be inserted as the
+initial contents of the reply if there is no draft."
   (interactive (let ((issue (magithub-interactive-issue)))
-                 (prog1 (list issue)
+                 (prog1 (list issue initial-content current-prefix-arg)
                    (unless (derived-mode-p 'magithub-issue-view-mode)
                      (magithub-issue-view issue)))))
-  (let ((issueref (magithub-issue-reference issue))
-        (repo (magithub-issue-repo issue)))
+  (let* ((issueref (magithub-issue-reference issue))
+         (repo (magithub-issue-repo issue))
+         (draft (magithub-comment-draft-load repo issue)))
+    (when (and draft discard-draft)
+      (with-current-buffer (get-buffer-create " *draft*")
+        (insert draft)
+        (view-buffer-other-window (current-buffer))
+        (when (yes-or-no-p "Discard this draft? ")
+          (magithub-comment-draft-delete repo issue)
+          (setq draft nil))
+        (kill-buffer (current-buffer))))
     (magithub-edit-new
         (concat "reply to " issueref)
         #'magithub-issue-comment-submit
@@ -202,10 +216,32 @@ the comment; see `magithub-comment-view' and
                   issueref
                   "submit: \\[magithub-edit-submit]"
                   "cancel: \\[magithub-edit-cancel]")))
-        (when-let ((draft (magithub-comment-draft-load repo issue)))
+        (if (and (null draft) initial-content)
+            (insert initial-content)
           (insert draft)
-          (message "Loaded draft"))
-        (goto-char (point-min))))))
+          (message "Loaded existing draft"))
+        (goto-char (point-max))))))
+
+(defun magithub-comment-reply (comment &optional discard-draft issue)
+  "Reply to COMMENT on ISSUE.
+If prefix argument DISCARD-DRAFT is provided, the current draft
+will deleted.
+
+If ISSUE is not provided, it will be determined from context or
+from COMMENT."
+  (interactive (list (magithub-thing-at-point 'comment)
+                     current-prefix-arg
+                     (magithub-thing-at-point 'issue)))
+  (let-alist comment
+    (magithub-comment-new
+     (or issue (magithub-request (ghubp-follow-get .issue_url)))
+     discard-draft
+     (with-temp-buffer
+       (insert (string-trim (magithub-wash-gfm .body)))
+       (markdown-blockquote-region (point-min) (point-max))
+       (goto-char (point-max))
+       (insert "\n\n")
+       (buffer-string)))))
 
 (defun magithub-issue-comment-cancel ()
   "Cancel current comment."
