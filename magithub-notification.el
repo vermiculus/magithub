@@ -107,7 +107,8 @@ get a more verbose explanation."
   (if notification
       (let-alist notification
         (cond
-         ((string= .subject.type "Issue")
+         ((or (string= .subject.type "Issue")
+              (string= .subject.type "PullRequest"))
           (magithub-issue-view (magithub-request (ghubp-follow-get .subject.url))))
          (t (if-let ((url (or .subject.latest_comment_url .subject.url))
                      (html-url (alist-get 'html_url (magithub-request (ghubp-follow-get url)))))
