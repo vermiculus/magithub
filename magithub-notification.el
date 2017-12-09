@@ -111,7 +111,7 @@ get a more verbose explanation."
           (magithub-issue-view (magithub-request (ghubp-follow-get .subject.url))))
          (t (if-let ((url (or .subject.latest_comment_url .subject.url))
                      (html-url (alist-get 'html_url (magithub-request (ghubp-follow-get url)))))
-                (browse-url .html_url)
+                (browse-url html-url)
               (user-error "No target URL found")))))
     (user-error "No notification here")))
 
