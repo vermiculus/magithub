@@ -135,7 +135,7 @@
 
 (defvar magithub-gfm-view-mode-map
   (let ((m (make-sparse-keymap)))
-    (define-key m "q" #'magithub-comment-view-close)
+    (define-key m [remap magit-mode-bury-buffer] #'magithub-comment-view-close)
     m)
   "Keymap for `magithub-gfm-view-mode'.")
 
