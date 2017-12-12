@@ -133,17 +133,14 @@
       (insert (magithub-fill-gfm (magithub-wash-gfm (s-trim .body)))
               "\n\n"))))
 
-(define-derived-mode gfm-view-mode gfm-mode "GFM-View"
-  ;; Until jrblevin/markdown-mode#296 is addressed...
-  "Major mode for viewing Github markdown content.")
-
-(defvar gfm-view-mode-map
+(defvar magithub-gfm-view-mode-map
   (let ((m (make-sparse-keymap)))
-    (define-key m "p" #'markdown-outline-previous)
-    (define-key m "n" #'markdown-outline-next)
     (define-key m "q" #'magithub-comment-view-close)
     m)
-  "Keymap for `gfm-view-mode'.")
+  "Keymap for `magithub-gfm-view-mode'.")
+
+(define-derived-mode magithub-gfm-view-mode gfm-view-mode "M:GFM-View"
+  "Major mode for viewing Github markdown content.")
 
 (defvar-local magithub-comment-view--parent-buffer nil
   "The 'parent' buffer of the current comment-view.
@@ -156,7 +153,7 @@ the comment; see `magithub-comment-view' and
   (interactive (list (magithub-thing-at-point 'comment)))
   (let ((prev (current-buffer)))
     (with-current-buffer (get-buffer-create "*comment*")
-      (gfm-view-mode)
+      (magithub-gfm-view-mode)
       (setq-local magithub-comment-view--parent-buffer prev)
       (insert (magithub-wash-gfm (alist-get 'body comment)))
       (goto-char 0)
@@ -166,7 +163,7 @@ the comment; see `magithub-comment-view' and
 (defun magithub-comment-view-close ()
   "Close the current buffer."
   (interactive)
-  (when (eq major-mode 'gfm-view-mode)
+  (when (eq major-mode 'magithub-gfm-view-mode)
     (let ((buf (current-buffer))
           (prev magithub-comment-view--parent-buffer))
       (when-let ((window (get-buffer-window prev)))
