@@ -163,7 +163,7 @@ the comment; see `magithub-comment-view' and
 (defun magithub-comment-view-close ()
   "Close the current buffer."
   (interactive)
-  (when (eq major-mode 'magithub-gfm-view-mode)
+  (when (derived-mode-p 'magithub-gfm-view-mode)
     (let ((buf (current-buffer))
           (prev magithub-comment-view--parent-buffer))
       (when-let ((window (get-buffer-window prev)))
