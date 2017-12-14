@@ -911,13 +911,18 @@ of a signal (e.g., for interactive forms)."
     (setq list (cl-remove-if-not f list)))
   list)
 
-(defvar magithub-preferred-remote-method 'ssh_url
+(defcustom magithub-preferred-remote-method 'ssh_url
   "Preferred method when cloning or adding remotes.
 One of the following:
 
   `clone_url' (https://github.com/octocat/Hello-World.git)
   `git_url'   (git:github.com/octocat/Hello-World.git)
-  `ssh_url'   (git@github.com:octocat/Hello-World.git)")
+  `ssh_url'   (git@github.com:octocat/Hello-World.git)"
+  :group 'magithub
+  :type '(choice
+          (const :tag "https" clone_url)
+          (const :tag "git" git_url)
+          (const :tag "ssh" ssh_url)))
 
 (defun magithub-repo--clone-url (repo)
   "Get the preferred cloning URL from REPO."
