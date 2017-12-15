@@ -175,7 +175,7 @@ remote counterpart."
   (interactive (list (magit-rev-parse (magit-commit-at-point))))
   (let (done)
     (when (null ref)
-      (pcase (magit-section-value (magit-current-section))
+      (pcase (oref (magit-current-section) value)
         (`(magithub-ci-url . ,url)
          (browse-url url)
          (setq done t))

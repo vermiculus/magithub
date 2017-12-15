@@ -850,7 +850,7 @@ For example, if
   (eq (magit-section-type SECTION) \\='magithub-issue)
 
 return the interned symbol `issue'."
-  (let* ((type (magit-section-type section))
+  (let* ((type (oref section type))
          (name (symbol-name type)))
     (and (string-prefix-p "magithub-" name)
          (intern (substring name 9)))))
@@ -879,8 +879,8 @@ general type will also return sections of a specialized type.")
                           (thread-last magithub-thing-type-specializations
                             (alist-get type)
                             (memq this-type))))))
-        (setq this-section (magit-section-parent this-section)))
-      (and this-section (magit-section-value this-section)))))
+        (setq this-section (oref this-section parent)))
+      (and this-section (oref this-section value)))))
 
 (defun magithub-verify-manage-labels (&optional interactive)
   "Verify the user has permission to manage labels.
@@ -1079,7 +1079,7 @@ Use directly at your own peril; this is intended for use with
 (defun magithub-commit-browse (rev)
   "Browse REV on GitHub.
 Interactively, this is the commit at point."
-  (interactive (list (magit-section-value (magit-current-section))))
+  (interactive (list (oref (magit-current-section) value)))
   (let-alist (car (magithub-cache
                     `(ghubp-get-repos-owner-repo-commits
                       ',(magithub-repo)
@@ -1120,7 +1120,7 @@ Interactively, this is the commit at point."
 
 (defun magithub-debug-section (section)
   (interactive (list (magit-current-section)))
-  (pp-eval-expression `(magit-section-value ,section)))
+  (pp-eval-expression `(oref ,section value)))
 
 (eval-after-load "magit"
   '(progn
