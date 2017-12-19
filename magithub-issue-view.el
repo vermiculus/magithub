@@ -57,14 +57,19 @@
 (defun magithub-issue-view-refresh ()
   "Refresh the current issue."
   (interactive)
-  (when magithub-issue
-    (magithub-cache-without-cache :issues
-      (setq-local magithub-issue
-                  (magithub-issue magithub-repo magithub-issue))
-      (magithub-issue-comments magithub-issue)))
-  (let ((magit-refresh-args (list magithub-issue)))
-    (magit-refresh))
-  (message "refreshed"))
+  (if (derived-mode-p 'magithub-issue-view-mode)
+      (progn
+        ;; todo: find a better means to separate the keymaps of issues
+        ;; in the status buffer vs issues in their own buffer
+        (when magithub-issue
+          (magithub-cache-without-cache :issues
+            (setq-local magithub-issue
+                        (magithub-issue magithub-repo magithub-issue))
+            (magithub-issue-comments magithub-issue)))
+        (let ((magit-refresh-args (list magithub-issue)))
+          (magit-refresh))
+        (message "refreshed"))
+    (call-interactively #'magit-refresh)))
 
 (defun magithub-issue-view-refresh-buffer (issue &rest _)
   (setq-local magithub-issue issue)
