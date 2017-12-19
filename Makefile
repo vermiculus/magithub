@@ -32,3 +32,5 @@ setup-CI:
 	make -f emacs-travis.mk install_cask
 	emacs --version
 	cask exec emacs --version
+
+texi:

@@ -34,7 +34,9 @@ those instructions.
 ```elisp
 (use-package magithub
   :after magit
-  :config (magithub-feature-autoinject t))
+  :config
+  (magithub-feature-autoinject t)
+  (setq magithub-clone-default-directory "~/github"))
 ```
 
 See [the full documentation][magithub-org] for more details.
