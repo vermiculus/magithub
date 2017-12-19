@@ -215,8 +215,9 @@ initial contents of the reply if there is no draft."
                   "cancel: \\[magithub-edit-cancel]")))
         (if (and (null draft) initial-content)
             (insert initial-content)
-          (insert draft)
-          (message "Loaded existing draft"))
+          (when draft
+            (insert draft)
+            (message "Loaded existing draft")))
         (goto-char (point-max))))))
 
 (defun magithub-comment-reply (comment &optional discard-draft issue)
