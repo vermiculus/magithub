@@ -133,7 +133,8 @@ remote counterpart."
                        (magithub-pull-request-branch->pr--ghub branch))))))
       (let-alist pull-request .head.sha)
     (when-let ((push-branch (magit-get-push-branch branch)))
-      (cdr (magit-split-branch-name push-branch)))))
+      (when (magit-branch-p push-branch)
+        (cdr (magit-split-branch-name push-branch))))))
 
 (defun magithub-ci-status (ref)
   (when (stringp ref)
