@@ -212,13 +212,15 @@ See also URL
          (base        (magithub-remote-branches-choose
                        "Base branch" base-remote
                        (when on-this-remote
-                         (magit-get-upstream-branch head)))))
+                         (magit-get-upstream-branch head))))
+         (head (if (string= this-remote base-remote)
+                   head
+                 (format "%s:%s" this-repo-owner head))))
+    (unless (y-or-n-p (format "You are about to create a pull request to merge branch `%s' into %s:%s; is this what you wanted to do?"
+                              head (magithub-repo-name parent-repo) base))
+      (user-error "Aborting"))
     (let-alist parent-repo
-      (list parent-repo
-            base
-            (if (string= this-remote base-remote)
-                head
-              (format "%s:%s" this-repo-owner head))
+      (list parent-repo base head
             (read-string (format "Pull request title (%s/%s): "
                                  .owner.login .name))))))
 
