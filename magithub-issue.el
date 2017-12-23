@@ -365,7 +365,8 @@ Each function takes two arguments:
       (insert label-string)
 
       (if (or (null .body) (string= .body ""))
-          (concat (propertize "none" 'face 'magit-dimmed))
+          (insert (concat (propertize "none" 'face 'magit-dimmed)
+                          "\n"))
 
         (setq label-len (length label-string))
         (setq width (- fill-column label-len))
