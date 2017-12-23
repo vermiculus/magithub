@@ -264,10 +264,11 @@ See also URL
     (when (s-blank-p (alist-get 'title issue))
       (user-error "Title is required"))
     (when (yes-or-no-p "Are you sure you want to submit this issue? ")
-      (magithub-issue-view
-       (magithub-request
-        (ghubp-post-repos-owner-repo-issues (magithub-repo) issue)))
-      (kill-buffer-and-window))))
+      (let ((issue (magithub-request
+                    (ghubp-post-repos-owner-repo-issues (magithub-repo) issue))))
+        (kill-buffer-and-window)
+        (magithub-issue-view issue)))))
+
 (defun magithub-issue-wsubmit-pull-request (&rest _)
   (interactive)
   (let ((pull-request `((title  . ,(s-trim (magithub-issue--widget-value 'title)))
@@ -279,13 +280,13 @@ See also URL
     (when (yes-or-no-p "Are you sure you want to submit this pull request? ")
       (when (y-or-n-p "Allow maintainers to modify this pull request? ")
         (push (cons 'maintainer_can_modify t) pull-request))
-      (magithub-issue-view
-       (condition-case err
-           (magithub-request
-            (ghubp-post-repos-owner-repo-pulls (magithub-repo) pull-request))
-         (ghub-422
-          (user-error "This pull request already exists!"))))
-      (kill-buffer-and-window))))
+      (let ((pr (condition-case err
+                    (magithub-request
+                     (ghubp-post-repos-owner-repo-pulls (magithub-repo) pull-request))
+                  (ghub-422
+                   (user-error "This pull request already exists!")))))
+        (kill-buffer-and-window)
+        (magithub-issue-view pr)))))
 
 (defun magithub-issue-wcancel (&rest _)
   (interactive)
