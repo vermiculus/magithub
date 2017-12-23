@@ -225,6 +225,10 @@ See also URL
 (defun magithub-pull-request-new (repo base head title)
   "Create a new pull request."
   (interactive (magithub-pull-request-new-arguments))
+  (when (ghubp-get-repos-owner-repo-pulls repo nil :head head)
+    (user-error "A pull request on %s already exists for head %s"
+                (magithub-repo-name repo)
+                head))
   (let-alist repo
     (with-current-buffer
         (magithub-issue--new-form
@@ -274,8 +278,11 @@ See also URL
       (when (y-or-n-p "Allow maintainers to modify this pull request? ")
         (push (cons 'maintainer_can_modify t) pull-request))
       (magithub-issue-view
-       (magithub-request
-        (ghubp-post-repos-owner-repo-pulls (magithub-repo) pull-request)))
+       (condition-case err
+           (magithub-request
+            (ghubp-post-repos-owner-repo-pulls (magithub-repo) pull-request))
+         (ghub-422
+          (user-error "This pull request already exists!"))))
       (kill-buffer-and-window))))
 
 (defun magithub-issue-wcancel (&rest _)
