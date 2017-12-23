@@ -421,6 +421,7 @@ we'll hit the API) if Magithub is offline."
     (set-keymap-parent map magithub-map)
     (define-key map [remap magit-visit-thing] #'magithub-issue-visit)
     (define-key map [remap magithub-browse-thing] #'magithub-issue-browse)
+    (define-key map [remap magit-refresh] #'magithub-issue-refresh)
     map)
   "Keymap for `magithub-issue-list' sections.")
 
@@ -438,6 +439,7 @@ we'll hit the API) if Magithub is offline."
     (set-keymap-parent map magithub-map)
     (define-key map [remap magit-visit-thing] #'magithub-pull-visit)
     (define-key map [remap magithub-browse-thing] #'magithub-pull-browse)
+    (define-key map [remap magit-refresh] #'magithub-issue-refresh)
     map)
   "Keymap for `magithub-pull-request-list' sections.")
 
