@@ -62,7 +62,7 @@
       (setq-local magithub-issue
                   (magithub-issue magithub-repo magithub-issue))
       (magithub-issue-comments magithub-issue)))
-  (let ((magit-refresh-args (list magithub-issue)))
+  (let ((magit-refresh-args (and magithub-issue (list magithub-issue))))
     (magit-refresh))
   (message "refreshed"))
 
