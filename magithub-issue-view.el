@@ -157,8 +157,9 @@ See also `magithub-issue-view--lock-value'."
   (let-alist magithub-issue
     (magit-insert-section (magithub-issue-body magithub-issue)
       (magit-insert-heading "Body")
-      (insert (magithub-fill-gfm (magithub-wash-gfm (s-trim .body))))
-      (insert "\n\n"))))
+      (if (or (null .body) (string= .body ""))
+          (insert (propertize "There's nothing here!\n\n" 'face 'magit-dimmed))
+        (insert (magithub-fill-gfm (magithub-wash-gfm (s-trim .body))) "\n\n")))))
 
 (defun magithub-issue-view-insert-comments ()
   "Insert issue comments."
