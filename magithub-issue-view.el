@@ -35,6 +35,7 @@
     (define-key m [remap magithub-reply-thing] #'magithub-comment-new)
     (define-key m [remap magithub-browse-thing] #'magithub-issue-browse)
     (define-key m [remap magit-refresh] #'magithub-issue-view-refresh)
+    (define-key m [remap magit-merge-popup] #'magithub-pull-request-merge-online)
     m))
 
 (define-derived-mode magithub-issue-view-mode magit-mode
@@ -169,6 +170,72 @@ See also `magithub-issue-view--lock-value'."
       (if (null comments)
           (insert (propertize "There's nothing here!\n\n" 'face 'magit-dimmed))
         (mapc #'magithub-comment-insert comments)))))
+
+(defun magithub-pull-request-merge-online (pull-request &optional merge-method repo)
+  (interactive (let* ((pr (magithub-thing-at-point 'issue))
+                      (repo (magithub-issue-repo pr)))
+                 (unless (magithub-repo-push-p repo)
+                   (user-error "You don't have permission to merge pull requests in this repository"))
+                 (unless (magithub-issue--issue-is-pull-p pr)
+                   (error "Not a pull request: %S" pr))
+                 (list pr nil repo)))
+
+  (let-alist pull-request
+    ;; if it's an issue object, convert to a PR
+    ;; if it's already a PR, make sure we have the most up-to-date version
+    (setq pull-request (ghubp-follow-get .pull_request.url)))
+
+  (let-alist pull-request
+    (when .merged
+      (user-error "This pull request has already been merged"))
+    (unless .mergeable
+      (if (y-or-n-p "This pull request cannot be merged; open in browser? ")
+          (magithub-issue-browse pull-request)
+        (user-error "This pull request cannot be merged")))
+    (if (and (string= .mergeable_state "behind")
+             (string= .author_association "CONTRIBUTOR")
+             .maintainer_can_modify)
+        ;; head is behind base
+        (if (y-or-n-p (format "%s is behind; do you want to update it (opens browser)? " .head.label))
+            ;; the following will fail; I've got a GitHub API support ticket in
+            ;; merge base into head
+            ;; (let ((base .head.label)
+            ;;       (head .base.sha))
+            ;;   (condition-case err
+            ;;       (ghub-post (format "/repos/%s/merges" (magithub-repo-name repo))
+            ;;                  `((base . ,head)
+            ;;                    (head . ,base)))
+            ;;     (ghub-404 (user-error "HTTP 404: %s (base=%s; head=%s) [%S]"
+            ;;                           (alist-get 'message (nth 5 err))
+            ;;                           base head err))))
+            (magithub-issue-browse pull-request)
+          (unless (and (magithub-repo-admin-p repo)
+                       (y-or-n-p "Do you wish to proceed with the merge anyway? "))
+            (user-error "Aborting"))))
+    (unless (y-or-n-p (format "Merge %s into %s? " .head.label .base.ref))
+      (user-error "Aborting"))
+
+    (setq merge-method
+          (or merge-method
+              (intern
+               (magit-completing-read
+                "GitHub merge merge-method"
+                '("merge" "squash" "rebase")
+                nil t nil nil
+                (or (magit-get "magithub" "defaultMergeMethod")
+                    "merge")))))
+
+    ;; todo: allow modifying the merge commit
+    (condition-case err
+        (ghubp-put-repos-owner-repo-pulls-number-merge
+         repo pull-request
+         ;; todo: use a commit buffer to grab this info
+         `((commit_title . ,(format "Merge pull request #%d from %s"
+                                    .number .head.label))
+           (commit_message . ,(progn .title))
+           (sha . ,(progn .head.sha))
+           (merge_method . ,(symbol-name merge-method))))
+      (ghub-409 (user-error "SHA out-of-date: %S" err)))))
 
 (provide 'magithub-issue-view)
 ;;; magithub-issue-view.el ends here
