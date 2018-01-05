@@ -6,7 +6,7 @@
 ;; Keywords: git, tools, vc
 ;; Homepage: https://github.com/vermiculus/magithub
 ;; Package-Requires: ((emacs "25") (magit "2.8") (s "1.12.0") (ghub+ "0.2.1") (git-commit "2.8") (markdown-mode "2.3"))
-;; Package-Version: 0.1.4
+;; Package-Version: 0.1.5
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
