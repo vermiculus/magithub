@@ -7,6 +7,9 @@
 - If you were using ~magit-header-line~ to customize the appearance of
   the =Issues= and =Pull Requests= section headers, those now use the
   ~magit-section-heading~ face.  [[PR:196]]
+- Many functions related to issue/post creation have been reworked.
+  Instead of the widget framework, we now use =magithub-edit-mode=.  See
+  more details in 'New Features'.  [[PR:204]]
 
 * New Features
 - Browse commits by using =w= on a commit section.
@@ -22,6 +25,13 @@
   These symbols should allow other GitHub-sensitive packages to use
   the work Magithub has already done without depending on Magithub
   directly.  [[PR:201]]
+- The widget interface for writing issues and pull requests is gone!
+  Now, everything uses the framework debuted for writing comments.
+  For issues and pull requests, the first line (i.e., everything up to
+  the first newline character) is parsed as the title; everything else
+  as the body.  Now issues, pull requests, and comments use a common
+  interface that supports submitting, cancelling, and saving drafts to
+  finish later.  [[PR:204]]
 
 * Bug Fixes
 - In ~magithub-repo~, an API request is no longer made when the

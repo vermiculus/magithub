@@ -106,10 +106,12 @@ See also `magithub-issue-view--lock-value'."
 
 ;;;###autoload
 (defun magithub-issue-view (issue)
-  "View ISSUE in a new buffer."
+  "View ISSUE in a new buffer.
+Return the new buffer."
   (interactive (list (magithub-interactive-issue)))
   (let ((magit-generate-buffer-name-function #'magithub-issue-view--buffer-name))
-    (magit-mode-setup-internal #'magithub-issue-view-mode (list issue) t)))
+    (magit-mode-setup-internal #'magithub-issue-view-mode (list issue) t)
+    (current-buffer)))
 
 (cl-defun magithub-issue-view-insert--generic (title text &optional type section-value &key face)
   "Insert a generic header line with TITLE: VALUE"

@@ -43,6 +43,11 @@
   "Face used for issue numbers."
   :group 'magithub-faces)
 
+(defface magithub-issue-title-edit
+  '((t :inherit magithub-issue-title :inherit (git-commit-summary)))
+  "Face used for post titles during editing."
+  :group 'magithub-faces)
+
 (defface magithub-issue-title-with-note
   '((t :inherit magithub-issue-title :inherit (git-commit-summary)))
   "Face used for issue titles when the issue has an attached note.
