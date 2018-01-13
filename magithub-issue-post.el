@@ -199,7 +199,7 @@ See also URL
    nil t nil nil default))
 
 (defun magithub-pull-request-new-arguments ()
-  (let* ((this-repo   (magithub-read-repo "Fork's remote (this is you!)"))
+  (let* ((this-repo   (magithub-read-repo "Fork's remote (this is you!) "))
          (this-repo-owner (let-alist this-repo .owner.login))
          (parent-repo (or (alist-get 'parent this-repo) this-repo))
          (this-remote (car (magithub-repo-remotes-for-repo this-repo)))
