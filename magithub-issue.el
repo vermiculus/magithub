@@ -511,7 +511,7 @@ buffer."
     `(when-let ((,sym-filtered (magithub-filter-all ,filters ,list)))
        (magit-insert-section ,spec
          (insert (format "%s%s:"
-                         (propertize ,title 'face 'magit-header-line)
+                         (propertize ,title 'face 'magit-section-heading)
                          (if ,filters
                              (propertize " (filtered)" 'face 'magit-dimmed)
                            "")))
