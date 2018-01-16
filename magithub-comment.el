@@ -25,6 +25,7 @@
 ;;; Code:
 
 (require 'magit)
+(require 'markdown-mode)
 
 (require 'magithub-core)
 (require 'magithub-repo)
