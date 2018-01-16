@@ -1,0 +1,16 @@
+#+Title: Magithub Release 0.1.6
+#+Date:
+
+#+LINK: PR https://www.github.com/vermiculus/magithub/pull/%s
+
+* Breaking Changes
+- If you were using ~magit-header-line~ to customize the appearance of
+  the =Issues= and =Pull Requests= section headers, those now use the
+  ~magit-section-heading~ face.  [[PR:196]]
+
+* New Features
+- Browse commits by using =w= on a commit section.
+
+* Bug Fixes
+- In ~magithub-repo~, an API request is no longer made when the
+  repository contect cannot be determined.
