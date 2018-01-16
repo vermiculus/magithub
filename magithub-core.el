@@ -544,7 +544,7 @@ included in the returned object."
 (defun magithub-repo (&optional sparse-repo)
   "Turn SPARSE-REPO into a full repository object.
 If SPARSE-REPO is null, the current context is used."
-  (let ((sparse-repo (or sparse-repo (magithub-source--sparse-repo))))
+  (when-let ((sparse-repo (or sparse-repo (magithub-source--sparse-repo))))
     (or (magithub-cache :repo-demographics
           `(condition-case e
                (or (magithub-request
