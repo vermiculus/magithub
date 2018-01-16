@@ -1087,15 +1087,19 @@ Interactively, this is the commit at point."
     (browse-url .html_url)))
 
 (defun magithub-add-thing ()
+  "Conceptual command to add a thing (e.g., label, assignee, ...)"
   (interactive)
   (user-error "There is no thing at point that could be added to"))
 (defun magithub-browse-thing ()
+  "Conceptual command to browse a thing on Github"
   (interactive)
   (user-error "There is no thing at point that could be browsed"))
 (defun magithub-edit-thing ()
+  "Conceptual command to edit a thing (e.g., comment)"
   (interactive)
   (user-error "There is no thing at point that could be replied to"))
 (defun magithub-reply-thing ()
+  "Conceptual command to reply to a thing (e.g., comment)"
   (interactive)
   (user-error "There is no thing at point that could be replied to"))
 
@@ -1105,7 +1109,8 @@ Interactively, this is the commit at point."
     (define-key m "w" #'magithub-browse-thing)
     (define-key m "e" #'magithub-edit-thing)
     (define-key m "r" #'magithub-reply-thing)
-    m))
+    m)
+  "Parent keymap for Magithub sections.")
 
 (defmacro magithub-request (&rest body)
   "Execute BODY authenticating as Magithub."
