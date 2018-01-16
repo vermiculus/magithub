@@ -29,8 +29,8 @@ via the usual means.
 ** Authentication
 
 Given Github's rate-limiting policy, Magithub is unlikely to ever support
-running with authenticating.  As such, you /must/ authenticate before you use
-Magithub.  (As of #107, Magithub will not even attempt go online until
+running without authenticating.  As such, you /must/ authenticate before you
+use Magithub.  (As of #107, Magithub will not even attempt go online until
 you're properly authenticated.)
 
 To authenticate, you can simply start using Magithub; Ghub should walk you
