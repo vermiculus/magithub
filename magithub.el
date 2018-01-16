@@ -289,7 +289,11 @@ Features:
   (`magithub-pull-request-merge' inserted into `magit-am-popup')
 
 - `pull-request-checkout'
-  (`magithub-pull-request-checkout' inserted into `magit-branch-popup')"
+  (`magithub-pull-request-checkout' inserted into `magit-branch-popup')
+
+- `commit-browse'
+  Browse commits by pressing \\[magithub-browse-thing]
+  (see also `magithub-map')."
   (if (memq feature '(t all))
       (mapc #'magithub-feature-autoinject magithub-feature-list)
     (cl-case feature
@@ -301,6 +305,10 @@ Features:
       (pull-request-checkout
        (magit-define-popup-action 'magit-branch-popup
          ?P "Checkout pull request" #'magithub-pull-request-checkout))
+
+      (commit-browse
+       (define-key magit-commit-section-map
+         [remap magithub-browse-thing] #'magithub-commit-browse))
 
       (t (user-error "unknown feature %S" feature)))
     (add-to-list 'magithub-features (cons feature t))))
