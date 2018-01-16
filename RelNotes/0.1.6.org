@@ -10,6 +10,7 @@
 
 * New Features
 - Browse commits by using =w= on a commit section.
+- ~magithub-feature-autoinject~ can now take a list of features to load.
 
 * Bug Fixes
 - In ~magithub-repo~, an API request is no longer made when the

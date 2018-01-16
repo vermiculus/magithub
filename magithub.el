@@ -281,9 +281,10 @@ See also `magithub-preferred-remote-method'."
 
 (defun magithub-feature-autoinject (feature)
   "Configure FEATURE to recommended settings.
-If FEATURE is `all' or t, all known features will be loaded.
+If FEATURE is `all' or t, all known features will be loaded.  If
+FEATURE is a list, then it is a list of FEATURE symbols to load.
 
-Features:
+Feature symbols:
 
 - `pull-request-merge'
   (`magithub-pull-request-merge' inserted into `magit-am-popup')
@@ -294,8 +295,12 @@ Features:
 - `commit-browse'
   Browse commits by pressing \\[magithub-browse-thing]
   (see also `magithub-map')."
-  (if (memq feature '(t all))
-      (mapc #'magithub-feature-autoinject magithub-feature-list)
+  (cond
+   ((memq feature '(t all))
+    (mapc #'magithub-feature-autoinject magithub-feature-list))
+   ((listp feature)
+    (mapc #'magithub-feature-autoinject feature))
+   (t
     (cl-case feature
 
       (pull-request-merge
@@ -310,7 +315,7 @@ Features:
        (define-key magit-commit-section-map "w" #'magithub-commit-browse))
 
       (t (user-error "unknown feature %S" feature)))
-    (add-to-list 'magithub-features (cons feature t))))
+    (add-to-list 'magithub-features (cons feature t)))))
 
 (defun magithub-visit-thing ()
   (interactive)
