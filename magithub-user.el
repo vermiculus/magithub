@@ -26,6 +26,7 @@
 
 (require 'ghub+)
 (require 'cl-lib)
+(require 'thingatpt)
 
 (require 'magithub-core)
 
@@ -87,8 +88,8 @@
 
 (defun magithub-assignee-remove (issue user)
   (interactive (when (magithub-assignee--verify-manage)
-                 (list (magithub-thing-at-point 'issue)
-                       (magithub-thing-at-point 'user))))
+                 (list (thing-at-point 'github-issue)
+                       (thing-at-point 'github-user))))
   (let-alist `((repo . ,(magithub-issue-repo issue))
                (issue . ,issue)
                (user . ,user))
@@ -128,14 +129,14 @@
 (defalias 'magithub-user-visit #'magithub-user-browse)
 (defun magithub-user-browse (user)
   "Open USER on Github."
-  (interactive (list (magithub-thing-at-point 'user)))
+  (interactive (list (thing-at-point 'github-user)))
   (if user
       (browse-url (alist-get 'html_url user))
     (user-error "No user here")))
 
 (defun magithub-user-email (user)
   "Email USER."
-  (interactive (list (magithub-thing-at-point 'user)))
+  (interactive (list (thing-at-point 'github-user)))
   (when (and (string= (alist-get 'login (magithub-user-me))
                       (alist-get 'login user))
              (not (y-or-n-p "Email yourself? ")))

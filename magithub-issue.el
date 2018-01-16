@@ -29,6 +29,7 @@
 (require 'ghub+)
 (require 'cl-lib)
 (require 'magit)
+(require 'thingatpt)
 
 (require 'magithub-core)
 (require 'magithub-user)
@@ -157,19 +158,19 @@ default."
                              t default))
 (defun magithub-issue-completing-read-issues (&optional default)
   "Read an issue in the minibuffer with completion."
-  (interactive (list (magithub-thing-at-point 'issue)))
+  (interactive (list (thing-at-point 'github-issue)))
   (magithub-issue--completing-read
    "Issue: " default (list #'magithub-issue--issue-is-issue-p)))
 (defun magithub-issue-completing-read-pull-requests (&optional default)
   "Read a pull request in the minibuffer with completion."
-  (interactive (list (magithub-thing-at-point 'pull-request)))
+  (interactive (list (thing-at-point 'github-pull-request)))
   (magithub-issue--completing-read
    "Pull Request: " default (list #'magithub-issue--issue-is-pull-p)))
 (defun magithub-interactive-issue ()
-  (or (magithub-thing-at-point 'issue)
+  (or (thing-at-point 'github-issue)
       (magithub-issue-completing-read-issues)))
 (defun magithub-interactive-pull-request ()
-  (or (magithub-thing-at-point 'pull-request)
+  (or (thing-at-point 'github-pull-request)
       (magithub-issue-completing-read-pull-requests)))
 
 (defun magithub-issue-find (number)
@@ -467,8 +468,8 @@ buffer."
   (interactive
    (when (magithub-verify-manage-labels t)
      (let* ((fmt (lambda (l) (alist-get 'name l)))
-            (issue (or (magithub-thing-at-point 'issue)
-                       (magithub-thing-at-point 'pull-request)))
+            (issue (or (thing-at-point 'github-issue)
+                       (thing-at-point 'github-pull-request)))
             (current-labels (alist-get 'labels issue))
             (to-remove (magithub--completing-read-multiple
                         "Remove labels: " current-labels fmt)))
@@ -597,7 +598,7 @@ Interactively, this finds the issue at point."
   "Checkout PULL-REQUEST.
 PULL-REQUEST is the full object; not just the issue subset."
   (interactive (list
-                (let ((pr (or (magithub-thing-at-point 'pull-request)
+                (let ((pr (or (thing-at-point 'github-pull-request)
                               (magithub-issue-completing-read-pull-requests))))
                   (magithub-request
                    (ghubp-get-repos-owner-repo-pulls-number

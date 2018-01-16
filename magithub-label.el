@@ -1,4 +1,6 @@
+(require 'thingatpt)
 (require 'ghub+)
+
 (require 'magithub-core)
 
 (defvar magit-magithub-label-section-map
@@ -42,7 +44,7 @@ prompted for again."
   "Visit LABEL with `browse-url'.
 In the future, this will likely be replaced with a search on
 issues and pull requests with the label LABEL."
-  (interactive (list (magithub-thing-at-point 'label)))
+  (interactive (list (thing-at-point 'github-label)))
   (unless label
     (user-error "No label found at point to browse"))
   (unless (string= (ghubp-host) ghub-default-host)
@@ -79,7 +81,7 @@ from `magithub-label'.  Customize that to affect all labels."
 (defun magithub-label-color-replace (label new-color)
   "For LABEL, define a NEW-COLOR to use in the buffer."
   (interactive
-   (list (magithub-thing-at-point 'label)
+   (list (thing-at-point 'github-label)
          (magithub-core-color-completing-read "Replace label color: ")))
   (let ((label-color (concat "#" (alist-get 'color label))))
     (if-let ((cell (assoc-string label-color magithub-label-color-replacement-alist)))
@@ -100,8 +102,8 @@ from `magithub-label'.  Customize that to affect all labels."
 (defun magithub-label-remove (issue label)
   "From ISSUE, remove LABEL."
   (interactive (and (magithub-label--verify-manage)
-                    (list (magithub-thing-at-point 'issue)
-                          (magithub-thing-at-point 'label))))
+                    (list (thing-at-point 'github-issue)
+                          (thing-at-point 'github-label))))
   (unless issue
     (user-error "No issue here"))
   (unless label
@@ -117,7 +119,7 @@ from `magithub-label'.  Customize that to affect all labels."
 
 (defun magithub-label-add (issue labels)
   "To ISSUE, add LABELS."
-  (interactive (list (magithub-thing-at-point 'issue)
+  (interactive (list (thing-at-point 'github-issue)
                      (magithub-label-read-labels "Add labels: ")))
   (if (not (and issue labels))
       (user-error "No issue/labels")

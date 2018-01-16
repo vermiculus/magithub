@@ -26,6 +26,7 @@
 
 (require 'magit)
 (require 'markdown-mode)
+(require 'thingatpt)
 
 (require 'magithub-core)
 (require 'magithub-repo)
@@ -44,7 +45,7 @@
     m))
 
 (defun magithub-comment-browse (comment)
-  (interactive (list (magithub-thing-at-point 'comment)))
+  (interactive (list (thing-at-point 'github-comment)))
   (unless comment
     (user-error "No comment found"))
   (let-alist comment
@@ -52,7 +53,7 @@
 
 (declare-function face-remap-remove-relative "face-remap.el" (cookie))
 (defun magithub-comment-delete (comment)
-  (interactive (list (magithub-thing-at-point 'comment)))
+  (interactive (list (thing-at-point 'github-comment)))
   (unless comment
     (user-error "No comment found"))
   (let ((repo (magithub-comment-source-repo comment))
@@ -94,8 +95,8 @@
 
 (defun magithub-comment-draft-save (repo issue comment)
   "Save a draft reply to REPO/ISSUE as COMMENT."
-  (interactive (list (magithub-thing-at-point 'repo)
-                     (magithub-thing-at-point 'issue)
+  (interactive (list (thing-at-point 'github-repository)
+                     (thing-at-point 'github-issue)
                      (buffer-string)))
   (make-directory (magithub-repo-data-dir repo) t)
   (with-temp-buffer
@@ -151,7 +152,7 @@ the comment; see `magithub-comment-view' and
 
 (defun magithub-comment-view (comment)
   "View COMMENT in a new buffer."
-  (interactive (list (magithub-thing-at-point 'comment)))
+  (interactive (list (thing-at-point 'github-comment)))
   (let ((prev (current-buffer)))
     (with-current-buffer (get-buffer-create "*comment*")
       (magithub-gfm-view-mode)
@@ -228,9 +229,9 @@ will deleted.
 
 If ISSUE is not provided, it will be determined from context or
 from COMMENT."
-  (interactive (list (magithub-thing-at-point 'comment)
+  (interactive (list (thing-at-point 'github-comment)
                      current-prefix-arg
-                     (magithub-thing-at-point 'issue)))
+                     (thing-at-point 'github-issue)))
   (let-alist comment
     (magithub-comment-new
      (or issue (magithub-request (ghubp-follow-get .issue_url)))
@@ -254,16 +255,16 @@ COMMENT is the text of the new comment.
 
 REPO is an optional repo object; it will be deduced from ISSUE if
 not provided."
-  (interactive (list (magithub-thing-at-point 'issue)
+  (interactive (list (thing-at-point 'github-issue)
                      (save-restriction
                        (widen)
                        (buffer-substring-no-properties (point-min) (point-max)))
-                     (magithub-thing-at-point 'repo)))
+                     (thing-at-point 'github-repository)))
   (unless issue
     (user-error "No issue provided"))
   (setq repo (or repo
                  (magithub-issue-repo issue)
-                 (magithub-thing-at-point 'repo)))
+                 (thing-at-point 'github-repository)))
   (unless repo
     (user-error "No repo detected"))
   ;; all required args provided

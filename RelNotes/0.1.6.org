@@ -11,6 +11,17 @@
 * New Features
 - Browse commits by using =w= on a commit section.
 - ~magithub-feature-autoinject~ can now take a list of features to load.
+- Many symbols are now supported by ~thing-at-point~:
+  - =github-user=
+  - =github-issue=
+  - =github-label=
+  - =github-comment=
+  - =github-repository=
+  - =github-pull-request=
+  - =github-notification=
+  These symbols should allow other GitHub-sensitive packages to use
+  the work Magithub has already done without depending on Magithub
+  directly.  [[PR:201]]
 
 * Bug Fixes
 - In ~magithub-repo~, an API request is no longer made when the

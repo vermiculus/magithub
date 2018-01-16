@@ -33,6 +33,7 @@
 (require 'cl-lib)
 (require 'markdown-mode)
 (require 'parse-time)
+(require 'thingatpt)
 
 (require 'magithub-faces)
 
@@ -566,14 +567,14 @@ If SPARSE-REPO is null, the current context is used."
 
 (defun magithub-repo-visit (repo)
   "Visit REPO on Github."
-  (interactive (list (magithub-thing-at-point 'repo)))
+  (interactive (list (thing-at-point 'github-repository)))
   (if-let ((url (alist-get 'html_url repo)))
       (browse-url url)
     (user-error "No URL for repo")))
 
 (defun magithub-repo-visit-issues (repo)
   "Visit REPO's issues on Github."
-  (interactive (list (magithub-thing-at-point 'repo)))
+  (interactive (list (thing-at-point 'github-repository)))
   (if-let ((url (alist-get 'html_url repo)))
       (browse-url (format "%s/issues" url))
     (user-error "No URL for repo")))
@@ -587,13 +588,13 @@ concatenate `.owner.login' and `.name' with `/'."
 (defun magithub-repo-admin-p (&optional repo)
   "Non-nil if the currently-authenticated user can manage REPO.
 REPO defaults to the current repository."
-  (let-alist (magithub-repo (or repo (magithub-thing-at-point 'repo)))
+  (let-alist (magithub-repo (or repo (thing-at-point 'github-repository)))
     .permissions.admin))
 
 (defun magithub-repo-push-p (&optional repo)
   "Non-nil if the currently-authenticated user can manage REPO.
 REPO defaults to the current repository."
-  (let-alist (magithub-repo (or repo (magithub-thing-at-point 'repo)))
+  (let-alist (magithub-repo (or repo (thing-at-point 'github-repository)))
     .permissions.push))
 
 (defun magithub--repo-simplify (repo)
@@ -855,16 +856,30 @@ return the interned symbol `issue'."
     (and (string-prefix-p "magithub-" name)
          (intern (substring name 9)))))
 
-(defvar magithub-thing-type-specializations
+(defvar magithub--section-value-at-point-specializations
   '((user assignee))
   "Alist of general types to specific types.
 Specific types offer more relevant functionality to a given
-section, but are inconvenient for `magithub-thing-at-point'.
-This alist defines equivalencies such that a search for the
-general type will also return sections of a specialized type.")
+section, but are inconvenient for
+`magithub--section-value-at-point'.  This alist defines
+equivalencies such that a search for the general type will also
+return sections of a specialized type.")
 
-(defun magithub-thing-at-point (type)
-  "Determine the thing of TYPE at point."
+(define-obsolete-function-alias
+  'magithub-thing-at-point
+  #'magithub--section-value-at-point
+  "0.1.5")
+
+;;;###autoload
+(defun magithub--section-value-at-point (type)
+  "Determine the thing of TYPE at point.
+This is intended for use as a resolving function for
+`thing-at-point'.
+
+The following symbols are defined, but other values may work with
+this function: `github-user', `github-issue', `github-label',
+`github-comment', `github-repository', `github-pull-request',
+`github-notification',"
   (let ((search-sym (intern (concat "magithub-" (symbol-name type))))
         this-section)
     (if (and (boundp search-sym) (symbol-value search-sym))
@@ -876,12 +891,45 @@ general type will also return sections of a specialized type.")
                           ;; exact match
                           (eq type this-type)
                           ;; equivalency
-                          (thread-last magithub-thing-type-specializations
+                          (thread-last magithub--section-value-at-point-specializations
                             (alist-get type)
                             (memq this-type))))))
         (setq this-section (oref this-section parent)))
       (and this-section (oref this-section value)))))
 
+;;;###autoload
+(put 'github-user         'thing-at-point (lambda () (magithub--section-value-at-point 'user)))
+
+;;;###autoload
+(put 'github-issue        'thing-at-point (lambda () (magithub--section-value-at-point 'issue)))
+
+;;;###autoload
+(put 'github-label        'thing-at-point (lambda () (magithub--section-value-at-point 'label)))
+
+;;;###autoload
+(put 'github-comment      'thing-at-point (lambda () (magithub--section-value-at-point 'comment)))
+
+;;;###autoload
+(put 'github-notification 'thing-at-point (lambda () (magithub--section-value-at-point 'notification)))
+
+;;;###autoload
+(put 'github-repository   'thing-at-point
+     (lambda ()
+       (or (magithub--section-value-at-point 'repository)
+           magithub-repo
+           (magithub-repo))))
+
+;;;###autoload
+(put 'github-pull-request 'thing-at-point
+     (lambda ()
+       (or (magithub--section-value-at-point 'pull-request)
+           (when-let ((issue (thing-at-point 'github-issue)))
+             (and
+              (magithub-issue--issue-is-pull-p issue)
+              (magithub-cache :issues
+                `(ghubp-get-repos-owner-repo-pulls-number
+                     ',(magithub-issue-repo issue)
+                     ',issue)))))))
 (defun magithub-verify-manage-labels (&optional interactive)
   "Verify the user has permission to manage labels.
 If the authenticated user does not have permission, an error will
@@ -889,7 +937,7 @@ be signaled.
 
 If INTERACTIVE is non-nil, a `user-error' will be raised instead
 of a signal (e.g., for interactive forms)."
-  (let-alist (magithub-repo)
+  (let-alist (thing-at-point 'github-repository)
     (if .permissions.push t
       (if interactive
           (user-error "You're not allowed to manage labels in %s" .full_name)
