@@ -1076,6 +1076,16 @@ Use directly at your own peril; this is intended for use with
   "Indent TEXT by INDENT spaces."
   (replace-regexp-in-string (rx bol) (make-string indent ?\ ) text))
 
+(defun magithub-commit-browse (rev)
+  "Browse REV on GitHub.
+Interactively, this is the commit at point."
+  (interactive (list (magit-section-value (magit-current-section))))
+  (let-alist (car (magithub-cache
+                    `(ghubp-get-repos-owner-repo-commits
+                      ',(magithub-repo)
+                      :sha ',(magit-rev-parse rev))))
+    (browse-url .html_url)))
+
 (defun magithub-add-thing ()
   (interactive)
   (user-error "There is no thing at point that could be added to"))
