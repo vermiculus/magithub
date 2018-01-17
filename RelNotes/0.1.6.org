@@ -16,3 +16,5 @@
 - In ~magithub-repo~, an API request is no longer made when the
   repository contect cannot be determined.
 - The list of labels is now correctly cached per-repository.  [[PR:203]]
+- The full list of labels is now available for use when modifying
+  issues and pull requests.  [[PR:203]]

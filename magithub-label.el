@@ -16,8 +16,9 @@
   "Return a list of issue and pull-request labels."
   (magithub-cache :label
     `(magithub-request
-      (ghubp-get-repos-owner-repo-labels
-       ,(magithub-repo)))
+      (ghubp-unpaginate
+       (ghubp-get-repos-owner-repo-labels
+        ,(magithub-repo))))
     :message
     "Loading labels..."))
 
