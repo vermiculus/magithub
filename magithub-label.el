@@ -17,7 +17,7 @@
   (magithub-cache :label
     `(magithub-request
       (ghubp-get-repos-owner-repo-labels
-       (magithub-repo)))
+       ,(magithub-repo)))
     :message
     "Loading labels..."))
 
