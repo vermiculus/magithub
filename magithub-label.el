@@ -18,7 +18,7 @@
     `(magithub-request
       (ghubp-unpaginate
        (ghubp-get-repos-owner-repo-labels
-        ,(magithub-repo))))
+        ',(magithub-repo))))
     :message
     "Loading labels..."))
 
