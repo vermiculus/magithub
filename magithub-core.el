@@ -1080,7 +1080,7 @@ Use directly at your own peril; this is intended for use with
   "Browse REV on GitHub.
 Interactively, this is the commit at point."
   (interactive (list (oref (magit-current-section) value)))
-  (let-alist (car (magithub-cache
+  (let-alist (car (magithub-cache :commit
                     `(ghubp-get-repos-owner-repo-commits
                       ',(magithub-repo)
                       :sha ',(magit-rev-parse rev))))
