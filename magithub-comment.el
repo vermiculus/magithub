@@ -129,17 +129,14 @@ the comment; see `magithub-comment-view' and
         (erase-buffer)
         (insert (magithub-wash-gfm (alist-get 'body comment))))
       (goto-char 0)
-      (switch-to-buffer-other-window (current-buffer)))))
+      (magit-display-buffer (current-buffer)))))
 
 (defun magithub-comment-view-close ()
   "Close the current buffer."
   (interactive)
-  (when (derived-mode-p 'magithub-gfm-view-mode)
-    (let ((buf (current-buffer))
-          (prev magithub-comment-view--parent-buffer))
-      (when-let ((window (get-buffer-window prev)))
-        (select-window window))
-      (kill-buffer buf))))
+  (let ((oldbuf magithub-comment-view--parent-buffer))
+    (kill-this-buffer)
+    (magit-display-buffer oldbuf)))
 
 ;;;###autoload
 (defun magithub-comment-new (issue &optional discard-draft initial-content)
