@@ -1,6 +1,6 @@
-#language: emacs-lisp
-language: python
-sudo: false
+language: emacs-lisp
+sudo: required
+dist: trusty
 cache:
 - directories:
   - "$HOME/emacs"
