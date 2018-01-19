@@ -125,9 +125,10 @@ the comment; see `magithub-comment-view' and
     (with-current-buffer (get-buffer-create "*comment*")
       (magithub-gfm-view-mode)
       (setq-local magithub-comment-view--parent-buffer prev)
-      (insert (magithub-wash-gfm (alist-get 'body comment)))
+      (let ((inhibit-read-only t))
+        (erase-buffer)
+        (insert (magithub-wash-gfm (alist-get 'body comment))))
       (goto-char 0)
-      (read-only-mode)
       (switch-to-buffer-other-window (current-buffer)))))
 
 (defun magithub-comment-view-close ()
