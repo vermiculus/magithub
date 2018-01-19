@@ -424,7 +424,7 @@ we'll hit the API) if Magithub is offline."
     (define-key map [remap magithub-browse-thing] #'magithub-issue-browse)
     (define-key map [remap magit-refresh] #'magithub-issue-refresh)
     map)
-  "Keymap for `magithub-issue-list' sections.")
+  "Keymap for `magithub-issues-list' sections.")
 
 (defvar magit-magithub-pull-request-section-map
   (let ((map (make-sparse-keymap)))
