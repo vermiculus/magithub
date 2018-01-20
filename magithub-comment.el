@@ -158,12 +158,16 @@ initial contents of the reply if there is no draft."
           :submit #'magithub-issue-comment-submit
           :content initial-content
           :prompt-discard-draft discard-draft
-          :file (let-alist issue
-                  (expand-file-name (format "%s-comment" .number)
-                                    (magithub-repo-data-dir repo))))
+          :file (magithub-comment--draft-file issue repo))
       (setq-local magithub-issue issue)
       (setq-local magithub-repo repo)
       (magit-display-buffer (current-buffer)))))
+
+(defun magithub-comment--draft-file (issue repo)
+  "Get an appropriate draft file for ISSUE in REPO."
+  (let-alist issue
+    (expand-file-name (format "%s-comment" .number)
+                      (magithub-repo-data-dir repo))))
 
 (defun magithub-comment-reply (comment &optional discard-draft issue)
   "Reply to COMMENT on ISSUE.
