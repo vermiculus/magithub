@@ -212,6 +212,7 @@ If t, all classes are ignored.")
 (defvar magithub-cache--refreshed-forms nil
   "Forms that have been refreshed this session.
 See also `magithub-refresh'.")
+
 (cl-defun magithub-cache (class form &key message after-update)
   "The cached value for FORM if available.
 
@@ -902,19 +903,29 @@ this function: `github-user', `github-issue', `github-label',
       (and this-section (oref this-section value)))))
 
 ;;;###autoload
-(put 'github-user         'thing-at-point (lambda () (magithub--section-value-at-point 'user)))
+(put 'github-user 'thing-at-point
+     (lambda ()
+       (magithub--section-value-at-point 'user)))
 
 ;;;###autoload
-(put 'github-issue        'thing-at-point (lambda () (magithub--section-value-at-point 'issue)))
+(put 'github-issue 'thing-at-point
+     (lambda ()
+       (magithub--section-value-at-point 'issue)))
 
 ;;;###autoload
-(put 'github-label        'thing-at-point (lambda () (magithub--section-value-at-point 'label)))
+(put 'github-label 'thing-at-point
+     (lambda ()
+       (magithub--section-value-at-point 'label)))
 
 ;;;###autoload
-(put 'github-comment      'thing-at-point (lambda () (magithub--section-value-at-point 'comment)))
+(put 'github-comment 'thing-at-point
+     (lambda ()
+       (magithub--section-value-at-point 'comment)))
 
 ;;;###autoload
-(put 'github-notification 'thing-at-point (lambda () (magithub--section-value-at-point 'notification)))
+(put 'github-notification 'thing-at-point
+     (lambda ()
+       (magithub--section-value-at-point 'notification)))
 
 ;;;###autoload
 (put 'github-repository   'thing-at-point
@@ -934,6 +945,7 @@ this function: `github-user', `github-issue', `github-label',
                 `(ghubp-get-repos-owner-repo-pulls-number
                      ',(magithub-issue-repo issue)
                      ',issue)))))))
+
 (defun magithub-verify-manage-labels (&optional interactive)
   "Verify the user has permission to manage labels.
 If the authenticated user does not have permission, an error will
@@ -1134,22 +1146,25 @@ Interactively, this is the commit at point."
   (interactive (list (oref (magit-current-section) value)))
   (let-alist (car (magithub-cache :commit
                     `(ghubp-get-repos-owner-repo-commits
-                      ',(magithub-repo)
-                      :sha ',(magit-rev-parse rev))))
+                         ',(magithub-repo) nil
+                       :sha ',(magit-rev-parse rev))))
     (browse-url .html_url)))
 
 (defun magithub-add-thing ()
   "Conceptual command to add a thing (e.g., label, assignee, ...)"
   (interactive)
   (user-error "There is no thing at point that could be added to"))
+
 (defun magithub-browse-thing ()
   "Conceptual command to browse a thing on GitHub"
   (interactive)
   (user-error "There is no thing at point that could be browsed"))
+
 (defun magithub-edit-thing ()
   "Conceptual command to edit a thing (e.g., comment)"
   (interactive)
   (user-error "There is no thing at point that could be edited"))
+
 (defun magithub-reply-thing ()
   "Conceptual command to reply to a thing (e.g., comment)"
   (interactive)
