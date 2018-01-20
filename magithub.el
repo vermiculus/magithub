@@ -25,16 +25,19 @@
 
 ;; Magithub is a Magit-based interface to Github.
 ;;
-;; Integrated into Magit workflows, Magithub allows easy Github
-;; repository management.  Supported actions include:
+;; Integrated into Magit workflows, Magithub lets you interact with
+;; your Github repositories and manage your work/play from emacs:
 ;;
-;;  - pushing brand-new local repositories up to Github
-;;  - creating forks of existing repositories
-;;  - submitting pull requests upstream
-;;  - viewing and creating issues
-;;  - seeing status checks
-;;
-;; all from the `magit-status' buffer.
+;;  - push brand-new local repositories up to Github
+;;  - create forks of existing repositories
+;;  - submit pull requests upstream
+;;  - view and create issues
+;;  - view, create, and edit comments
+;;  - view status checks (e.g., Travis CI)
+;;  - manage labels and assignees
+;;  - view/visit notifications
+;;  - write personal notes on issues for reference later
+;;  - and probably more...
 ;;
 ;; Press `H' in the status buffer to get started -- happy hacking!
 
