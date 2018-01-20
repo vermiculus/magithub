@@ -20,7 +20,7 @@
 
 ;;; Commentary:
 
-;; Magithub-Dash is a dashboard for your Github activity.
+;; Magithub-Dash is a dashboard for your GitHub activity.
 
 ;;; Code:
 
@@ -51,7 +51,7 @@
 
 ;;;###autoload
 (defun magithub-dashboard ()
-  "View your Github dashboard."
+  "View your GitHub dashboard."
   (interactive)
   (let ((magit-generate-buffer-name-function
          (lambda (&rest _) "*magithub-dash*")))
@@ -69,7 +69,7 @@
 
 (define-derived-mode magithub-dash-mode
   magit-mode "Magithub-Dash"
-  "Major mode for your Github dashboard."
+  "Major mode for your GitHub dashboard."
   (use-local-map magithub-dash-map))
 
 (defun magithub-dash-refresh-buffer (&rest _args)

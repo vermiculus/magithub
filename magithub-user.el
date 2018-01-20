@@ -128,7 +128,7 @@
 
 (defalias 'magithub-user-visit #'magithub-user-browse)
 (defun magithub-user-browse (user)
-  "Open USER on Github."
+  "Open USER on GitHub."
   (interactive (list (thing-at-point 'github-user)))
   (if user
       (browse-url (alist-get 'html_url user))

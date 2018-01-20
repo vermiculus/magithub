@@ -20,7 +20,7 @@
 
 ;;; Commentary:
 
-;; Edit generic Github (markdown) content.  To be used for comments,
+;; Edit generic GitHub (markdown) content.  To be used for comments,
 ;; issues, pull requests, etc.
 
 ;;; Code:
@@ -37,7 +37,7 @@
 
 ;;;###autoload
 (define-derived-mode magithub-edit-mode gfm-mode "Magithub-Edit"
-  "Major mode for editing Github issues and pull requests.")
+  "Major mode for editing GitHub issues and pull requests.")
 
 (defvar-local magithub-edit-submit-function nil
   "Populated by SUBMIT in `magithub-edit-new'.")

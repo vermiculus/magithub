@@ -50,7 +50,7 @@ If magithub.ci.enabled is not set, CI is considered to be enabled."
   (magithub-ci--set-enabled t))
 
 (defun magithub-maybe-insert-ci-status-header ()
-  "If this is a Github repository, insert the CI status header."
+  "If this is a GitHub repository, insert the CI status header."
   (when (and (magithub-ci-enabled-p)
              (magithub-usable-p)
              (let ((b (magit-get-current-branch)))
