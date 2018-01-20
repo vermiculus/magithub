@@ -902,6 +902,15 @@ this function: `github-user', `github-issue', `github-label',
         (setq this-section (oref this-section parent)))
       (and this-section (oref this-section value)))))
 
+(defvar-local magithub-issue nil
+  "Issue object.")
+
+(defvar-local magithub-comment nil
+  "Comment object.")
+
+(defvar-local magithub-repo nil
+  "Repository object.")
+
 ;;;###autoload
 (put 'github-user 'thing-at-point
      (lambda ()
@@ -910,7 +919,8 @@ this function: `github-user', `github-issue', `github-label',
 ;;;###autoload
 (put 'github-issue 'thing-at-point
      (lambda ()
-       (magithub--section-value-at-point 'issue)))
+       (or magithub-issue
+           (magithub--section-value-at-point 'issue))))
 
 ;;;###autoload
 (put 'github-label 'thing-at-point
@@ -920,7 +930,8 @@ this function: `github-user', `github-issue', `github-label',
 ;;;###autoload
 (put 'github-comment 'thing-at-point
      (lambda ()
-       (magithub--section-value-at-point 'comment)))
+       (or magithub-comment
+           (magithub--section-value-at-point 'comment))))
 
 ;;;###autoload
 (put 'github-notification 'thing-at-point

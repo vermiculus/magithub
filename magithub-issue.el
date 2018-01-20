@@ -37,9 +37,6 @@
 
 (declare-function magithub-issue-view "magithub-issue-view.el" (issue))
 
-(defvar-local magithub-issue nil
-  "The issue object associated with a buffer.")
-
 (defvar magit-magithub-repo-issues-section-map
   (let ((m (make-sparse-keymap)))
     (define-key m [remap magit-visit-thing] #'magithub-repo-visit-issues)

@@ -29,9 +29,6 @@
 
 (require 'magithub-core)
 
-(defvar-local magithub-repo nil
-  "Repo object.")
-
 (defvar magit-magithub-repo-section-map
   (let ((m (make-sparse-keymap)))
     (set-keymap-parent m magithub-map)

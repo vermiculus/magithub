@@ -35,9 +35,6 @@
 
 (declare-function magithub-issue-view "magithub-issue-view.el" (issue))
 
-(defvar-local magithub-comment nil
-  "Comment object.")
-
 (defvar magit-magithub-comment-section-map
   (let ((m (make-sparse-keymap)))
     (set-keymap-parent m magithub-map)
