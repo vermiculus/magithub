@@ -1145,7 +1145,7 @@ Interactively, this is the commit at point."
 (defun magithub-edit-thing ()
   "Conceptual command to edit a thing (e.g., comment)"
   (interactive)
-  (user-error "There is no thing at point that could be replied to"))
+  (user-error "There is no thing at point that could be edited"))
 (defun magithub-reply-thing ()
   "Conceptual command to reply to a thing (e.g., comment)"
   (interactive)
