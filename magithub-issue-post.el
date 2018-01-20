@@ -89,15 +89,19 @@ See also URL
          (this-remote (car (magithub-repo-remotes-for-repo this-repo)))
          (on-this-remote (string= (magit-get-push-remote) this-remote))
          (base-remote (car (magithub-repo-remotes-for-repo parent-repo)))
-         (head-branch (magithub-remote-branches-choose
-                       "Head branch" this-remote
-                       (when on-this-remote
-                         (magit-get-current-branch))))
-         (user+head   (format "%s:%s" this-repo-owner head-branch))
+         (head-branch (let ((branch (magithub-remote-branches-choose
+                                     "Head branch" this-remote
+                                     (when on-this-remote
+                                       (magit-get-current-branch)))))
+                        (unless (magit-rev-verify (magit-get-push-branch branch))
+                          (user-error "`%s' has not yet been pushed to your fork (%s)"
+                                      branch (magithub-repo-name this-repo)))
+                        branch))
          (base        (magithub-remote-branches-choose
                        "Base branch" base-remote
                        (when on-this-remote
-                         (magit-get-upstream-branch head-branch)))))
+                         (magit-get-upstream-branch head-branch))))
+         (user+head   (format "%s:%s" this-repo-owner head-branch)))
     (when (magithub-request (ghubp-get-repos-owner-repo-pulls parent-repo nil :head user+head))
       (user-error "A pull request on %s already exists for head \"%s\""
                   (magithub-repo-name parent-repo)
@@ -113,13 +117,7 @@ See also URL
 
 (defun magithub-pull-request-new (repo base head)
   "Create a new pull request."
-  (interactive
-   (progn
-     (unless (magit-get-push-remote)
-       (when (magit-y-or-n-p "Nothing on remote for this branch; would you like to push? ")
-         (magit-push-popup))
-       (user-error "Try again after push"))
-     (magithub-pull-request-new-arguments)))
+  (interactive (magithub-pull-request-new-arguments))
   (with-current-buffer
       (magithub-edit-new (format "*magithub-pull-request: %s into %s:%s*"
                                  head
