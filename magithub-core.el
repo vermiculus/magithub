@@ -645,12 +645,30 @@ See also `magithub-repo-remotes'."
            (magit-list-remotes)))
 
 ;;; Feature checking
+(declare-function magithub-pull-request-merge "magithub-issue-tricks"
+                  (pull-request &optional args))
 (defconst magithub-feature-list
-  '(pull-request-merge)
-  "All magit-integration features of Magithub.
+  ;; features must only return nil if they fail to install
+  `((pull-request-merge . ,(lambda ()
+                             (magit-define-popup-action 'magit-am-popup
+                               ?P "Apply patches from pull request"
+                               #'magithub-pull-request-merge)
+                             t))
 
-`pull-request-merge'
-Apply patches from pull request")
+    (commit-browse . ,(lambda ()
+                        (define-key magit-commit-section-map "w"
+                          #'magithub-commit-browse)
+                        t)))
+  "All magit-integration features of Magithub.
+See `magithub-feature-autoinject'.
+
+- `pull-request-merge'
+  Apply patches from pull requests.
+  (`magithub-pull-request-merge' inserted into `magit-am-popup')
+
+- `commit-browse'
+  Browse commits by pressing \\[magithub-browse-thing]
+  (see also `magithub-map').")
 
 (defvar magithub-features nil
   "An alist of feature-symbols to Booleans.
@@ -665,9 +683,7 @@ Example:
 signals that `pull-request-merge' is a loaded feature and
 `other-feature' has not been loaded and will not be loaded.
 
-To enable all features, see `magithub-feature-autoinject'.
-
-See `magithub-feature-list' for a list and description of features.")
+See `magithub-feature-list'.")
 
 (defun magithub-feature-check (feature)
   "Check if a Magithub FEATURE has been configured.

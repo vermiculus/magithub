@@ -287,30 +287,21 @@ See also `magithub-preferred-remote-method'."
 If FEATURE is `all' or t, all known features will be loaded.  If
 FEATURE is a list, then it is a list of FEATURE symbols to load.
 
-Feature symbols:
-
-- `pull-request-merge'
-  (`magithub-pull-request-merge' inserted into `magit-am-popup')
-
-- `commit-browse'
-  Browse commits by pressing \\[magithub-browse-thing]
-  (see also `magithub-map')."
+See `magithub-feature-list' for a list of available features and
+`magithub-features' for a list of currently-installed features."
   (cond
    ((memq feature '(t all))
     (mapc #'magithub-feature-autoinject magithub-feature-list))
    ((listp feature)
     (mapc #'magithub-feature-autoinject feature))
    (t
-    (cl-case feature
-      (pull-request-merge
-       (magit-define-popup-action 'magit-am-popup
-         ?P "Apply patches from pull request" #'magithub-pull-request-merge))
-
-      (commit-browse
-       (define-key magit-commit-section-map "w" #'magithub-commit-browse))
-
-      (t (user-error "unknown feature %S" feature)))
-    (add-to-list 'magithub-features (cons feature t)))))
+    (if-let ((install (cdr (assq feature magithub-feature-list))))
+        (if (functionp install)
+            (if-let ((result (funcall install)))
+                (add-to-list 'magithub-features (cons feature t))
+              (error "feature %S failed to install: %S" feature result))
+          (error "install form for %S not a function: %S" feature install))
+      (user-error "unknown feature %S" feature)))))
 
 (defun magithub-visit-thing ()
   (interactive)
