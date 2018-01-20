@@ -32,6 +32,7 @@
   as the body.  Now issues, pull requests, and comments use a common
   interface that supports submitting, cancelling, and saving drafts to
   finish later.  [[PR:204]]
+- You can now edit comments using =e= on a comment section.
 
 * Bug Fixes
 - In ~magithub-repo~, an API request is no longer made when the

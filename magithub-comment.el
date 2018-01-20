@@ -35,6 +35,9 @@
 
 (declare-function magithub-issue-view "magithub-issue-view.el" (issue))
 
+(defvar-local magithub-comment nil
+  "Comment object.")
+
 (defvar magit-magithub-comment-section-map
   (let ((m (make-sparse-keymap)))
     (set-keymap-parent m magithub-map)
@@ -42,6 +45,7 @@
     (define-key m [remap magit-delete-thing] #'magithub-comment-delete)
     (define-key m (kbd "SPC") #'magithub-comment-view)
     (define-key m [remap magithub-reply-thing] #'magithub-comment-reply)
+    (define-key m [remap magithub-edit-thing] #'magithub-comment-edit)
     m))
 
 (defun magithub-comment-browse (comment)
@@ -168,6 +172,41 @@ initial contents of the reply if there is no draft."
   (let-alist issue
     (expand-file-name (format "%s-comment" .number)
                       (magithub-repo-data-dir repo))))
+
+(defun magithub-comment--submit-edit (comment repo new-body)
+  (interactive (list (thing-at-point 'github-comment)
+                     (thing-at-point 'github-repository)
+                     (buffer-string)))
+  (when (string= new-body "")
+    (user-error "Can't post an empty comment; try deleting it instead"))
+  (when (magit-y-or-n-p "Commit this edit?")
+    (ghubp-patch-repos-owner-repo-issues-comments-id
+        repo comment
+        `((body . ,new-body)))))
+
+(defun magithub-comment-edit (comment issue repo)
+  "Edit COMMENT."
+  (interactive (list (thing-at-point 'github-comment)
+                     (or (thing-at-point 'github-issue)
+                         (thing-at-point 'github-pull-request))
+                     (thing-at-point 'github-repository)))
+  (let ((updated (ghubp-follow-get (alist-get 'url comment))))
+    (with-current-buffer
+        (magithub-edit-new (format "*%s: editing comment by %s (%s)*"
+                                   (magithub-issue-reference issue)
+                                   (let-alist comment .user.login)
+                                   (alist-get 'id comment))
+          :submit #'magithub-comment--submit-edit
+          :content (alist-get 'body updated)
+          :file (magithub-comment--draft-file issue repo))
+      (setq-local magithub-issue issue)
+      (setq-local magithub-repo repo)
+      (setq-local magithub-comment updated)
+      (magit-display-buffer (current-buffer)))
+
+    (unless (string= (alist-get 'body comment)
+                     (alist-get 'body updated))
+      (message "Comment has changed since information was cached; updated content pulled in for edit"))))
 
 (defun magithub-comment-reply (comment &optional discard-draft issue)
   "Reply to COMMENT on ISSUE.
