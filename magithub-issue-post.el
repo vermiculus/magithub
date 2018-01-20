@@ -22,15 +22,9 @@
         (magithub-issue-view issue)))))
 
 (defun magithub-issue-post--parse-buffer ()
-  (let (split)
-    (save-restriction
-      (widen)
-      (save-excursion
-        (goto-char (point-min))
-        (forward-line)
-        (setq split (point)))
-      `((title . ,(s-trim (buffer-substring-no-properties (point-min) (1- split))))
-        (body  . ,(s-trim (buffer-substring-no-properties split (point-max))))))))
+  (let ((lines (split-string (buffer-string) "\n")))
+    `((title . ,(s-trim (car lines)))
+      (body . ,(s-trim (mapconcat #'identity (cdr lines) "\n"))))))
 
 (defun magithub-issue-new (repo)
   (interactive (list (magithub-repo)))
