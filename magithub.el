@@ -292,9 +292,6 @@ Feature symbols:
 - `pull-request-merge'
   (`magithub-pull-request-merge' inserted into `magit-am-popup')
 
-- `pull-request-checkout'
-  (`magithub-pull-request-checkout' inserted into `magit-branch-popup')
-
 - `commit-browse'
   Browse commits by pressing \\[magithub-browse-thing]
   (see also `magithub-map')."
@@ -305,14 +302,9 @@ Feature symbols:
     (mapc #'magithub-feature-autoinject feature))
    (t
     (cl-case feature
-
       (pull-request-merge
        (magit-define-popup-action 'magit-am-popup
          ?P "Apply patches from pull request" #'magithub-pull-request-merge))
-
-      (pull-request-checkout
-       (magit-define-popup-action 'magit-branch-popup
-         ?P "Checkout pull request" #'magithub-pull-request-checkout))
 
       (commit-browse
        (define-key magit-commit-section-map "w" #'magithub-commit-browse))

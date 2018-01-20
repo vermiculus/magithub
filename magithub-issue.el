@@ -591,45 +591,8 @@ Interactively, this finds the issue at point."
            (magit-branch-p branch)
            (string= remote (magit-get-push-remote branch))))))
 
-(defun magithub-pull-request-checkout (pull-request)
-  "Checkout PULL-REQUEST.
-PULL-REQUEST is the full object; not just the issue subset."
-  (interactive (list
-                (let ((pr (or (thing-at-point 'github-pull-request)
-                              (magithub-issue-completing-read-pull-requests))))
-                  (magithub-request
-                   (ghubp-get-repos-owner-repo-pulls-number
-                    (magithub-repo)
-                    `((number . ,(alist-get 'number pr))))))))
-  (let-alist pull-request
-    (let ((remote .user.login)
-          (branch (format "%s/%s" .user.login .head.ref)))
-      (cond
-       ((magithub-pull-request-checked-out pull-request)
-        (with-temp-message (format "PR#%d is already checked out somewhere; checking out %s"
-                                   .number branch)
-          (magit-checkout branch)
-          (magit-fetch remote (magit-fetch-arguments))))
-       ((magit-branch-p branch)
-        (user-error "Cannot checkout pull request: branch `%s' already exists; rename branch on remote" branch))
-       (t
-        (magithub--run-git-synchronously
-         ;; get remote
-         (unless (magit-remote-p remote)
-           (magit-remote-add remote (magithub-repo--clone-url .head.repo)))
-         (magit-fetch remote (magit-fetch-arguments))
-         ;; create branch
-         (magit-git-success "branch" branch .base.sha)  ; also sets upstream to base ref
-         ;; set push to remote branch
-         (magit-set (concat "refs/heads/" .base.ref) "branch" branch "merge")
-         (magit-set "." "branch" branch "remote") ;same as merge
-         (magit-set remote "branch" branch "pushRemote")
-         (magit-set (number-to-string .number) "branch" branch "magithub" "sourcePR")
-         ;; set descripiton
-         (magit-set (concat "PR: " .title) "branch" branch "description")
-         ;; Checkout
-         (magit-git-success "checkout" branch)
-         (magit-refresh)))))))
+(make-obsolete 'magithub-pull-request-checkout 'magit-checkout-pull-request "0.1.6")
+(defalias 'magithub-pull-request-checkout #'magit-checkout-pull-request)
 
 (provide 'magithub-issue)
 ;;; magithub-issue.el ends here

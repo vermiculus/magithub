@@ -646,14 +646,11 @@ See also `magithub-repo-remotes'."
 
 ;;; Feature checking
 (defconst magithub-feature-list
-  '(pull-request-merge pull-request-checkout)
+  '(pull-request-merge)
   "All magit-integration features of Magithub.
 
 `pull-request-merge'
-Apply patches from pull request
-
-`pull-request-checkout'
-Checkout pull requests as new branches")
+Apply patches from pull request")
 
 (defvar magithub-features nil
   "An alist of feature-symbols to Booleans.
