@@ -34,6 +34,7 @@
 (require 'markdown-mode)
 (require 'parse-time)
 (require 'thingatpt)
+(require 'recentf)
 
 (require 'magithub-faces)
 
@@ -81,6 +82,9 @@ root of this directory.
 If it does not exist, it will be created."
   :group 'magithub
   :type 'directory)
+(add-to-list 'recentf-exclude
+             (lambda (filename)
+               (file-in-directory-p filename magithub-dir)))
 
 ;;; Turning Magithub on/off
 (defun magithub-enable ()

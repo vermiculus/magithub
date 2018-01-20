@@ -39,3 +39,5 @@
 - The list of labels is now correctly cached per-repository.  [[PR:203]]
 - The full list of labels is now available for use when modifying
   issues and pull requests.  [[PR:203]]
+- The cache (and other files in =magithub-dir=) are no longer added to
+  the =recentf= list.  [[PR:210]]
