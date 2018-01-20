@@ -1167,12 +1167,16 @@ Use directly at your own peril; this is intended for use with
 (defun magithub-commit-browse (rev)
   "Browse REV on GitHub.
 Interactively, this is the commit at point."
-  (interactive (list (oref (magit-current-section) value)))
-  (let-alist (car (magithub-cache :commit
-                    `(ghubp-get-repos-owner-repo-commits
-                         ',(magithub-repo) nil
-                       :sha ',(magit-rev-parse rev))))
-    (browse-url .html_url)))
+  (interactive (list (or (when-let ((rev (magit-rev-verify (oref (magit-current-section) value))))
+                           rev)
+                         (thing-at-point 'git-revision))))
+  (if-let ((parsed (magit-rev-parse rev)))
+      (let-alist (car (magithub-cache :commit
+                        `(ghubp-get-repos-owner-repo-commits
+                             ',(magithub-repo) nil
+                           :sha ,parsed)))
+        (browse-url .html_url))
+    (error "Could not parse %S" rev)))
 
 (defun magithub-add-thing ()
   "Conceptual command to add a thing (e.g., label, assignee, ...)"

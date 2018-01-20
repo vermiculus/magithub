@@ -33,6 +33,8 @@
   interface that supports submitting, cancelling, and saving drafts to
   finish later.  [[PR:204]]
 - You can now edit comments using =e= on a comment section.  [[PR:206]]
+- ~magithub-commit-browse~ will now use the =git-revision= at point if the
+  current section's value cannot be understood as a valid commit.
 
 * Bug Fixes
 - In ~magithub-repo~, an API request is no longer made when the
