@@ -249,8 +249,8 @@ not provided."
   (unless repo
     (user-error "No repo detected"))
   ;; all required args provided
-  (unless (y-or-n-p (format "Submit this comment to %s? "
-                            (magithub-issue-reference issue)))
+  (unless (magit-y-or-n-p (format "Submit this comment to %s? "
+                                  (magithub-issue-reference issue)))
     (user-error "Aborted"))
   ;; confirmed; submit the issue
   (magithub-request
