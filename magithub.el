@@ -291,7 +291,8 @@ See `magithub-feature-list' for a list of available features and
 `magithub-features' for a list of currently-installed features."
   (cond
    ((memq feature '(t all))
-    (mapc #'magithub-feature-autoinject magithub-feature-list))
+    (mapc #'magithub-feature-autoinject
+          (mapcar #'car magithub-feature-list)))
    ((listp feature)
     (mapc #'magithub-feature-autoinject feature))
    (t
