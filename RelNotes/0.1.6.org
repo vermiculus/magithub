@@ -44,3 +44,4 @@
   issues and pull requests.  [[PR:203]]
 - The cache (and other files in =magithub-dir=) are no longer added to
   the =recentf= list.  [[PR:210]]
+- Consistently use ~magithub-request~.  [[PR:229]]

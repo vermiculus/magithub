@@ -966,9 +966,10 @@ this function: `github-user', `github-issue', `github-label',
              (and
               (magithub-issue--issue-is-pull-p issue)
               (magithub-cache :issues
-                `(ghubp-get-repos-owner-repo-pulls-number
-                     ',(magithub-issue-repo issue)
-                     ',issue)))))))
+                `(magithub-request
+                  (ghubp-get-repos-owner-repo-pulls-number
+                      ',(magithub-issue-repo issue)
+                      ',issue))))))))
 
 (defun magithub-verify-manage-labels (&optional interactive)
   "Verify the user has permission to manage labels.
@@ -1171,9 +1172,10 @@ Interactively, this is the commit at point."
                            rev)
                          (thing-at-point 'git-revision))))
   (if-let ((parsed (magit-rev-parse rev)))
-      (if-let ((commits (ghubp-get-repos-owner-repo-commits
-                            (magithub-repo) nil
-                          :sha parsed)))
+      (if-let ((commits (magithub-request
+                         (ghubp-get-repos-owner-repo-commits
+                             (magithub-repo) nil
+                           :sha parsed))))
           (let-alist (car commits)
             (browse-url .html_url))
         (user-error "No commit %s on remote" parsed))

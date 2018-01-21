@@ -177,9 +177,10 @@ initial contents of the reply if there is no draft."
   (when (string= new-body "")
     (user-error "Can't post an empty comment; try deleting it instead"))
   (when (magit-y-or-n-p "Commit this edit?")
-    (ghubp-patch-repos-owner-repo-issues-comments-id
-        repo comment
-        `((body . ,new-body)))))
+    (magithub-request
+     (ghubp-patch-repos-owner-repo-issues-comments-id
+         repo comment
+         `((body . ,new-body))))))
 
 (defun magithub-comment-edit (comment issue repo)
   "Edit COMMENT."
@@ -187,7 +188,7 @@ initial contents of the reply if there is no draft."
                      (or (thing-at-point 'github-issue)
                          (thing-at-point 'github-pull-request))
                      (thing-at-point 'github-repository)))
-  (let ((updated (ghubp-follow-get (alist-get 'url comment))))
+  (let ((updated (magithub-request (ghubp-follow-get (alist-get 'url comment)))))
     (with-current-buffer
         (magithub-edit-new (format "*%s: editing comment by %s (%s)*"
                                    (magithub-issue-reference issue)
