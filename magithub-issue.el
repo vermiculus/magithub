@@ -495,8 +495,7 @@ buffer."
   "Insert GitHub pull requests if appropriate."
   (when (magithub-usable-p)
     (magithub-feature-maybe-idle-notify
-     'pull-request-merge
-     'pull-request-checkout)
+     'pull-request-merge)
     (magithub-issue--insert-generic-section
      (magithub-pull-requests-list)
      "Pull Requests"
