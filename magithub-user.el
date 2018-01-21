@@ -111,7 +111,7 @@
              (concat prompt
                      (if new-username (format " ['%s' not found]" new-username)))
              (alist-get 'login default-user)))
-      (when-let ((try (condition-case _
+      (when-let* ((try (condition-case _
                           (magithub-request
                            (ghubp-get-users-username `((login . ,new-username))))
                         (ghub-404 nil))))

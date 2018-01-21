@@ -38,6 +38,12 @@
 
 (require 'magithub-faces)
 
+;; Compatibility
+(eval-and-compile
+  (when (version< emacs-version "26")
+    (defalias 'if-let* #'if-let)
+    (defalias 'when-let* #'when-let)))
+
 (defconst magithub-github-token-scopes '(repo user notifications)
   "The authentication scopes Magithub requests.")
 
@@ -469,7 +475,7 @@ See `magithub--api-offline-reason'."
 ;;; Repository parsing
 (defun magithub-github-repository-p ()
   "Non-nil if \"origin\" points to GitHub or a whitelisted domain."
-  (when-let ((origin (magit-get "remote" "origin" "url")))
+  (when-let* ((origin (magit-get "remote" "origin" "url")))
     (-some? (lambda (domain) (s-contains? domain origin))
             (cons "github.com" (magit-get-all "hub" "host")))))
 
@@ -550,7 +556,7 @@ included in the returned object."
 (defun magithub-repo (&optional sparse-repo)
   "Turn SPARSE-REPO into a full repository object.
 If SPARSE-REPO is null, the current context is used."
-  (when-let ((sparse-repo (or sparse-repo (magithub-source--sparse-repo))))
+  (when-let* ((sparse-repo (or sparse-repo (magithub-source--sparse-repo))))
     (or (magithub-cache :repo-demographics
           `(condition-case e
                (or (magithub-request
@@ -962,7 +968,7 @@ this function: `github-user', `github-issue', `github-label',
 (put 'github-pull-request 'thing-at-point
      (lambda ()
        (or (magithub--section-value-at-point 'pull-request)
-           (when-let ((issue (thing-at-point 'github-issue)))
+           (when-let* ((issue (thing-at-point 'github-issue)))
              (and
               (magithub-issue--issue-is-pull-p issue)
               (magithub-cache :issues
@@ -988,7 +994,7 @@ of a signal (e.g., for interactive forms)."
   "In GitHub repositories, configure `bug-reference-mode'."
   (interactive)
   (when (magithub-usable-p)
-    (when-let ((repo (magithub-repo)))
+    (when-let* ((repo (magithub-repo)))
       (bug-reference-mode 1)
       (setq-local bug-reference-bug-regexp "#\\(?2:[0-9]+\\)")
       (setq-local bug-reference-url-format
@@ -1168,7 +1174,7 @@ Use directly at your own peril; this is intended for use with
 (defun magithub-commit-browse (rev)
   "Browse REV on GitHub.
 Interactively, this is the commit at point."
-  (interactive (list (or (when-let ((rev (magit-rev-verify (oref (magit-current-section) value))))
+  (interactive (list (or (when-let* ((rev (magit-rev-verify (oref (magit-current-section) value))))
                            rev)
                          (thing-at-point 'git-revision))))
   (if-let ((parsed (magit-rev-parse rev)))
