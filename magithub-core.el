@@ -1171,11 +1171,12 @@ Interactively, this is the commit at point."
                            rev)
                          (thing-at-point 'git-revision))))
   (if-let ((parsed (magit-rev-parse rev)))
-      (let-alist (car (magithub-cache :commit
-                        `(ghubp-get-repos-owner-repo-commits
-                             ',(magithub-repo) nil
-                           :sha ,parsed)))
-        (browse-url .html_url))
+      (if-let ((commits (ghubp-get-repos-owner-repo-commits
+                            (magithub-repo) nil
+                          :sha parsed)))
+          (let-alist (car commits)
+            (browse-url .html_url))
+        (user-error "No commit %s on remote" parsed))
     (error "Could not parse %S" rev)))
 
 (defun magithub-add-thing ()

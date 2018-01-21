@@ -12,7 +12,9 @@
   more details in 'New Features'.  [[PR:204]]
 
 * New Features
-- Browse commits by using =w= on a commit section.
+- Browse commits by using =w= on a commit section.  If the current
+  section's value cannot be understood as a valid commit, use the
+  =git-revision= at point.
 - ~magithub-feature-autoinject~ can now take a list of features to load.
 - Many symbols are now supported by ~thing-at-point~:
   - =github-user=
@@ -33,8 +35,6 @@
   interface that supports submitting, cancelling, and saving drafts to
   finish later.  [[PR:204]]
 - You can now edit comments using =e= on a comment section.  [[PR:206]]
-- ~magithub-commit-browse~ will now use the =git-revision= at point if the
-  current section's value cannot be understood as a valid commit.
 
 * Bug Fixes
 - In ~magithub-repo~, an API request is no longer made when the
