@@ -1,6 +1,12 @@
 #+Title: Magithub -- Magit interfaces for GitHub
 #+Author: Sean Allred
 
+This manual is somewhat out-of-date.  Much of what's in here is trustworthy,
+but use the system as the source of truth -- =C-h m= is a good place to start.
+This manual will be revamped as part of [[https://github.com/vermiculus/magithub/issues/220][#220]].
+
+You may also be interested in [[https://github.com/vermiculus/magithub/tree/master/RelNotes][the most current release notes]].
+
 * Preface
 Magithub provides an integrated GitHub experience through Magit's familiar
 interface.  Just as Magit hopes to 'outsmart git', Magithub hopes to add
