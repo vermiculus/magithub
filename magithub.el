@@ -79,6 +79,7 @@
              (?& "Request a feature or report a bug" magithub--meta-new-issue)
              (?h "Ask for help on Gitter" magithub--meta-help)))
 
+;;;###autoload
 (eval-after-load "magit"
   '(progn
      (magit-define-popup-action 'magit-dispatch-popup
@@ -282,6 +283,7 @@ See also `magithub-preferred-remote-method'."
   (when (y-or-n-p (format "%s/%s has finished cloning to %s.  Open? " user repo dir))
     (magit-status-internal (s-chop-suffix "/" dir))))
 
+;;;###autoload
 (defun magithub-feature-autoinject (feature)
   "Configure FEATURE to recommended settings.
 If FEATURE is `all' or t, all known features will be loaded.  If
