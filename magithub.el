@@ -227,27 +227,24 @@ See also `magithub-preferred-remote-method'."
   (interactive (if (and (not magithub-clone-default-directory)
                         (magithub-github-repository-p))
                    (user-error "Already in a GitHub repo")
-                 (let ((repo (magithub-clone--get-repo)))
-                   (condition-case _
-                       (let* ((repo (magithub-request
-                                     (ghubp-get-repos-owner-repo repo)))
-                              (dirname (read-directory-name
-                                        "Destination: "
-                                        magithub-clone-default-directory
-                                        (alist-get 'name repo))))
-                         (list repo dirname))
-                     (ghub-404 (let-alist repo
-                                 (user-error "Repository %s/%s does not exist"
-                                             .owner.login .name)))))))
+                 (let* ((repo (magithub-clone--get-repo))
+                        (repo (or (magithub-request
+                                   (ghubp-get-repos-owner-repo repo))
+                                  (let-alist repo
+                                    (user-error "Repository %s/%s does not exist"
+                                                .owner.login .name))))
+                        (dirname (read-directory-name
+                                  "Destination: "
+                                  magithub-clone-default-directory
+                                  (alist-get 'name repo))))
+                   (list repo dirname))))
   ;; Argument validation
   (unless (called-interactively-p 'any)
-    (condition-case _
-        (setq repo (magithub-request
-                    (ghubp-get-repos-owner-repo repo)))
-      (ghub-404
-       (let-alist repo
-         (user-error "Repository %s/%s does not exist"
-                     .owner.login .name)))))
+    (unless (setq repo (magithub-request
+                        (ghubp-get-repos-owner-repo repo)))
+      (let-alist repo
+        (user-error "Repository %s/%s does not exist"
+                    .owner.login .name))))
   (unless (file-writable-p dir)
     (user-error "%s does not exist or is not writable" dir))
 
