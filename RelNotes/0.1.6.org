@@ -45,3 +45,7 @@
 - The cache (and other files in =magithub-dir=) are no longer added to
   the =recentf= list.  [[PR:210]]
 - Consistently use ~magithub-request~.  [[PR:229]]
+- ~magit-magithub-pull-request-section-map~ is now defined in terms of
+  ~magit-magithub-issue-section-map~.  [[PR:238]]
+- Fix autoloads to load and install the dispatch with Magit.  [[PR:238]]
+- Remove awkward blank lines from the end of the dashboard.  [[PR:238]]
