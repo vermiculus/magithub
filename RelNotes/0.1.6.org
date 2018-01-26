@@ -35,6 +35,9 @@
   interface that supports submitting, cancelling, and saving drafts to
   finish later.  [[PR:204]]
 - You can now edit comments using =e= on a comment section.  [[PR:206]]
+- When submitting pull requests of a single commit, the commit message
+  is defaulted into the pull request body.  Multiple commits?
+  ~magit-log~ shows you the changes you want to merge.  [[PR:239]]
 
 * Bug Fixes
 - In ~magithub-repo~, an API request is no longer made when the

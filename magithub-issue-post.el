@@ -112,22 +112,37 @@ See also URL
 (defun magithub-pull-request-new (repo base head)
   "Create a new pull request."
   (interactive (magithub-pull-request-new-arguments))
-  (with-current-buffer
-      (magithub-edit-new (format "*magithub-pull-request: %s into %s:%s*"
-                                 head
-                                 (magithub-repo-name repo)
-                                 base)
-        :header (let-alist repo (format "PR %s/%s (%s->%s)" .owner.login .name head base))
-        :submit #'magithub-pull-request-submit
-        :file (expand-file-name "new-pull-request-draft"
-                                (magithub-repo-data-dir repo))
-        :template (magithub-issue--template-text "PULL_REQUEST_TEMPLATE"))
-    (font-lock-add-keywords nil `((,(rx bos (group (*? any)) eol) 1
-                                   'magithub-issue-title-edit t)))
-    (magithub-bug-reference-mode-on)
-    (setq magithub-issue--extra-data
-          `((base . ,base) (head . ,head)))
-    (magit-display-buffer (current-buffer))))
+  (let ((is-single-commit (string= (magit-rev-parse base)
+                                   (magit-rev-parse (format "%s~1" head)))))
+    (unless is-single-commit
+      (apply #'magit-log (list (format "%s..%s" base head)) (magit-log-arguments)))
+    (with-current-buffer
+        (let ((template (magithub-issue--template-text "PULL_REQUEST_TEMPLATE")))
+          (magithub-edit-new (format "*magithub-pull-request: %s into %s:%s*"
+                                     head
+                                     (magithub-repo-name repo)
+                                     base)
+            :header (let-alist repo (format "PR %s/%s (%s->%s)" .owner.login .name head base))
+            :submit #'magithub-pull-request-submit
+            :file (expand-file-name "new-pull-request-draft"
+                                    (magithub-repo-data-dir repo))
+            :template template
+            :content (when is-single-commit
+                       ;; when we only want to merge one commit
+                       ;; insert that commit message as the initial content
+                       (concat
+                        (with-temp-buffer
+                          (magit-git-insert "show" "-q" head "--format=%B")
+                          (let ((fill-column (point-max)))
+                            (fill-region (point-min) (point-max))
+                            (buffer-string)))
+                        template))))
+      (font-lock-add-keywords nil `((,(rx bos (group (*? any)) eol) 1
+                                     'magithub-issue-title-edit t)))
+      (magithub-bug-reference-mode-on)
+      (setq magithub-issue--extra-data
+            `((base . ,base) (head . ,head)))
+      (magit-display-buffer (current-buffer)))))
 
 (defun magithub-pull-request-submit ()
   (interactive)
