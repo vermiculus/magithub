@@ -177,10 +177,10 @@ will be used."
                                                      (ghubp-get-issues))))
          title (or title "Issues Assigned to Me"))
    (when-let* ((user-repo-issue-buckets
-               ;; bucket by user then by repo
-               (magithub-core-bucket-multi issues
-                 #'magithub-issue-repo
-                 (lambda (repo) (alist-get 'owner repo)))))
+                ;; bucket by user then by repo
+                (magithub-core-bucket-multi issues
+                  #'magithub-issue-repo
+                  (lambda (repo) (alist-get 'owner repo)))))
      (magit-insert-section (magithub-users-repo-issue-buckets)
        (magit-insert-heading (format "%s (%d)"
                                      (propertize title 'face 'magit-section-heading)

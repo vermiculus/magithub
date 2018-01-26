@@ -89,8 +89,8 @@ See also `ghubp-get-repos-owner-repo-issues'."
     `(magithub-request
       (ghubp-unpaginate
        (ghubp-get-repos-owner-repo-issues
-        ',(magithub-repo)
-        ,@params)))
+           ',(magithub-repo)
+           ,@params)))
     :message
     "Retrieving issue list..."))
 
@@ -186,7 +186,7 @@ object, the same issue is retrieved."
     (magithub-cache :issues
       `(magithub-request
         (ghubp-get-repos-owner-repo-issues-number
-         ',repo '((number . ,num))))
+            ',repo '((number . ,num))))
       :message
       (format "Getting issue %s#%d..." (magithub-repo-name repo) num))))
 
@@ -475,7 +475,7 @@ buffer."
                     nil nil current-labels)))))
   (when (magithub-request
          (ghubp-patch-repos-owner-repo-issues-number
-          (magithub-repo) issue `((labels . ,labels))))
+             (magithub-repo) issue `((labels . ,labels))))
     (setcdr (assq 'labels issue) labels))
   (when (derived-mode-p 'magit-status-mode)
     (magit-refresh)))
@@ -567,7 +567,7 @@ Interactively, this finds the issue at point."
   (magithub-cache :issues
     `(magithub-request
       (ghubp-get-repos-owner-repo-pulls-number
-       ',repo '((number . ,number))))
+          ',repo '((number . ,number))))
     :message
     (format "Getting pull request %s#%d..."
             (magithub-repo-name repo)
