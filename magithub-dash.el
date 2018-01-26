@@ -77,7 +77,11 @@
 Runs `magithub-dash-sections-hook'."
   (interactive)
   (magit-insert-section (magithub-dash-buf)
-    (run-hooks 'magithub-dash-sections-hook)))
+    (run-hooks 'magithub-dash-sections-hook))
+  (let ((inhibit-read-only t))
+    (save-excursion
+      (goto-char (point-max))
+      (delete-blank-lines))))
 
 (defvar magithub-dash-sections-hook
   '(magithub-dash-insert-headers
