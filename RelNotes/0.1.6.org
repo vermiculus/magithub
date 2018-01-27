@@ -52,3 +52,5 @@
   ~magit-magithub-issue-section-map~.  [[PR:238]]
 - Fix autoloads to load and install the dispatch with Magit.  [[PR:238]]
 - Remove awkward blank lines from the end of the dashboard.  [[PR:238]]
+- Issue/PR drafts are deleted appropriately after successful
+  submission.  [[PR:247]]

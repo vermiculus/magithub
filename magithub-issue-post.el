@@ -19,6 +19,7 @@
     (when (yes-or-no-p "Are you sure you want to submit this issue? ")
       (let ((issue (magithub-request
                     (ghubp-post-repos-owner-repo-issues repo issue))))
+        (magithub-edit-delete-draft)
         (magithub-issue-view issue)))))
 
 (defun magithub-issue-post--parse-buffer ()
@@ -159,6 +160,7 @@ See also URL
                      (ghubp-post-repos-owner-repo-pulls (magithub-repo) pull-request))
                   (ghub-422
                    (user-error "This pull request already exists!")))))
+        (magithub-edit-delete-draft)
         (magithub-issue-view pr)))))
 
 (provide 'magithub-issue-post)
