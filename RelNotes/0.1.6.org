@@ -38,6 +38,7 @@
 - When submitting pull requests of a single commit, the commit message
   is defaulted into the pull request body.  Multiple commits?
   ~magit-log~ shows you the changes you want to merge.  [[PR:239]]
+- Headers in issue-view mode are now easier to naviagte.  [[PR:250]]
 
 * Bug Fixes
 - In ~magithub-repo~, an API request is no longer made when the

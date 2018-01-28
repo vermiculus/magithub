@@ -120,7 +120,8 @@ Return the new buffer."
   (magit-insert-section ((eval type) section-value)
     (insert (format "%-10s" title)
             (or (and face (propertize text 'face face))
-                text))
+                text)
+            ?\n)
     (magit-insert-heading)))
 
 (defun magithub-issue-view-insert-title ()
@@ -130,10 +131,11 @@ Return the new buffer."
 
 (defun magithub-issue-view-insert-author ()
   "Insert issue author."
+  (insert (format "%-10s" "Author:"))
   (let-alist magithub-issue
-    (magithub-issue-view-insert--generic "Author:" .user.login
-      'magithub-user .user
-      :face 'magithub-user)))
+    (magit-insert-section (magithub-user .user)
+      (insert (propertize .user.login 'face 'magithub-user) ?\n)
+      (magit-insert-heading))))
 
 (defun magithub-issue-view-insert-state ()
   "Insert issue state (either \"open\" or \"closed\")."
@@ -149,10 +151,9 @@ Return the new buffer."
 
 (defun magithub-issue-view-insert-labels ()
   "Insert labels."
-  (magit-insert-section (magithub-label)
-    (insert (format "%-10s" "Labels:"))
-    (magithub-label-insert-list (alist-get 'labels magithub-issue))
-    (magit-insert-heading)))
+  (insert (format "%-10s" "Labels:"))
+  (magithub-label-insert-list (alist-get 'labels magithub-issue))
+  (insert ?\n))
 
 (defun magithub-issue-view-insert-body ()
   "Insert issue body."
