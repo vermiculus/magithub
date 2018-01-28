@@ -445,10 +445,9 @@ information.
 
   Configure your global dashboard settings.
 
-- User Option: magithub-dashboard-show-unread-notifications
+- User Option: magithub-dashboard-show-read-notifications
 
-  When non-nil, we'll show unread notifications in the dashboard.
-  (See also #245.)
+  When non-nil, we'll show read notifications in the dashboard.
 
 * Creating Content
 

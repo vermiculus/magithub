@@ -73,8 +73,12 @@ See also Info node `(elisp)Time of Day'."
     (magit-refresh))
   (message "(magithub) notifcations refreshed"))
 
-(defun magithub-notification-unread-p (notification)
+(defun magithub-notification-read-p (notification)
   "Non-nil if NOTIFICATION has been read."
+  (not (magithub-notification-unread-p notification)))
+
+(defun magithub-notification-unread-p (notification)
+  "Non-nil if NOTIFICATION has been not been read."
   (alist-get 'unread notification))
 
 (defconst magithub-notification-reasons

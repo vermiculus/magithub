@@ -31,8 +31,8 @@
 
 (declare-function magithub-dispatch-popup "magithub.el")
 
-(defcustom magithub-dashboard-show-unread-notifications nil
-  "Show unread notifications in the dashboard."
+(defcustom magithub-dashboard-show-read-notifications t
+  "Show read notifications in the dashboard."
   :type 'boolean
   :group 'magithub)
 
@@ -40,13 +40,13 @@
   "Popup console for the dashboard."
   'magithub-commands
   :actions '("Notifications"
-             (?r "Toggle showing unread notifications"
-                 magithub-dashboard-show-unread-notifications-toggle)))
+             (?r "Toggle showing read notifications"
+                 magithub-dashboard-show-read-notifications-toggle)))
 
-(defun magithub-dashboard-show-unread-notifications-toggle ()
+(defun magithub-dashboard-show-read-notifications-toggle ()
   (interactive)
-  (setq magithub-dashboard-show-unread-notifications
-        (not magithub-dashboard-show-unread-notifications))
+  (setq magithub-dashboard-show-read-notifications
+        (not magithub-dashboard-show-read-notifications))
   (magit-refresh-buffer))
 
 ;;;###autoload
@@ -139,21 +139,23 @@ See also `magithub-dash-headers-hook'."
 (defun magithub-dash-insert-notifications (&optional notifications)
   "Insert NOTIFICATIONS into the buffer bucketed by repository."
   (setq notifications (or notifications (magithub-notifications
-                                         magithub-dashboard-show-unread-notifications)))
+                                         magithub-dashboard-show-read-notifications)))
   (if notifications
       (let* ((bucketed (magithub-core-bucket notifications (apply-partially #'alist-get 'repository)))
-             (unread (-filter #'magithub-notification-unread-p notifications))
-             (hide (null unread)))
+             (unread (if magithub-dashboard-show-read-notifications
+                         (-filter #'magithub-notification-unread-p notifications)
+                       notifications))
+             (hide (not unread))
+             (heading (if magithub-dashboard-show-read-notifications
+                          (format "%s (%d unread of %d)"
+                                  (propertize "Notifications" 'face 'magit-section-heading)
+                                  (length unread)
+                                  (length notifications))
+                        (format "%s (%d)"
+                                (propertize "Notifications" 'face 'magit-section-heading)
+                                (length notifications)))))
         (magit-insert-section (magithub-notifications notifications hide)
-          (magit-insert-heading
-            (if magithub-dashboard-show-unread-notifications
-                (format "%s (%d unread of %d)"
-                        (propertize "Notifications" 'face 'magit-section-heading)
-                        (length unread)
-                        (length notifications))
-              (format "%s (%d)"
-                      (propertize "Notifications" 'face 'magit-section-heading)
-                      (length notifications))))
+          (magit-insert-heading heading)
           (magithub-for-each-bucket bucketed repo repo-notifications
             (setq hide (null (-filter #'magithub-notification-unread-p repo-notifications)))
             (magit-insert-section (magithub-repo repo hide)
@@ -165,7 +167,7 @@ See also `magithub-dash-headers-hook'."
           (insert "\n")))
     (magit-insert-section (magithub-notifications)
       (magit-insert-heading "Notifications")
-      (insert (propertize (if magithub-dashboard-show-unread-notifications
+      (insert (propertize (if magithub-dashboard-show-read-notifications
                               "No notifications"
                             "No unread notifications")
                           'face 'magit-dimmed)

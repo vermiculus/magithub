@@ -10,6 +10,9 @@
 - Many functions related to issue/post creation have been reworked.
   Instead of the widget framework, we now use =magithub-edit-mode=.  See
   more details in 'New Features'.  [[PR:204]]
+- =magithub-dashboard-show-unread-notifications= is now called
+  =magithub-dashboard-show-read-notifications= and all functionality
+  pertaining to that variable has been updated.  [[PR:251]]
 
 * New Features
 - Browse commits by using =w= on a commit section.  If the current
