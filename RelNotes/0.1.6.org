@@ -61,3 +61,4 @@
 - Remove awkward blank lines from the end of the dashboard.  [[PR:238]]
 - Issue/PR drafts are deleted appropriately after successful
   submission.  [[PR:247]]
+- Various performance improvements.  [[PR:255]]

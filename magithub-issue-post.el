@@ -29,17 +29,19 @@
 
 (defun magithub-issue-new (repo)
   (interactive (list (magithub-repo)))
-  (with-current-buffer
-      (magithub-edit-new (format "*magithub-issue: %s*" (magithub-repo-name repo))
-        :header (format "Creating an issue for %s" (alist-get 'full_name repo))
-        :submit #'magithub-issue-post-submit
-        :file (expand-file-name "new-issue-draft"
-                                (magithub-repo-data-dir repo))
-        :template (magithub-issue--template-text "ISSUE_TEMPLATE"))
-    (font-lock-add-keywords nil `((,(rx bos (group (*? any)) eol) 1
-                                   'magithub-issue-title-edit t)))
-    (magithub-bug-reference-mode-on)
-    (magit-display-buffer (current-buffer))))
+  (let* ((repo (magithub-repo repo))
+         (name (magithub-repo-name repo)))
+    (with-current-buffer
+        (magithub-edit-new (format "*magithub-issue: %s*" name)
+          :header (format "Creating an issue for %s" name)
+          :submit #'magithub-issue-post-submit
+          :file (expand-file-name "new-issue-draft"
+                                  (magithub-repo-data-dir repo))
+          :template (magithub-issue--template-text "ISSUE_TEMPLATE"))
+      (font-lock-add-keywords nil `((,(rx bos (group (*? any)) eol) 1
+                                     'magithub-issue-title-edit t)))
+      (magithub-bug-reference-mode-on)
+      (magit-display-buffer (current-buffer)))))
 
 (defun magithub-issue--template-text (template)
   (with-temp-buffer
