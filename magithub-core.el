@@ -555,20 +555,33 @@ included in the returned object."
 (make-obsolete 'magithub-source-repo 'magithub-repo "0.1.4")
 (defun magithub-repo (&optional sparse-repo)
   "Turn SPARSE-REPO into a full repository object.
-If SPARSE-REPO is null, the current context is used."
-  (when-let* ((sparse-repo (or sparse-repo (magithub-source--sparse-repo))))
-    (or (magithub-cache :repo-demographics
-          `(condition-case e
-               (or (magithub-request
-                    (ghubp-get-repos-owner-repo ',sparse-repo))
-                   (and (not (magithub--api-available-p))
-                        sparse-repo))
-             ;; Repo may not exist; ignore 404
-             (ghub-404 nil)))
-        (when (memq magithub-cache '(when-present refreshing-when-offline))
-          (let ((magithub-cache nil))
-            (magithub-repo sparse-repo)))
-        sparse-repo)))
+If SPARSE-REPO is null, the current context is used.
+
+SPARSE-REPO may either be a partial repository object (with at
+least the `.owner.login' and `.name' keys) or a string identifier
+of the form `owner/name' (as in `vermiculus/magithub')."
+  (if (and (stringp sparse-repo)
+           (string-match (rx bos
+                             (group (+? (| alnum "-" "." "_"))) ;owner.login -- vermiculus
+                             "/"
+                             (group (+? (| alnum "-" "." "_"))) ;name -- magithub
+                             eos)
+                         sparse-repo))
+      (magithub-repo `((owner (login . ,(match-string 1 sparse-repo)))
+                       (name . ,(match-string 2 sparse-repo))))
+    (when-let* ((sparse-repo (or sparse-repo (magithub-source--sparse-repo))))
+      (or (magithub-cache :repo-demographics
+            `(condition-case e
+                 (or (magithub-request
+                      (ghubp-get-repos-owner-repo ',sparse-repo))
+                     (and (not (magithub--api-available-p))
+                          sparse-repo))
+               ;; Repo may not exist; ignore 404
+               (ghub-404 nil)))
+          (when (memq magithub-cache '(when-present refreshing-when-offline))
+            (let ((magithub-cache nil))
+              (magithub-repo sparse-repo)))
+          sparse-repo))))
 
 ;;; Repository utilities
 (defvar magit-magithub-repo-section-map

@@ -43,6 +43,8 @@
   ~magit-log~ shows you the changes you want to merge.  [[PR:239]]
 - Headers in issue-view mode are now easier to naviagte.  [[PR:250]]
 - Notifications are marked as read when visited in Emacs.  [[PR:252]]
+- ~magithub-repo~ can now take a string of the form =user/repo=.  This is
+  helpful when writing other code that uses Magithub functionality.  [[PR:253]]
 
 * Bug Fixes
 - In ~magithub-repo~, an API request is no longer made when the
