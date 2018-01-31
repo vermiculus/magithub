@@ -43,6 +43,27 @@
       (magithub-bug-reference-mode-on)
       (magit-display-buffer (current-buffer)))))
 
+(defun magithub-pull-request-new-from-issue (repo issue base head &optional maintainer-can-modify)
+  "Create a pull request from an existing issue.
+REPO is the parent repository of ISSUE.  BASE and HEAD are as
+they are in `magithub-pull-request-new'."
+  (interactive (if-let ((issue-at-point (thing-at-point 'github-issue)))
+                   (let-alist (magithub-pull-request-new-arguments)
+                     (let ((allow-maint-mod (y-or-n-p "Allow maintainers to modify this pull request? ")))
+                       (unless (magit-y-or-n-p (format "Are you sure you wish to create a PR based on %s by merging `%s' into `%s'?"
+                                                       (magithub-issue-reference issue-at-point) .user+head .base)
+                                               'magithub-submit-pull-request)
+                         (user-error "Aborting"))
+                       (list .repo issue-at-point .base .head allow-maint-mod)))
+                 (user-error "No issue detected at point")))
+  (let ((pull-request `((head . ,head)
+                        (base . ,base)
+                        (issue . ,(alist-get 'number issue)))))
+    (when maintainer-can-modify
+      (push (cons 'maintainer_can_modify t) pull-request))
+    (magithub-request
+     (ghubp-post-repos-owner-repo-pulls repo pull-request))))
+
 (defun magithub-issue--template-text (template)
   (with-temp-buffer
     (when-let* ((template (magithub-issue--template-find template)))

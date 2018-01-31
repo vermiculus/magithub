@@ -45,6 +45,10 @@
 - Notifications are marked as read when visited in Emacs.  [[PR:252]]
 - ~magithub-repo~ can now take a string of the form =user/repo=.  This is
   helpful when writing other code that uses Magithub functionality.  [[PR:253]]
+- New command ~magithub-pull-request-new-from-issue~ can create pull
+  requests from issues.  This creates a new pull request by copying
+  the title/body from the source issue.  (To be honest, this API
+  endpoint is not what I thought it would be.)  [[PR:256]]
 
 * Bug Fixes
 - In ~magithub-repo~, an API request is no longer made when the
