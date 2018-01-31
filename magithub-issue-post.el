@@ -103,18 +103,23 @@ See also URL
       (user-error "A pull request on %s already exists for head \"%s\""
                   (magithub-repo-name parent-repo)
                   user+head))
-    (unless (y-or-n-p (format "You are about to create a pull request to merge branch `%s' into %s:%s; is this what you wanted to do?"
-                              user+head (magithub-repo-name parent-repo) base))
-      (user-error "Aborting"))
-    (let-alist parent-repo
-      (list parent-repo base
-            (if (string= this-remote base-remote)
-                head-branch
-              user+head)))))
+    `((repo . ,parent-repo)
+      (base . ,base)
+      (head . ,(if (string= this-remote base-remote)
+                   head-branch
+                 user+head))
+      (user+head . ,user+head))))
 
 (defun magithub-pull-request-new (repo base head)
   "Create a new pull request."
-  (interactive (magithub-pull-request-new-arguments))
+  (interactive (let-alist (magithub-pull-request-new-arguments)
+                 (if (y-or-n-p
+                      (format "You are about to create a pull request to merge branch `%s' into %s:%s; is this what you wanted to do?"
+                              .user+head
+                              (magithub-repo-name .repo)
+                              .base))
+                     (list .repo .base .head)
+                   (user-error "Aborting"))))
   (let ((is-single-commit (string= (magit-rev-parse base)
                                    (magit-rev-parse (format "%s~1" head)))))
     (unless is-single-commit
