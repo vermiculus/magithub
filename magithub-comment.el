@@ -218,12 +218,15 @@ from COMMENT."
     (magithub-comment-new
      (or issue (magithub-request (ghubp-follow-get .issue_url)))
      discard-draft
-     (with-temp-buffer
-       (insert (string-trim (magithub-wash-gfm .body)))
-       (markdown-blockquote-region (point-min) (point-max))
-       (goto-char (point-max))
-       (insert "\n\n")
-       (buffer-string)))))
+     (let ((reply-body (if (use-region-p)
+                           (buffer-substring (region-beginning) (region-end))
+                           .body)))
+      (with-temp-buffer
+        (insert (string-trim (magithub-wash-gfm reply-body)))
+        (markdown-blockquote-region (point-min) (point-max))
+        (goto-char (point-max))
+        (insert "\n\n")
+        (buffer-string))))))
 
 (defun magithub-issue-comment-submit (issue comment &optional repo)
   "On ISSUE, submit a new COMMENT.
