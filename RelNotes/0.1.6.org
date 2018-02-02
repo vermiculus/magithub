@@ -66,3 +66,5 @@
 - Issue/PR drafts are deleted appropriately after successful
   submission.  [[PR:247]]
 - Various performance improvements.  [[PR:255]]
+- Ghub+ is now required in core.  This should help users who utilize
+  deferred loading.  [[PR:260]]

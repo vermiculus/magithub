@@ -29,6 +29,7 @@
 (require 's)
 (require 'subr-x)
 (require 'ghub)
+(require 'ghub+)
 (require 'bug-reference)
 (require 'cl-lib)
 (require 'markdown-mode)
