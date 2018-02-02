@@ -105,6 +105,7 @@ If it does not exist, it will be created."
   "Execute forms in `magithub-dir'.
 If `magithub-dir' does not yet exist, it and its parents will be
 created automatically."
+  (declare (debug t))
   `(progn
      (unless (file-directory-p magithub-dir)
        (mkdir magithub-dir t))
