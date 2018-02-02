@@ -13,6 +13,37 @@
 - =magithub-dashboard-show-unread-notifications= is now called
   =magithub-dashboard-show-read-notifications= and all functionality
   pertaining to that variable has been updated.  [[PR:251]]
+- Most settings, like the inclusion of sections in ~magit-status~, are
+  now controlled by various =git config= properties.  These settings are
+  reachable under =H C=.  The following functions/variables no longer
+  exist:
+  - ~magithub-ci-enabled-p~ (now ~magithub-settings-include-status-p~)
+  - ~magithub-ci--set-enabled~
+  - ~magithub-ci-disable~
+  - ~magithub-ci-enable~
+  - ~magithub-toggle-ci-status-header~
+  - =magithub-cache= (now =magithub-settings-cache-behavior-override=;
+    ~magithub-settings-cache-behavior~)
+  - ~magithub-toggle-online~
+  - ~magithub-go-online~
+  - ~magithub-go-offline~
+  - ~magithub-source--remote~
+  - ~magithub--deftoggle~
+  - ~magithub-toggle-pull-requests~
+  - ~magithub-toggle-issues~
+  - ~magithub-proxy-set~
+  - ~magithub-proxy-set-default~
+  - ~magithub-enable~
+  - ~magithub-disable~
+  - ~magithub-enabled-toggle~
+  - =magithub-enabled-by-default=
+
+  The various integration sections are now added to the appropriate
+  hooks by ~magithub-feature-autoinject~ via =magithub-feature-list=.
+
+  For more details on how to set configure Magithub now, consult the
+  documentation inside ~magithub-settings-popup~ (=? KEY=) or read
+  =magithub-settings.el=.  [[PR:265]]
 
 * New Features
 - Browse commits by using =w= on a commit section.  If the current

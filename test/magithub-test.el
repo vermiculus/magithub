@@ -40,9 +40,9 @@ cached API calls."
   (let ((magithub--api-last-checked (current-time)))
     (should (magithub-source--sparse-repo))
     (should (magithub-repo))
-    (should (let ((magithub-cache t))     ; force API call
+    (should (let ((magithub-settings-cache-behavior-override t))     ; force API call
               (magithub-repo)))
-    (should (let ((magithub-cache nil))   ; force cache read
+    (should (let ((magithub-settings-cache-behavior-override nil))   ; force cache read
               (magithub-repo)))))
 
 ;;; magithub-test.el ends here
