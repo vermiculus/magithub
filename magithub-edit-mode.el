@@ -104,6 +104,7 @@ to that buffer."
 (defun magithub-edit-delete-draft ()
   "Delete the draft for the current edit buffer."
   (when (and (stringp buffer-file-name)
+             (file-exists-p buffer-file-name)
              (file-writable-p buffer-file-name))
     (delete-file buffer-file-name magit-delete-by-moving-to-trash)
     (message "Deleted %s" buffer-file-name))
