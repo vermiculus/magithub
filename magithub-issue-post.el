@@ -16,11 +16,11 @@
     (when (magithub-repo-push-p repo)
       (when-let* ((issue-labels (magithub-label-read-labels "Labels: ")))
         (push (cons 'labels issue-labels) issue)))
-    (when (yes-or-no-p "Are you sure you want to submit this issue? ")
-      (let ((issue (magithub-request
-                    (ghubp-post-repos-owner-repo-issues repo issue))))
-        (magithub-edit-delete-draft)
-        (magithub-issue-view issue)))))
+    (magithub-confirm 'submit-issue)
+    (let ((issue (magithub-request
+                  (ghubp-post-repos-owner-repo-issues repo issue))))
+      (magithub-edit-delete-draft)
+      (magithub-issue-view issue))))
 
 (defun magithub-issue-post--parse-buffer ()
   (let ((lines (split-string (buffer-string) "\n")))
@@ -49,11 +49,10 @@ REPO is the parent repository of ISSUE.  BASE and HEAD are as
 they are in `magithub-pull-request-new'."
   (interactive (if-let ((issue-at-point (thing-at-point 'github-issue)))
                    (let-alist (magithub-pull-request-new-arguments)
-                     (let ((allow-maint-mod (y-or-n-p "Allow maintainers to modify this pull request? ")))
-                       (unless (magit-y-or-n-p (format "Are you sure you wish to create a PR based on %s by merging `%s' into `%s'?"
-                                                       (magithub-issue-reference issue-at-point) .user+head .base)
-                                               'magithub-submit-pull-request)
-                         (user-error "Aborting"))
+                     (let ((allow-maint-mod (magithub-confirm-no-error 'pr-allow-maintainers-to-submit)))
+                       (magithub-confirm 'submit-pr-from-issue
+                                         (magithub-issue-reference issue-at-point)
+                                         .user+head .base)
                        (list .repo issue-at-point .base .head allow-maint-mod)))
                  (user-error "No issue detected at point")))
   (let ((pull-request `((head . ,head)
@@ -134,13 +133,8 @@ See also URL
 (defun magithub-pull-request-new (repo base head)
   "Create a new pull request."
   (interactive (let-alist (magithub-pull-request-new-arguments)
-                 (if (y-or-n-p
-                      (format "You are about to create a pull request to merge branch `%s' into %s:%s; is this what you wanted to do?"
-                              .user+head
-                              (magithub-repo-name .repo)
-                              .base))
-                     (list .repo .base .head)
-                   (user-error "Aborting"))))
+                 (magithub-confirm 'pre-submit-pr .user+head (magithub-repo-name .repo) .base)
+                 (list .repo .base .head)))
   (let ((is-single-commit (string= (magit-rev-parse base)
                                    (magit-rev-parse (format "%s~1" head)))))
     (unless is-single-commit
@@ -180,15 +174,15 @@ See also URL
                         (head . ,(alist-get 'head magithub-issue--extra-data)))))
     (when (s-blank-p (alist-get 'title pull-request))
       (user-error "Title is required"))
-    (when (yes-or-no-p "Are you sure you want to submit this pull request? ")
-      (when (y-or-n-p "Allow maintainers to modify this pull request? ")
-        (push (cons 'maintainer_can_modify t) pull-request))
-      (let ((pr (condition-case _
-                    (magithub-request
-                     (ghubp-post-repos-owner-repo-pulls (magithub-repo) pull-request))
-                  (ghub-422
-                   (user-error "This pull request already exists!")))))
-        (magithub-edit-delete-draft)
-        (magithub-issue-view pr)))))
+    (magithub-confirm 'submit-pr)
+    (when (magithub-confirm-no-error 'pr-allow-maintainers-to-submit)
+      (push (cons 'maintainer_can_modify t) pull-request))
+    (let ((pr (condition-case _
+                  (magithub-request
+                   (ghubp-post-repos-owner-repo-pulls (magithub-repo) pull-request))
+                (ghub-422
+                 (user-error "This pull request already exists!")))))
+      (magithub-edit-delete-draft)
+      (magithub-issue-view pr))))
 
 (provide 'magithub-issue-post)

@@ -719,7 +719,7 @@ See /.github/ISSUE_TEMPLATE.md in this repository."
 (defun magithub-error (err-message tag &optional trace)
   "Report a Magithub error."
   (setq trace (or trace (with-output-to-string (backtrace))))
-  (when (y-or-n-p (concat tag "  Report?  (A bug report will be placed in your clipboard.)"))
+  (when (magithub-confirm-no-error 'report-error tag)
     (with-current-buffer-window
      (get-buffer-create "*magithub issue*")
      #'display-buffer-pop-up-window nil
@@ -1102,9 +1102,9 @@ Use directly at your own peril; this is intended for use with
   (interactive (user-error (substitute-command-keys "This is no longer an interactive function; use \\[universal-argument] \\[magit-refresh] instead :-)")))
   (when (and current-prefix-arg
              (magithub-usable-p)
-             (y-or-n-p "Refresh GitHub data? ")
+             (magithub-confirm-no-error 'refresh)
              (or (magithub--api-available-p)
-                 (y-or-n-p "GitHub doesn't seem to be responding, are you sure? ")))
+                 (magithub-confirm-no-error 'refresh-when-API-unresponsive)))
     (let ((old-override-value magithub-settings-cache-behavior-override)
           (old-behavior (magithub-settings-cache-behavior)))
       ;; `magithub-refresh' is part of `magit-pre-refresh-hook' and our requests

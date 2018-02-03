@@ -88,7 +88,7 @@ from `magithub-label'.  Customize that to affect all labels."
         (setcdr cell new-color)
       (push (cons label-color new-color)
             magithub-label-color-replacement-alist)))
-  (when (y-or-n-p "Save customization? ")
+  (when (magithub-confirm-no-error 'label-save-customized-colors)
     (customize-save-variable 'magithub-label-color-replacement-alist
                              magithub-label-color-replacement-alist
                              "Auto-saved by `magithub-label-color-replace'"))
@@ -109,13 +109,12 @@ from `magithub-label'.  Customize that to affect all labels."
   (unless label
     (user-error "No label here"))
   (let-alist label
-    (if (yes-or-no-p (format "Remove label %S from this issue? " .name))
-        (prog1 (magithub-request
-                (ghubp-delete-repos-owner-repo-issues-number-labels-name
-                 (magithub-issue-repo issue) issue label))
-          (magithub-cache-without-cache :issues
-            (magit-refresh-buffer)))
-      (user-error "Aborted"))))
+    (magithub-confirm 'remove-label .name)
+    (prog1 (magithub-request
+            (ghubp-delete-repos-owner-repo-issues-number-labels-name
+                (magithub-issue-repo issue) issue label))
+      (magithub-cache-without-cache :issues
+        (magit-refresh-buffer)))))
 
 (defun magithub-label-add (issue labels)
   "To ISSUE, add LABELS."
@@ -123,16 +122,15 @@ from `magithub-label'.  Customize that to affect all labels."
                      (magithub-label-read-labels "Add labels: ")))
   (if (not (and issue labels))
       (user-error "No issue/labels")
-    (if (yes-or-no-p (format "Add {%s} to %s#%s? "
-                             (s-join "," (ghubp-get-in-all '(name) labels))
-                             (magithub-repo-name (magithub-issue-repo issue))
-                             (alist-get 'number issue)))
-        (prog1 (magithub-request
-                (ghubp-post-repos-owner-repo-issues-number-labels
-                 (magithub-issue-repo issue) issue labels))
-          (magithub-cache-without-cache :issues
-            (magit-refresh)))
-      (user-error "Aborted"))))
+    (magithub-confirm 'add-label
+                      (s-join "," (ghubp-get-in-all '(name) labels))
+                      (magithub-repo-name (magithub-issue-repo issue))
+                      (alist-get 'number issue))
+    (prog1 (magithub-request
+            (ghubp-post-repos-owner-repo-issues-number-labels
+                (magithub-issue-repo issue) issue labels))
+      (magithub-cache-without-cache :issues
+        (magit-refresh)))))
 
 (defun magithub-label-insert (label)
   "Insert LABEL into the buffer.
