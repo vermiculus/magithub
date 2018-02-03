@@ -116,8 +116,9 @@ See also URL
                         branch))
          (base        (magithub-remote-branches-choose
                        "Base branch" base-remote
-                       (when on-this-remote
-                         (magit-get-upstream-branch head-branch))))
+                       (or (and on-this-remote
+                                (magit-get-upstream-branch head-branch))
+                           (let-alist parent-repo .default_branch))))
          (user+head   (format "%s:%s" this-repo-owner head-branch)))
     (when (magithub-request (ghubp-get-repos-owner-repo-pulls parent-repo nil :head user+head))
       (user-error "A pull request on %s already exists for head \"%s\""
