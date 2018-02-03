@@ -35,13 +35,13 @@
   For issues and pull requests, the first line (i.e., everything up to
   the first newline character) is parsed as the title; everything else
   as the body.  Now issues, pull requests, and comments use a common
-  interface that supports submitting, cancelling, and saving drafts to
+  interface that supports submitting, canceling, and saving drafts to
   finish later.  [[PR:204]]
 - You can now edit comments using =e= on a comment section.  [[PR:206]]
 - When submitting pull requests of a single commit, the commit message
   is defaulted into the pull request body.  Multiple commits?
   ~magit-log~ shows you the changes you want to merge.  [[PR:239]]
-- Headers in issue-view mode are now easier to naviagte.  [[PR:250]]
+- Headers in issue-view mode are now easier to navigate.  [[PR:250]]
 - Notifications are marked as read when visited in Emacs.  [[PR:252]]
 - ~magithub-repo~ can now take a string of the form =user/repo=.  This is
   helpful when writing other code that uses Magithub functionality.  [[PR:253]]
@@ -52,7 +52,7 @@
 
 * Bug Fixes
 - In ~magithub-repo~, an API request is no longer made when the
-  repository contect cannot be determined.
+  repository context cannot be determined.
 - The list of labels is now correctly cached per-repository.  [[PR:203]]
 - The full list of labels is now available for use when modifying
   issues and pull requests.  [[PR:203]]
