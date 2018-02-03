@@ -82,8 +82,10 @@
   endpoint is not what I thought it would be.)  [[PR:256]]
 - Confirmation messages can now be skipped (or the default question
   behavior otherwise altered) using =git config= properties.  See
-  ~magithub-confirm-set-default-behavior~ .  [[PR:268]]
-- Use default branch of the repository as BASE if there's no upstream
+  ~magithub-confirm-set-default-behavior~ or configure your settings
+  locally (or globally) interactively when they're asked.  [[PR:268]]
+  [[PR:270]]
+- Use default branch of the repository as =BASE= if there's no upstream
   for the current branch.  [[PR:269]]
 - Completion of issue numbers, e.g. "#123" is supported in edit and
   commit message buffers via the standard ~completion-at-point~

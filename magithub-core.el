@@ -726,9 +726,22 @@ See /.github/ISSUE_TEMPLATE.md in this repository."
   (interactive)
   (browse-url "https://gitter.im/vermiculus/magithub"))
 
-(defun magithub-error (err-message tag &optional trace)
-  "Report a Magithub error."
-  (setq trace (or trace (with-output-to-string (backtrace))))
+(defun magithub-error (err-message &optional tag trace)
+  "Report a Magithub error.
+
+ERR-MESSAGE is a string to be shown to the user.
+
+TAG, if provided, is a user-friendly description of the error.
+It defaults to ERR-MESSAGE.
+
+If TRACE is provided, it should be an appropriate backtrace to
+describe the error.  If not provided, it is retrieved."
+  (unless (stringp err-message)
+    ;; just in case.  it'd be embarassing if the bug-reporter was
+    ;; perceived as buggy
+    (setq err-message (prin1-to-string err-message)))
+  (setq trace (or trace (with-output-to-string (backtrace)))
+        tag (or tag err-message))
   (when (magithub-confirm-no-error 'report-error tag)
     (with-current-buffer-window
      (get-buffer-create "*magithub issue*")
@@ -739,6 +752,8 @@ See /.github/ISSUE_TEMPLATE.md in this repository."
        (format
         "## Automated error report
 
+%s
+
 ### Description
 
 %s
@@ -748,6 +763,7 @@ See /.github/ISSUE_TEMPLATE.md in this repository."
 ```
 %s```
 "
+        err-message
         (read-string "Briefly describe what you were doing: ")
         trace))))
     (magithub--meta-new-issue))
