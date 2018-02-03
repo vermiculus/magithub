@@ -80,6 +80,9 @@
   requests from issues.  This creates a new pull request by copying
   the title/body from the source issue.  (To be honest, this API
   endpoint is not what I thought it would be.)  [[PR:256]]
+- Confirmation messages can now be skipped (or the default question
+  behavior otherwise altered) using =git config= properties.  See
+  ~magithub-confirm-set-default-behavior~ .  [[PR:268]]
 
 * Bug Fixes
 - In ~magithub-repo~, an API request is no longer made when the

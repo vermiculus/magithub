@@ -73,18 +73,17 @@
   (let-alist `((repo . ,(magithub-issue-repo issue))
                (issue . ,issue)
                (user . ,user))
-    (if (yes-or-no-p (format "Assign '%s' to %s#%d? "
-                             .user.login
-                             (magithub-repo-name .repo)
-                             .issue.number))
-        (prog1 (magithub-request
-                (ghubp-post-repos-owner-repo-issues-number-assignees
-                 .repo .issue (list .user)))
-          (let ((sec (magit-current-section)))
-            (magithub-cache-without-cache :issues
-              (magit-refresh-buffer))
-            (magit-section-show sec)))
-      (user-error "Aborted"))))
+    (magithub-confirm 'assignee-add
+                      .user.login
+                      (magithub-repo-name .repo)
+                      .issue.number)
+    (prog1 (magithub-request
+            (ghubp-post-repos-owner-repo-issues-number-assignees
+                .repo .issue (list .user)))
+      (let ((sec (magit-current-section)))
+        (magithub-cache-without-cache :issues
+          (magit-refresh-buffer))
+        (magit-section-show sec)))))
 
 (defun magithub-assignee-remove (issue user)
   (interactive (when (magithub-assignee--verify-manage)
@@ -93,15 +92,13 @@
   (let-alist `((repo . ,(magithub-issue-repo issue))
                (issue . ,issue)
                (user . ,user))
-    (if (yes-or-no-p (format "Remove '%s' from %s#%d? "
-                             .user.login
-                             (magithub-repo-name .repo)
-                             .issue.number))
-        (prog1 (magithub-request
-                (ghubp-delete-repos-owner-repo-issues-number-assignees .repo .issue (list .user)))
-          (magithub-cache-without-cache :issues
-            (magit-refresh-buffer)))
-      (user-error "Aborted"))))
+    (magithub-confirm .user.login
+                      (magithub-repo-name .repo)
+                      .issue.number)
+    (prog1 (magithub-request
+            (ghubp-delete-repos-owner-repo-issues-number-assignees .repo .issue (list .user)))
+      (magithub-cache-without-cache :issues
+        (magit-refresh-buffer)))))
 
 (defun magithub-user-choose (prompt &optional default-user)
   (let (ret-user new-username)
@@ -137,18 +134,16 @@
 (defun magithub-user-email (user)
   "Email USER."
   (interactive (list (thing-at-point 'github-user)))
-  (when (and (string= (alist-get 'login (magithub-user-me))
-                      (alist-get 'login user))
-             (not (y-or-n-p "Email yourself? ")))
-    (user-error "Aborted"))
+  (when (string= (alist-get 'login (magithub-user-me))
+                 (alist-get 'login user))
+    (magithub-confirm 'user-email-self))
   (unless user
     (user-error "No user here"))
   (let-alist user
     (unless .email
       (user-error "No email found; target user may be private"))
-    (if (y-or-n-p (format "Email @%s at \"%s\"? " .login .email))
-        (browse-url (format "mailto:%s" .email))
-      (user-error "Aborted"))))
+    (magithub-confirm 'user-email .login .email)
+    (browse-url (format "mailto:%s" .email))))
 
 (provide 'magithub-user)
 ;;; magithub-user.el ends here

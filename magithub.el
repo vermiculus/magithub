@@ -107,7 +107,7 @@ organization."
                    (list nil nil)
                  (let* ((ghub-username (ghubp-username)) ;performance
                         (account (magithub--read-user-or-org))
-                        (priv (yes-or-no-p "Will this be a private repository? "))
+                        (priv (magithub-confirm-no-error 'create-repo-as-private))
                         (reponame (magithub--read-repo-name account))
                         (desc (read-string "Description (optional): ")))
                    (list
@@ -119,7 +119,7 @@ organization."
   (when (magithub-github-repository-p)
     (error "Already in a GitHub repository"))
   (if (not (magit-toplevel))
-      (when (y-or-n-p "Not inside a Git repository; initialize one here? ")
+      (when (magithub-confirm-no-error 'init-repo-after-create)
         (magit-init default-directory)
         (call-interactively #'magithub-create))
     (with-temp-message "Creating repository on GitHub..."
@@ -176,20 +176,21 @@ be returned without prompting the user."
   (interactive)
   (unless (magithub-github-repository-p)
     (user-error "Not a GitHub repository"))
+  (magithub-confirm 'fork)
   (let* ((repo (magithub-repo))
          (fork (with-temp-message "Forking repository on GitHub..."
                  (magithub-request
                   (ghubp-post-repos-owner-repo-forks repo)))))
-    (when (y-or-n-p "Create a spinoff branch? ")
+    (when (magithub-confirm-no-error 'fork-create-spinoff)
       (call-interactively #'magit-branch-spinoff))
     (magithub--random-message
      (let-alist repo (format "%s/%s forked!" .owner.login .name)))
     (let-alist fork
-      (when (y-or-n-p (format "Add %s as a remote in this repository? " .owner.login))
+      (when (magithub-confirm-no-error 'fork-add-me-as-remote .owner.login)
         (magit-remote-add .owner.login (magithub-repo--clone-url fork))
         (magit-set .owner.login "branch" (magit-get-current-branch) "pushRemote")))
     (let-alist repo
-      (when (y-or-n-p (format "Set upstream to %s? " .owner.login))
+      (when (magithub-confirm-no-error 'fork-set-upstream-to-me .owner.login)
         (call-interactively #'magit-set-branch*merge/remote)))))
 
 (defun magithub-clone--get-repo ()
@@ -243,17 +244,16 @@ See also `magithub-preferred-remote-method'."
     (user-error "%s does not exist or is not writable" dir))
 
   (let-alist repo
-    (when (y-or-n-p (format "Clone %s to %s? " .full_name dir))
+    (when (magithub-confirm-no-error 'clone .full_name dir)
       (let ((default-directory dir)
             (magit-clone-set-remote.pushDefault t)
             set-upstream set-proxy)
 
         (setq set-upstream
-              (and .fork (y-or-n-p (format (concat "This repository appears to be a fork of %s; "
-                                                   "set upstream to that remote?")
-                                           .parent.full_name)))
+              (and .fork (magithub-confirm-no-error 'clone-fork-set-upstream-to-parent
+                                                    .parent.full_name))
               set-proxy
-              (and set-upstream (y-or-n-p "Use upstream as a proxy for issues, etc.? ")))
+              (and set-upstream (magithub-confirm-no-error 'clone-fork-set-proxy-to-upstream)))
 
         (condition-case _
             (progn
@@ -271,7 +271,7 @@ See also `magithub-preferred-remote-method'."
 
 (defun magithub-clone--finished (user repo dir)
   "After finishing the clone, allow the user to jump to their new repo."
-  (when (y-or-n-p (format "%s/%s has finished cloning to %s.  Open? " user repo dir))
+  (when (magithub-confirm-no-error 'clone-open-magit-status user repo dir)
     (magit-status-internal (s-chop-suffix "/" dir))))
 
 (defun magithub-visit-thing ()

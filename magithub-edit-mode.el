@@ -68,6 +68,8 @@ call `magithub-edit-cancel-function'."
   (interactive)
   ;; Offer to save the draft
   (if (and (buffer-modified-p)
+           ;; don't necessarily want to use `magithub-confirm', here
+           ;; this is potentially a very dangerous action
            (y-or-n-p "Save draft? "))
       (save-buffer)
     (set-buffer-modified-p nil))
@@ -156,6 +158,8 @@ ask to save a draft here if post is cancelled."
         (erase-buffer)
         (insert draft)
         (view-buffer-other-window (current-buffer))
+        ;; don't necessarily want to use `magithub-confirm', here
+        ;; this is potentially a very dangerous action
         (when (yes-or-no-p "Discard this draft? ")
           (setq draft nil)
           (when (file-writable-p file)

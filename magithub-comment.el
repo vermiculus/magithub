@@ -70,9 +70,7 @@
                                            ;;
                                            'magithub-deleted-thing
                                            )))
-      (unwind-protect
-          (unless (yes-or-no-p "Are you sure you wish to delete this comment? ")
-            (user-error "Aborted"))
+      (unwind-protect (magithub-confirm 'comment-delete)
         (face-remap-remove-relative cookie)))
     (magithub-request
      (ghubp-delete-repos-owner-repo-issues-comments-id repo comment))
@@ -176,11 +174,11 @@ initial contents of the reply if there is no draft."
                      (buffer-string)))
   (when (string= new-body "")
     (user-error "Can't post an empty comment; try deleting it instead"))
-  (when (magit-y-or-n-p "Commit this edit?")
-    (magithub-request
-     (ghubp-patch-repos-owner-repo-issues-comments-id
-         repo comment
-         `((body . ,new-body))))))
+  (magithub-confirm 'comment-edit)
+  (magithub-request
+   (ghubp-patch-repos-owner-repo-issues-comments-id
+       repo comment
+       `((body . ,new-body)))))
 
 (defun magithub-comment-edit (comment issue repo)
   "Edit COMMENT."
@@ -247,10 +245,7 @@ not provided."
   (unless repo
     (user-error "No repo detected"))
   ;; all required args provided
-  (unless (magit-y-or-n-p (format "Submit this comment to %s? "
-                                  (magithub-issue-reference issue)))
-    (user-error "Aborted"))
-  ;; confirmed; submit the issue
+  (magithub-confirm 'comment (magithub-issue-reference issue))
   (magithub-request
    (ghubp-post-repos-owner-repo-issues-number-comments
        repo issue `((body . ,comment))))
