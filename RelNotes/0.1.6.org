@@ -83,6 +83,8 @@
 - Confirmation messages can now be skipped (or the default question
   behavior otherwise altered) using =git config= properties.  See
   ~magithub-confirm-set-default-behavior~ .  [[PR:268]]
+- Use default branch of the repository as BASE if there's no upstream
+  for the current branch.  [[PR:269]]
 
 * Bug Fixes
 - In ~magithub-repo~, an API request is no longer made when the
