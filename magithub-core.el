@@ -37,6 +37,7 @@
 (require 'thingatpt)
 (require 'recentf)
 
+(require 'magithub-settings)
 (require 'magithub-faces)
 
 ;; Compatibility
@@ -94,93 +95,21 @@ If it does not exist, it will be created."
                (file-in-directory-p filename magithub-dir)))
 
 ;;; Turning Magithub on/off
-(defun magithub-enable ()
-  "Enable Magithub for this repository."
-  (interactive)
-  (magit-set "true" "magithub" "enabled")
-  (magit-refresh)
-  (message "Magithub is now enabled in this repository"))
-
 (defmacro magithub-in-data-dir (&rest forms)
   "Execute forms in `magithub-dir'.
 If `magithub-dir' does not yet exist, it and its parents will be
 created automatically."
+  (declare (debug t))
   `(progn
      (unless (file-directory-p magithub-dir)
        (mkdir magithub-dir t))
      (let ((default-directory magithub-dir))
        ,@forms)))
 
-(defun magithub-disable ()
-  "Disable Magithub for this repository."
-  (interactive)
-  (magit-set "false" "magithub" "enabled")
-  (magit-refresh)
-  (message "Magithub is now disabled in this repository"))
-
-(defcustom magithub-enabled-by-default t
-  "Non-nil if Magithub is enabled by default."
-  :group 'magithub
-  :type 'boolean)
-
-(defun magithub-enabled-p ()
-  "Returns non-nil when Magithub is enabled for this repository."
-  (let ((enabled (magit-get "magithub" "enabled")))
-    (cond
-     ((member enabled '("yes" "true")) t)
-     ((member enabled '("no" "false")) nil)
-     (t magithub-enabled-by-default))))
-
-(defun magithub-enabled-toggle ()
-  "Toggle Magithub integration."
-  (interactive)
-  (if (magithub-enabled-p)
-      (magithub-disable)
-    (magithub-enable)))
-
 ;;; Caching; Online/Offline mode
-(defvar magithub-cache 'when-present
-  "Determines how the cache behaves.
-
-If nil, the cache will not be used to read cached data.  It will
-still be updated and written to disk.
-
-If t, *only* the cache will be used.  This constitutes Magithub's
-'offline' mode.
-
-If `when-present', we'll use the cached value when present, but
-we'll make a request if there's no appropriate value.  (Note that
-an API response of nil is considered an appropriate value.)")
-
 (defun magithub-offline-p ()
   "Non-nil if Magithub is not supposed to make API requests."
-  (memq magithub-cache '(t refreshing-when-offline)))
-
-(defun magithub-toggle-online ()
-  "Toggle online status.
-Runs either `magithub-go-online' or `magithub-go-offline'
-depending on `magithub-offline-p'."
-  (interactive)
-  (if (magithub-offline-p)
-      (magithub-go-online)
-    (magithub-go-offline)))
-
-(defun magithub-go-online ()
-  "Take Magithub online.
-API requests will be made to refresh expired caches."
-  (interactive)
-  (setq magithub-cache 'when-present)
-  (magit-refresh)
-  (message "Magithub is now online everywhere"))
-
-(defun magithub-go-offline ()
-  "Take Magithub offline.
-No API requests will be made; all information displayed will be
-retrieved from the cache."
-  (interactive)
-  (setq magithub-cache t)
-  (magit-refresh)
-  (message "Magithub is now offline everywhere"))
+  (memq (magithub-settings-cache-behavior) '(t refreshing-when-offline)))
 
 (defcustom magithub-cache-file "cache"
   "Use this file for Magithub's persistent cache."
@@ -233,9 +162,10 @@ this with `with-temp-message' while the form is evaluating.
 
 AFTER-UPDATE is a function to run after the cache is updated."
   (declare (indent defun))
-  (let* ((entry (list (ghubp-get-context) class form))
-         (refreshing (memq magithub-cache '(refreshing refreshing-when-offline)))
-         (recalc (or (null magithub-cache)
+  (let* ((behavior (magithub-settings-cache-behavior))
+         (entry (list (ghubp-get-context) class form))
+         (refreshing (memq behavior '(refreshing refreshing-when-offline)))
+         (recalc (or (null behavior)
                      (and refreshing
                           (not (member entry magithub-cache--refreshed-forms)))
                      (and magithub-cache-ignore-class
@@ -246,7 +176,7 @@ AFTER-UPDATE is a function to run after the cache is updated."
     (unless recalc
       (setq no-value-sym (cl-gensym)
             cached-value (gethash entry magithub-cache--cache no-value-sym)
-            recalc (and (not (eq magithub-cache t))
+            recalc (and (not (eq behavior t))
                         (eq cached-value no-value-sym))
             cached-value (if (eq cached-value no-value-sym) nil cached-value)))
 
@@ -458,7 +388,7 @@ Pings the API a maximum of once every ten seconds."
 
                  api-status)))
       (when magithub--api-offline-reason
-        (magithub-go-offline)
+        (magit-set "false" "magithub.online")
         (run-with-idle-timer 2 nil #'magithub--api-offline-reason)))))
 
 (defun magithub--api-offline-reason ()
@@ -476,7 +406,7 @@ See `magithub--api-offline-reason'."
 ;;; Repository parsing
 (defun magithub-github-repository-p ()
   "Non-nil if \"origin\" points to GitHub or a whitelisted domain."
-  (when-let* ((origin (magit-get "remote" "origin" "url")))
+  (when-let* ((origin (magit-get "remote" (magithub-settings-context-remote) "url")))
     (-some? (lambda (domain) (s-contains? domain origin))
             (cons "github.com" (magit-get-all "hub" "host")))))
 
@@ -534,17 +464,13 @@ URL may be of several different formats:
   "Tries to parse a remote url into a GitHub repository object"
   (cdr (assq 'sparse-repo (magithub--repo-parse-url url))))
 
-(defun magithub-source--remote ()
-  "Tries to determine the correct remote to use for issue-tracking."
-  (or (magit-get "magithub" "proxy") "origin"))
-
 (defun magithub-source--sparse-repo ()
   "Returns the sparse repository object for the current context.
 
 Only information that can be determined without API calls will be
 included in the returned object."
   (magithub-repo-from-remote--sparse
-   (magithub-source--remote)))
+   (magithub-settings-context-remote)))
 
 (defun magithub-repo-from-remote (remote)
   (magithub-repo (magithub-repo-from-remote--sparse remote)))
@@ -579,8 +505,8 @@ of the form `owner/name' (as in `vermiculus/magithub')."
                           sparse-repo))
                ;; Repo may not exist; ignore 404
                (ghub-404 nil)))
-          (when (memq magithub-cache '(when-present refreshing-when-offline))
-            (let ((magithub-cache nil))
+          (when (memq (magithub-settings-cache-behavior) '(when-present refreshing-when-offline))
+            (let ((magithub-settings-cache-behavior-override nil))
               (magithub-repo sparse-repo)))
           sparse-repo))))
 
@@ -667,6 +593,9 @@ See also `magithub-repo-remotes'."
 ;;; Feature checking
 (declare-function magithub-pull-request-merge "magithub-issue-tricks"
                   (pull-request &optional args))
+(declare-function magithub-maybe-insert-ci-status-header "magithub-ci" ())
+(declare-function magithub-issue--insert-pr-section "magithub-issue" ())
+(declare-function magithub-issue--insert-issue-section "magithub-issue" ())
 (defconst magithub-feature-list
   ;; features must only return nil if they fail to install
   `((pull-request-merge . ,(lambda ()
@@ -678,8 +607,28 @@ See also `magithub-repo-remotes'."
     (commit-browse . ,(lambda ()
                         (define-key magit-commit-section-map "w"
                           #'magithub-commit-browse)
-                        t)))
-  "All magit-integration features of Magithub.
+                        t))
+
+    (status-checks-header . ,(lambda ()
+                               (add-hook 'magit-status-headers-hook
+                                         #'magithub-maybe-insert-ci-status-header
+                                         t)
+                               t))
+
+    ;; order is important in this list; pull request section should
+    ;; come before issues section by default
+    (pull-requests-section . ,(lambda ()
+                                (add-hook 'magit-status-sections-hook
+                                          #'magithub-issue--insert-pr-section
+                                          t)
+                                t))
+
+    (issues-section . ,(lambda ()
+                         (add-hook 'magit-status-sections-hook
+                                   #'magithub-issue--insert-issue-section
+                                   t)
+                         t)))
+  "All Magit-integration features of Magithub.
 See `magithub-feature-autoinject'.
 
 - `pull-request-merge'
@@ -687,8 +636,16 @@ See `magithub-feature-autoinject'.
   (`magithub-pull-request-merge' inserted into `magit-am-popup')
 
 - `commit-browse'
-  Browse commits by pressing \\[magithub-browse-thing]
-  (see also `magithub-map').")
+  Browse commits using \\<magithub-map>\\[magithub-browse-thing].
+
+- `issues-section'
+  View issues in the `magit-status' buffer.
+
+- `pull-requests-section'
+  View pull requests in the `magit-status' buffer.
+
+- `status-checks-header'
+  View project status in the `magit-status' buffer (e.g., CI).")
 
 (defvar magithub-features nil
   "An alist of feature-symbols to Booleans.
@@ -704,6 +661,29 @@ signals that `pull-request-merge' is a loaded feature and
 `other-feature' has not been loaded and will not be loaded.
 
 See `magithub-feature-list'.")
+
+;;;###autoload
+(defun magithub-feature-autoinject (feature)
+  "Configure FEATURE to recommended settings.
+If FEATURE is `all' or t, all known features will be loaded.  If
+FEATURE is a list, then it is a list of FEATURE symbols to load.
+
+See `magithub-feature-list' for a list of available features and
+`magithub-features' for a list of currently-installed features."
+  (cond
+   ((memq feature '(t all))
+    (mapc #'magithub-feature-autoinject
+          (mapcar #'car magithub-feature-list)))
+   ((listp feature)
+    (mapc #'magithub-feature-autoinject feature))
+   (t
+    (if-let ((install (cdr (assq feature magithub-feature-list))))
+        (if (functionp install)
+            (if-let ((result (funcall install)))
+                (add-to-list 'magithub-features (cons feature t))
+              (error "feature %S failed to install: %S" feature result))
+          (error "install form for %S not a function: %S" feature install))
+      (user-error "unknown feature %S" feature)))))
 
 (defun magithub-feature-check (feature)
   "Check if a Magithub FEATURE has been configured.
@@ -825,26 +805,6 @@ allowed."
   (and (magithub-enabled-p)
        (magithub-github-repository-p)
        (magithub-source--sparse-repo)))
-
-(defmacro magithub--deftoggle (name doc on-by-default hook func)
-  "Define a section-toggle command."
-  (declare (indent defun))
-  (let ((Senabled (cl-gensym)))
-    `(prog1 (defun ,name ()
-              ,(concat "Toggle the " doc " section.")
-              (interactive)
-              (let (,Senabled)
-                (setq ,Senabled (not (memq ,func ,hook)))
-                (if ,Senabled
-                    (remove-hook ',hook ,func)
-                  (add-hook ',hook ,func t))
-                (magit-refresh)
-                (message (concat ,(concat doc " section ") (if ,Senabled "enabled" "disabled")))
-                ,Senabled))
-       ,(when on-by-default
-          `(eval-after-load "magit"
-             '(let ((inhibit-magit-refresh t))
-                (add-hook ',hook ,func t)))))))
 
 (defun magithub--zip-case (p e)
   "Get an appropriate value for element E given property/function P."
@@ -1145,19 +1105,20 @@ Use directly at your own peril; this is intended for use with
              (y-or-n-p "Refresh GitHub data? ")
              (or (magithub--api-available-p)
                  (y-or-n-p "GitHub doesn't seem to be responding, are you sure? ")))
-    (let ((old-cache-value magithub-cache))
-      ;; `magithub-refresh' is part of `magit-pre-refresh-hook' and
-      ;; our requests are made as part of `magit-refresh'.  There's no
-      ;; way we can let-bind `magithub-cache' around that entire form,
-      ;; so we do the next best thing: as soon as emacs is idle (i.e.,
-      ;; magit is done refreshing), we reset magithub-cache back to
-      ;; its old value.
-      (setq magithub-cache (pcase old-cache-value
-                             (`t 'refreshing-when-offline)
-                             (`nil nil)
-                             (`when-present 'refreshing)))
+    (let ((old-override-value magithub-settings-cache-behavior-override)
+          (old-behavior (magithub-settings-cache-behavior)))
+      ;; `magithub-refresh' is part of `magit-pre-refresh-hook' and our requests
+      ;; are made as part of `magit-refresh'.  There's no way we can let-bind
+      ;; `magithub-settings-cache-behavior-override' around that entire form, so
+      ;; we do the next best thing: as soon as emacs is idle (i.e., magit is
+      ;; done refreshing), we reset the override back to its old value.
+      (setq magithub-settings-cache-behavior-override
+            (pcase old-behavior
+              (`t 'refreshing-when-offline)
+              (`nil nil)
+              (`when-present 'refreshing)))
       (run-with-idle-timer 0 nil (lambda ()
-                                   (setq magithub-cache old-cache-value
+                                   (setq magithub-settings-cache-behavior-override old-override-value
                                          magithub-cache--refreshed-forms nil)
                                    (message "(magithub): buffer data refreshed"))))))
 

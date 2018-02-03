@@ -32,7 +32,7 @@ variable is not set, offer to save a snapshot of the real API's
 response."
   (message "(mock-ghub-request %S %S %S :query %S :payload %S :headers %S :unpaginate %S :noerror %S :reader %S :username %S :auth %S :host %S)"
            method resource params query payload headers unpaginate noerror reader username auth host)
-  (when (eq t magithub-cache)
+  (when (eq t (magithub-settings-cache-behavior))
     (error "Did not respect cache"))
   (let* ((parts (cdr (s-split "/" resource)))
          (directory (mapconcat (lambda (s) (concat s ".d"))

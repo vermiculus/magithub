@@ -397,7 +397,8 @@ Each function takes two arguments:
 If EVEN-IF-OFFLINE is non-nil, we'll still refresh (that is,
 we'll hit the API) if Magithub is offline."
   (interactive "P")
-  (let ((magithub-cache (if even-if-offline nil magithub-cache)))
+  (let ((magithub-settings-cache-behavior-override
+         (if even-if-offline nil (magithub-settings-cache-behavior))))
     (magithub-cache-without-cache :issues
       (ignore (magithub--issue-list))))
   (when (derived-mode-p 'magit-status-mode)
@@ -480,9 +481,11 @@ buffer."
   (when (derived-mode-p 'magit-status-mode)
     (magit-refresh)))
 
+;;;###autoload
 (defun magithub-issue--insert-issue-section ()
   "Insert GitHub issues if appropriate."
-  (when (and (magithub-usable-p)
+  (when (and (magithub-settings-include-issues-p)
+             (magithub-usable-p)
              (alist-get 'has_issues (magithub-repo)))
     (magithub-issue--insert-generic-section
      (magithub-issues-list)
@@ -490,9 +493,11 @@ buffer."
      (magithub-issues)
      magithub-issue-issue-filter-functions)))
 
+;;;###autoload
 (defun magithub-issue--insert-pr-section ()
   "Insert GitHub pull requests if appropriate."
-  (when (magithub-usable-p)
+  (when (and (magithub-settings-include-pull-requests-p)
+             (magithub-usable-p))
     (magithub-feature-maybe-idle-notify
      'pull-request-merge)
     (magithub-issue--insert-generic-section
@@ -554,11 +559,6 @@ Interactively, this finds the issue at point."
   "Insert the number of open pull requests in this repository."
   (when (magithub-usable-p)
     (number-to-string (length (magithub-pull-requests)))))
-
-(magithub--deftoggle magithub-toggle-pull-requests "pull requests" t
-  magit-status-sections-hook #'magithub-issue--insert-pr-section)
-(magithub--deftoggle magithub-toggle-issues "issues" t
-  magit-status-sections-hook #'magithub-issue--insert-issue-section)
 
 ;; Pull Request handling
 

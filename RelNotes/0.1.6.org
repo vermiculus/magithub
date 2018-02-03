@@ -13,6 +13,37 @@
 - =magithub-dashboard-show-unread-notifications= is now called
   =magithub-dashboard-show-read-notifications= and all functionality
   pertaining to that variable has been updated.  [[PR:251]]
+- Most settings, like the inclusion of sections in ~magit-status~, are
+  now controlled by various =git config= properties.  These settings are
+  reachable under =H C=.  The following functions/variables no longer
+  exist:
+  - ~magithub-ci-enabled-p~ (now ~magithub-settings-include-status-p~)
+  - ~magithub-ci--set-enabled~
+  - ~magithub-ci-disable~
+  - ~magithub-ci-enable~
+  - ~magithub-toggle-ci-status-header~
+  - =magithub-cache= (now =magithub-settings-cache-behavior-override=;
+    ~magithub-settings-cache-behavior~)
+  - ~magithub-toggle-online~
+  - ~magithub-go-online~
+  - ~magithub-go-offline~
+  - ~magithub-source--remote~
+  - ~magithub--deftoggle~
+  - ~magithub-toggle-pull-requests~
+  - ~magithub-toggle-issues~
+  - ~magithub-proxy-set~
+  - ~magithub-proxy-set-default~
+  - ~magithub-enable~
+  - ~magithub-disable~
+  - ~magithub-enabled-toggle~
+  - =magithub-enabled-by-default=
+
+  The various integration sections are now added to the appropriate
+  hooks by ~magithub-feature-autoinject~ via =magithub-feature-list=.
+
+  For more details on how to set configure Magithub now, consult the
+  documentation inside ~magithub-settings-popup~ (=? KEY=) or read
+  =magithub-settings.el=.  [[PR:265]]
 
 * New Features
 - Browse commits by using =w= on a commit section.  If the current
@@ -35,13 +66,13 @@
   For issues and pull requests, the first line (i.e., everything up to
   the first newline character) is parsed as the title; everything else
   as the body.  Now issues, pull requests, and comments use a common
-  interface that supports submitting, cancelling, and saving drafts to
+  interface that supports submitting, canceling, and saving drafts to
   finish later.  [[PR:204]]
 - You can now edit comments using =e= on a comment section.  [[PR:206]]
 - When submitting pull requests of a single commit, the commit message
   is defaulted into the pull request body.  Multiple commits?
   ~magit-log~ shows you the changes you want to merge.  [[PR:239]]
-- Headers in issue-view mode are now easier to naviagte.  [[PR:250]]
+- Headers in issue-view mode are now easier to navigate.  [[PR:250]]
 - Notifications are marked as read when visited in Emacs.  [[PR:252]]
 - ~magithub-repo~ can now take a string of the form =user/repo=.  This is
   helpful when writing other code that uses Magithub functionality.  [[PR:253]]
@@ -52,7 +83,7 @@
 
 * Bug Fixes
 - In ~magithub-repo~, an API request is no longer made when the
-  repository contect cannot be determined.
+  repository context cannot be determined.
 - The list of labels is now correctly cached per-repository.  [[PR:203]]
 - The full list of labels is now available for use when modifying
   issues and pull requests.  [[PR:203]]

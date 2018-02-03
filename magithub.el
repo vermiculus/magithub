@@ -54,7 +54,6 @@
 (require 'magithub-core)
 (require 'magithub-issue)
 (require 'magithub-ci)
-(require 'magithub-proxy)
 (require 'magithub-issue-post)
 (require 'magithub-issue-tricks)
 (require 'magithub-orgs)
@@ -64,18 +63,16 @@
 (magit-define-popup magithub-dispatch-popup
   "Popup console for dispatching other Magithub popups."
   'magithub-commands
+  :variables '((?C "Settings..." magithub-settings-popup))
   :actions '("Actions"
              (?d "Dashboard" magithub-dashboard)
              (?H "Browse on GitHub" magithub-browse)
-             (?c "Create" magithub-create)
-             (?f "Fork" magithub-fork)
-             (?i "Issues" magithub-issue-new)
+             (?c "Create on GitHub" magithub-create)
+             (?f "Fork this repo" magithub-fork)
+             (?i "Submit an issue" magithub-issue-new)
              (?p "Submit a pull request" magithub-pull-request-new)
-             (?x "Use a proxy repository for issues/PRs" magithub-proxy-set)
              (?O "Toggle online/offline" magithub-toggle-online)
              "Meta"
-             (?` "Toggle Magithub-Status integration" magithub-enabled-toggle)
-             (?~ "Toggle CI status header" magithub-ci-toggle)
              (?& "Request a feature or report a bug" magithub--meta-new-issue)
              (?h "Ask for help on Gitter" magithub--meta-help)))
 
@@ -271,7 +268,7 @@ See also `magithub-preferred-remote-method'."
                 (sit-for 1))
               (when set-upstream
                 (let ((upstream "upstream"))
-                  (when set-proxy (magithub-proxy-set upstream))
+                  (when set-proxy (magit-set upstream "magithub.proxy"))
                   (magit-remote-add upstream (magithub-repo--clone-url .parent))
                   (magit-set-branch*merge/remote (magit-get-current-branch) upstream)))))))))
 
@@ -279,29 +276,6 @@ See also `magithub-preferred-remote-method'."
   "After finishing the clone, allow the user to jump to their new repo."
   (when (y-or-n-p (format "%s/%s has finished cloning to %s.  Open? " user repo dir))
     (magit-status-internal (s-chop-suffix "/" dir))))
-
-;;;###autoload
-(defun magithub-feature-autoinject (feature)
-  "Configure FEATURE to recommended settings.
-If FEATURE is `all' or t, all known features will be loaded.  If
-FEATURE is a list, then it is a list of FEATURE symbols to load.
-
-See `magithub-feature-list' for a list of available features and
-`magithub-features' for a list of currently-installed features."
-  (cond
-   ((memq feature '(t all))
-    (mapc #'magithub-feature-autoinject
-          (mapcar #'car magithub-feature-list)))
-   ((listp feature)
-    (mapc #'magithub-feature-autoinject feature))
-   (t
-    (if-let ((install (cdr (assq feature magithub-feature-list))))
-        (if (functionp install)
-            (if-let ((result (funcall install)))
-                (add-to-list 'magithub-features (cons feature t))
-              (error "feature %S failed to install: %S" feature result))
-          (error "install form for %S not a function: %S" feature install))
-      (user-error "unknown feature %S" feature)))))
 
 (defun magithub-visit-thing ()
   (interactive)
