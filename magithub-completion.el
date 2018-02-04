@@ -29,7 +29,9 @@
 ;;; Code:
 
 
-(require 'magithub)
+(require 'magithub-settings)
+(require 'magithub-issue)
+(require 'magithub-edit-mode)
 
 
 ;;;###autoload
