@@ -50,7 +50,7 @@ Add this to `completion-at-point-functions' in buffers where you want this to be
               (when (string-prefix-p prefix n)
                 (set-text-properties 0 (length n) (list :issue i) n)
                 (push n completions)))))
-        (list start end (sort completions 'string<)
+        (list start end (sort completions #'string<)
               :exclusive 'no
               :company-docsig (lambda (c)
                                 (let-alist (get-text-property 0 :issue c)
