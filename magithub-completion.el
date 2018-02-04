@@ -97,8 +97,9 @@ list of all users who created issues or pull requests."
 ;;;###autoload
 (defun magithub-completion-enable ()
   "Enable completion of info from magithub in the current buffer."
+  (make-local-variable 'completion-at-point-functions)
   (dolist (f '(magithub-completion-complete-issues magithub-completion-complete-users))
-    (add-to-list (make-local-variable 'completion-at-point-functions) f)))
+    (add-to-list 'completion-at-point-functions f)))
 
 
 (provide 'magithub-completion)
