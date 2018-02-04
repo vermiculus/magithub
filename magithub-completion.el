@@ -55,8 +55,6 @@ Add this to `completion-at-point-functions' in buffers where you want this to be
               :company-docsig (lambda (c)
                                 (let-alist (get-text-property 0 :issue c)
                                   .title))
-              :company-location (lambda (c)
-                                  (magithub-issue-browse (get-text-property 0 :issue c)))
               :annotation-function (lambda (c)
                                      (let-alist (get-text-property 0 :issue c)
                                        .title))
