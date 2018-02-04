@@ -87,10 +87,11 @@
   [[PR:270]]
 - Use default branch of the repository as =BASE= if there's no upstream
   for the current branch.  [[PR:269]]
-- Completion of issue numbers, e.g. "#123" is supported in edit and
-  commit message buffers via the standard ~completion-at-point~
-  mechanism, and therefore also via ~company~'s ~capf~ backend.  Call
-  ~magithub-completion-enable-everywhere~ to enable.  [[PR:263]]
+- Completion of issue numbers ("#123"), and user names ("@purcell") is
+  supported in edit and commit message buffers via the standard
+  ~completion-at-point~ mechanism, and therefore also via ~company~'s ~capf~
+  backend.  This is enabled by default in certain buffers via the
+  ~magithub-features~ mechanism.  [[PR:263]], [[PR:278]]
 
 * Bug Fixes
 - In ~magithub-repo~, an API request is no longer made when the
