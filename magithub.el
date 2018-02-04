@@ -228,10 +228,11 @@ See also `magithub-preferred-remote-method'."
                                 (let-alist repo
                                   (user-error "Repository %s/%s does not exist"
                                               .owner.login .name))))
+                      (name (alist-get 'name repo))
                       (dirname (read-directory-name
                                 "Destination: "
                                 magithub-clone-default-directory
-                                (alist-get 'name repo))))
+                                name nil name)))
                  (list repo dirname)))
   ;; Argument validation
   (unless (called-interactively-p 'any)
