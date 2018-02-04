@@ -113,3 +113,8 @@
 - Submitting pull requests to other repositories in some scenarios
   should now be fixed.  [[PR:272]]
 - ~magithub-clone~ now correctly provides a default destination.  [[PR:273]]
+- ~magithub-pull-request-new~ now uses a better check to test for pull
+  requests of a single commit:  [[PR:274]]
+  #+BEGIN_SRC sh
+    git rev-list --count BASE..
+  #+END_SRC
