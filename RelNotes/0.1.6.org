@@ -112,3 +112,4 @@
   deferred loading.  [[PR:260]]
 - Submitting pull requests to other repositories in some scenarios
   should now be fixed.  [[PR:272]]
+- ~magithub-clone~ now correctly provides a default destination.  [[PR:273]]
