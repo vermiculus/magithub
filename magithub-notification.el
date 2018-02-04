@@ -110,17 +110,18 @@ get a more verbose explanation."
 (defun magithub-notification-browse (notification)
   "Visits the URL pointed to by NOTIFICATION."
   (interactive (list (thing-at-point 'github-notification)))
-  (if notification
-      (let-alist notification
-        (cond
-         ((member .subject.type '("Issue" "PullRequest"))
-          (ghubp-patch-notifications-threads-id notification)
-          (magithub-issue-view (magithub-request (ghubp-follow-get .subject.url))))
-         (t (if-let ((url (or .subject.latest_comment_url .subject.url))
-                     (html-url (alist-get 'html_url (magithub-request (ghubp-follow-get url)))))
-                (browse-url html-url)
-              (user-error "No target URL found")))))
-    (user-error "No notification here")))
+  (magithub-request
+   (if notification
+       (let-alist notification
+         (cond
+          ((member .subject.type '("Issue" "PullRequest"))
+           (ghubp-patch-notifications-threads-id notification)
+           (magithub-issue-view (ghubp-follow-get .subject.url)))
+          (t (if-let ((url (or .subject.latest_comment_url .subject.url))
+                      (html-url (alist-get 'html_url (ghubp-follow-get url))))
+                 (browse-url html-url)
+               (user-error "No target URL found")))))
+     (user-error "No notification here"))))
 
 (defvar magithub-notification-details-hook
   '(magithub-notification-detail-insert-type

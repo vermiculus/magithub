@@ -118,3 +118,4 @@
   #+BEGIN_SRC sh
     git rev-list --count BASE..
   #+END_SRC
+- Authenticate correctly when marking notifications as read.  [[PR:277]]
