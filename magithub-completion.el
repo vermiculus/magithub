@@ -31,7 +31,6 @@
 
 (require 'magithub-settings)
 (require 'magithub-issue)
-(require 'magithub-edit-mode)
 
 
 ;;;###autoload
@@ -69,14 +68,6 @@ Add this to `completion-at-point-functions' in buffers where you want this to be
   "Enable completion of info from magithub in the current buffer."
   (add-to-list (make-local-variable 'completion-at-point-functions)
                'magithub-completion-complete-issues))
-
-;;;###autoload
-(defun magithub-completion-enable-everywhere ()
-  "Enable completion of info from magithub in the current buffer."
-  (interactive)
-  (dolist (hook '(git-commit-setup-hook magithub-edit-mode-hook))
-    (add-hook hook 'magithub-completion-enable)))
-
 
 
 (provide 'magithub-completion)
