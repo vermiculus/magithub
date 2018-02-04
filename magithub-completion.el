@@ -47,8 +47,7 @@ Add this to `completion-at-point-functions' in buffers where you want this to be
           (let-alist i
             (let ((n (number-to-string .number)))
               (when (string-prefix-p prefix n)
-                (set-text-properties 0 (length n) (list :issue i) n)
-                (push n completions)))))
+                (push (propertize n :issue i) completions)))))
         (list start end (sort completions #'string<)
               :exclusive 'no
               :company-docsig (lambda (c)
@@ -81,10 +80,8 @@ list of all users who created issues or pull requests."
                     (association (and .author_association
                                       (not (string= "NONE" .author_association))
                                       .author_association)))
-                (set-text-properties 0 (length candidate) (list :user .user) candidate)
-                (set-text-properties 0 (length candidate) (list :association association) candidate)
-                (push candidate completions)))
-            ))
+                (push (propertize candidate :user .user :association association)
+                      completions)))))
         (list start end (sort (cl-remove-duplicates completions :test #'string=) #'string<)
               :exclusive 'no
               :company-docsig (lambda (c) (get-text-property 0 :association c))
