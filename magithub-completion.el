@@ -58,8 +58,7 @@ Add this to `completion-at-point-functions' in buffers where you want this to be
                                        .title))
               :company-doc-buffer (lambda (c)
                                     (save-window-excursion
-                                      (magithub-issue-visit (get-text-property 0 :issue c))))
-              )))))
+                                      (magithub-issue-visit (get-text-property 0 :issue c)))))))))
 
 ;;;###autoload
 (defun magithub-completion-complete-users ()
@@ -85,11 +84,7 @@ list of all users who created issues or pull requests."
         (list start end (sort (cl-remove-duplicates completions :test #'string=) #'string<)
               :exclusive 'no
               :company-docsig (lambda (c) (get-text-property 0 :association c))
-              :annotation-function (lambda (c) (get-text-property 0 :association c))
-              :company-doc-buffer (lambda (c)
-                                    (save-window-excursion
-                                      (magithub-user-visit (get-text-property 0 :user c))))
-              )))))
+              :annotation-function (lambda (c) (get-text-property 0 :association c)))))))
 
 ;;;###autoload
 (defun magithub-completion-enable ()
