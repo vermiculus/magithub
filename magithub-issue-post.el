@@ -129,15 +129,17 @@ See also URL
       (head . ,(if (string= this-remote base-remote)
                    head-branch
                  user+head))
+      (head-no-user . ,head-branch)
+      (fork . ,this-repo)
       (user+head . ,user+head))))
 
-(defun magithub-pull-request-new (repo base head)
+(defun magithub-pull-request-new (repo base fork head head-no-user)
   "Create a new pull request."
   (interactive (let-alist (magithub-pull-request-new-arguments)
                  (magithub-confirm 'pre-submit-pr .user+head (magithub-repo-name .repo) .base)
-                 (list .repo .base .head)))
+                 (list .repo .base .fork .head .head-no-user)))
   (let ((is-single-commit (string= (magit-rev-parse base)
-                                   (magit-rev-parse (format "%s~1" head)))))
+                                   (magit-rev-parse (format "%s~1" head-no-user)))))
     (unless is-single-commit
       (apply #'magit-log (list (format "%s..%s" base head)) (magit-log-arguments)))
     (with-current-buffer
@@ -156,7 +158,7 @@ See also URL
                        ;; insert that commit message as the initial content
                        (concat
                         (with-temp-buffer
-                          (magit-git-insert "show" "-q" head "--format=%B")
+                          (magit-git-insert "show" "-q" head-no-user "--format=%B")
                           (let ((fill-column (point-max)))
                             (fill-region (point-min) (point-max))
                             (buffer-string)))
