@@ -200,6 +200,118 @@ See `magithub--confirm'."
      (concat (downcase (substring pascal-case 0 1))
              (substring pascal-case 1)))))
 
+(defvar magithub-confirm-y-or-n-p-map
+  (let ((m (make-keymap)))
+    (define-key m (kbd "C-g") 'quit)    ;don't know how to remap keyboard-quit here
+    (define-key m "q" 'quit)
+    (define-key m (kbd "C-u") 'cycle)
+    (define-key m "y" 'allow)
+    (define-key m "n" 'deny)
+    m))
+
+(defvar magithub-confirm-yes-or-no-p-map
+  (let ((m (make-sparse-keymap)))
+    (set-keymap-parent m minibuffer-local-map)
+    (define-key m [remap universal-argument] #'magithub--confirm-cycle-set-default-interactive)
+    m))
+
+(defvar magithub-confirm--current-cycle nil
+  "Control how a response should be saved.
+This variable should never be set globally; always let-bind it!
+
+  nil
+    Do not save the response
+
+  `local'
+    Save response locally
+
+  `global'
+    Save response globally")
+
+(defun magithub-confirm-yes-or-no-p (prompt var)
+  "Like `yes-or-no-p', but optionally save response to VAR."
+  (let ((p (concat prompt (substitute-command-keys " (yes, no, or \\[universal-argument]*) ")))
+        magithub-confirm--current-cycle old-cycle done answer changed)
+    (while (not done)
+      (setq changed (not (eq old-cycle magithub-confirm--current-cycle))
+            old-cycle magithub-confirm--current-cycle
+            answer (read-from-minibuffer
+                    (magithub--confirm-get-prompt-with-cycle
+                     p var magithub-confirm--current-cycle)
+                    ;; default in what was already entered if the save-behavior changed
+                    (when changed answer)
+                    magithub-confirm-yes-or-no-p-map nil
+                    'yes-or-no-p-history))
+      ;; If the user activated `magithub--confirm-cycle-set-default-interactive',
+      ;; `magithub-confirm--current-cycle' will have been updated.
+      (when (and (eq old-cycle magithub-confirm--current-cycle)
+                 (stringp answer))
+        (setq answer (downcase (s-trim answer)))
+        (if (member answer '("yes" "no"))
+            (setq done t)
+          (message "Please answer yes or no.  ")
+          (sleep-for 2))))
+    (when magithub-confirm--current-cycle
+      (magithub--confirm-cycle-save-var-value
+       var (pcase answer
+             ("yes" "allow")
+             ("no" "deny"))))
+    (string= answer "yes")))
+
+(defun magithub-confirm-y-or-n-p (prompt var)
+  "Like `y-or-n-p', but optionally save response to VAR."
+  (let ((cursor-in-echo-area t)
+        (newprompt (format "%s (y, n, C-u*) " prompt))
+        magithub-confirm--current-cycle done answer varval explain)
+    (while (not done)
+      (setq newprompt
+            (if explain
+                (format "%s (please answer y or n or use C-u to cycle through and set default answers) " prompt)
+              (format "%s (y, n, C-u*) " prompt))
+            explain nil
+            answer
+            (lookup-key magithub-confirm-y-or-n-p-map
+                        (vector
+                         (read-key (magithub--confirm-get-prompt-with-cycle
+                                    newprompt var magithub-confirm--current-cycle)))))
+      (pcase answer
+        (`quit (keyboard-quit))
+        (`cycle (magithub--confirm-cycle-set-default))
+        (`allow (setq done t varval "allow"))
+        (`deny  (setq done t varval "deny"))
+        (_ (setq explain t))))
+    (when (stringp varval)
+      (magithub--confirm-cycle-save-var-value var varval))
+    (eq answer 'allow)))
+
+(defun magithub--confirm-cycle-save-var-value (var val)
+  "Save VAR with VAL locally or globally.
+See `magithub-confirm--current-cycle'."
+  (pcase magithub-confirm--current-cycle
+    (`local (magit-set val var))
+    (`global (magit-set val "--global" var))))
+
+(defun magithub--confirm-cycle-set-default-interactive ()
+  "In `magithub--confirm-yes-or-no-p', update behavior."
+  (interactive)
+  (magithub--confirm-cycle-set-default)
+  (exit-minibuffer))
+
+(defun magithub--confirm-cycle-set-default ()
+  (setq magithub-confirm--current-cycle
+        (cadr (member magithub-confirm--current-cycle
+                      '(nil local global)))))
+
+(defun magithub--confirm-get-prompt-with-cycle (prompt var cycle)
+  "Get an appropriate PROMPT associated with VAR for CYCLE.
+See `magithub-confirm--current-cycle'."
+  (propertize
+   (pcase cycle
+     (`local (format "%s[and don't ask again: git config %s] " prompt var))
+     (`global (format "%s[and don't ask again: git config --global %s] " prompt var))
+     (_ prompt))
+   'face 'minibuffer-prompt))
+
 (defun magithub--confirm (action prompt-format-args noerror)
   "Confirm ACTION using Git config settings.
 
@@ -215,42 +327,38 @@ might belong in Magit, but we'll see how it goes."
   (let ((spec (alist-get action magithub-confirmation))
         var default prompt setting choice)
     (unless spec
-      (error "Submit a bug report: no confirmation settings for %S" spec))
+      (magithub-error "No confirmation settings for %S" spec))
     (unless (= 2 (length spec))
-      (error "Submit a bug report: spec for %S must have 2 members: %S" action spec))
+      (magithub-error "Spec for %S must have 2 members: %S" action spec))
     (setq default (symbol-name (nth 0 spec))
           prompt (nth 1 spec)
           var (magithub-settings--from-confirmation-action action))
     (when prompt-format-args
       (setq prompt (apply #'format prompt prompt-format-args)))
     (when (and (null noerror) (string= "deny" default))
-      (error "Submit a bug report: the default for %S is deny, but this will cause an error" action))
+      (magithub-error (format "The default for %S is deny, but this will cause an error" action)))
 
     (setq setting (magithub-settings--value-or var default))
     (when (and (string= setting "deny")
-               (null noerror)
-               (yes-or-no-p (concat (format "The default behavior for %S is to deny this action, " action)
-                                    "but this action throws an error every time.  "
-                                    "Remove the erroneous configuration? ")))
-      (let ((extraargs '(nil ("--global"))))
-        (while (string= "deny" setting)
-          (unless extraargs
-            (error (concat "Removed setting from repository and global configs, "
-                           "but setting persists; try removing with "
-                           (format "`git config --system --unset %s'" var))))
-          (apply #'magit-set nil `(,@(pop extraargs) ,var))
-          (setq setting (magithub-settings--value-or var default)))))
+               (null noerror))
+      (let ((raw (magit-git-string "config" "--show-origin" var))
+            washed)
+        (when (string-match (rx bos (group (+ any)) (+ space) (group (+ any)) eos) raw)
+          (setq washed (format "%s => %s"
+                               (match-string 1 raw)
+                               (match-string 2 raw))))
+        (user-error "Abort per %s [%s]" var (or washed raw))))
 
     (setq choice
           (pcase setting
-            ("long" (yes-or-no-p prompt))
-            ("short" (y-or-n-p prompt))
+            ("long" (magithub-confirm-yes-or-no-p prompt var))
+            ("short" (magithub-confirm-y-or-n-p prompt var))
             ("allow" t)
             ("deny" nil)))
 
     (or choice
-        (and (null noerror)
-             (user-error "Abort")))))
+        (unless noerror
+          (user-error "Abort")))))
 
 (defun magithub-confirm-set-default-behavior (action default &optional globally)
   "Set the default behavior of ACTION to DEFAULT.
