@@ -110,3 +110,5 @@
 - Various performance improvements.  [[PR:255]]
 - Ghub+ is now required in core.  This should help users who utilize
   deferred loading.  [[PR:260]]
+- Submitting pull requests to other repositories in some scenarios
+  should now be fixed.  [[PR:272]]
