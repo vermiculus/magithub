@@ -596,6 +596,7 @@ See also `magithub-repo-remotes'."
 (declare-function magithub-maybe-insert-ci-status-header "magithub-ci" ())
 (declare-function magithub-issue--insert-pr-section "magithub-issue" ())
 (declare-function magithub-issue--insert-issue-section "magithub-issue" ())
+(declare-function magithub-completion-enable "magithub-completion" ())
 (defconst magithub-feature-list
   ;; features must only return nil if they fail to install
   `((pull-request-merge . ,(lambda ()
@@ -614,6 +615,11 @@ See also `magithub-repo-remotes'."
                                          #'magithub-maybe-insert-ci-status-header
                                          t)
                                t))
+
+    (completion . ,(lambda ()
+                     (dolist (hook '(git-commit-setup-hook magithub-edit-mode-hook))
+                       (add-hook hook #'magithub-completion-enable))
+                     t))
 
     ;; order is important in this list; pull request section should
     ;; come before issues section by default
@@ -637,6 +643,10 @@ See `magithub-feature-autoinject'.
 
 - `commit-browse'
   Browse commits using \\<magithub-map>\\[magithub-browse-thing].
+
+- `completion'
+  Enable `completion-at-point' support for issue references like
+  \"#123\" where possible.
 
 - `issues-section'
   View issues in the `magit-status' buffer.
