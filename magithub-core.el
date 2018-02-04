@@ -225,7 +225,7 @@ the age of the oldest cached information."
                                'face 'magit-header-line-key))))
         (insert (format "%s\n" (replace-regexp-in-string (rx bol) (make-string 10 ?\ ) msg)))))))
 
-(eval-after-load "magit"
+(eval-after-load 'magit
   '(add-hook 'magit-status-headers-hook
              #'magithub-maybe-report-offline-mode
              'append))
@@ -1227,7 +1227,7 @@ Interactively, this is the commit at point."
   (interactive (list (magit-current-section)))
   (pp-eval-expression `(oref ,section value)))
 
-(eval-after-load "magit"
+(eval-after-load 'magit
   '(progn
      (dolist (hook '(magit-revision-mode-hook git-commit-setup-hook))
        (add-hook hook #'magithub-bug-reference-mode-on))

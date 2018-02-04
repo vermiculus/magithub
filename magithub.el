@@ -77,7 +77,7 @@
              (?h "Ask for help on Gitter" magithub--meta-help)))
 
 ;;;###autoload
-(eval-after-load "magit"
+(eval-after-load 'magit
   '(progn
      (magit-define-popup-action 'magit-dispatch-popup
        ?H "Magithub" #'magithub-dispatch-popup ?!)
