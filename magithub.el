@@ -63,15 +63,16 @@
 (magit-define-popup magithub-dispatch-popup
   "Popup console for dispatching other Magithub popups."
   'magithub-commands
-  :variables '((?C "Settings..." magithub-settings-popup))
-  :actions '("Actions"
-             (?d "Dashboard" magithub-dashboard)
-             (?H "Browse on GitHub" magithub-browse)
-             (?c "Create on GitHub" magithub-create)
+  :max-action-columns 2
+  :actions '("Magithub"
+             (?d "My dashboard" magithub-dashboard)
+             (?C "Configure..." magithub-settings-popup)
+             "Repository Management"
              (?f "Fork this repo" magithub-fork)
-             (?i "Submit an issue" magithub-issue-new)
+             (?H "Browse on GitHub" magithub-browse)
              (?p "Submit a pull request" magithub-pull-request-new)
-             (?O "Toggle online/offline" magithub-toggle-online)
+             (?c "Create on GitHub" magithub-create)
+             (?i "Submit an issue" magithub-issue-new)
              "Meta"
              (?& "Request a feature or report a bug" magithub--meta-new-issue)
              (?h "Ask for help on Gitter" magithub--meta-help)))
