@@ -645,8 +645,8 @@ See `magithub-feature-autoinject'.
   Browse commits using \\<magithub-map>\\[magithub-browse-thing].
 
 - `completion'
-  Enable `completion-at-point' support for issue references like
-  \"#123\" where possible.
+  Enable `completion-at-point' support for #issue and @user references
+  where possible.
 
 - `issues-section'
   View issues in the `magit-status' buffer.

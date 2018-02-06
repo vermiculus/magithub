@@ -47,8 +47,7 @@ Add this to `completion-at-point-functions' in buffers where you want this to be
           (let-alist i
             (let ((n (number-to-string .number)))
               (when (string-prefix-p prefix n)
-                (set-text-properties 0 (length n) (list :issue i) n)
-                (push n completions)))))
+                (push (propertize n :issue i) completions)))))
         (list start end (sort completions #'string<)
               :exclusive 'no
               :company-docsig (lambda (c)
@@ -59,15 +58,40 @@ Add this to `completion-at-point-functions' in buffers where you want this to be
                                        .title))
               :company-doc-buffer (lambda (c)
                                     (save-window-excursion
-                                      (magithub-issue-visit (get-text-property 0 :issue c))))
-              )))))
+                                      (magithub-issue-visit (get-text-property 0 :issue c)))))))))
 
+;;;###autoload
+(defun magithub-completion-complete-users ()
+  "A `completion-at-point' function which completes \"@user\" user references.
+Add this to `completion-at-point-functions' in buffers where you
+want this to be available.  The user list is currently simply the
+list of all users who created issues or pull requests."
+  (when (magithub-enabled-p)
+    (when (looking-back "@\\([_-A-Za-z0-9]*\\)" (- (point) 30))
+      (let ((start (match-beginning 1))
+            (end (match-end 0))
+            (prefix (match-string 1))
+            completions)
+        (dolist (i (magithub--issue-list))
+          (let-alist i
+            (when (string-prefix-p prefix .user.login)
+              (let ((candidate (copy-sequence .user.login))
+                    (association (and .author_association
+                                      (not (string= "NONE" .author_association))
+                                      .author_association)))
+                (push (propertize candidate :user .user :association association)
+                      completions)))))
+        (list start end (sort (cl-remove-duplicates completions :test #'string=) #'string<)
+              :exclusive 'no
+              :company-docsig (lambda (c) (get-text-property 0 :association c))
+              :annotation-function (lambda (c) (get-text-property 0 :association c)))))))
 
 ;;;###autoload
 (defun magithub-completion-enable ()
   "Enable completion of info from magithub in the current buffer."
-  (add-to-list (make-local-variable 'completion-at-point-functions)
-               'magithub-completion-complete-issues))
+  (make-local-variable 'completion-at-point-functions)
+  (dolist (f '(magithub-completion-complete-issues magithub-completion-complete-users))
+    (add-to-list 'completion-at-point-functions f)))
 
 
 (provide 'magithub-completion)
