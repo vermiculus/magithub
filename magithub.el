@@ -246,18 +246,15 @@ See also `magithub-preferred-remote-method'."
 
   (let-alist repo
     (when (magithub-confirm-no-error 'clone .full_name dir)
-      (let ((default-directory dir)
-            (magit-clone-set-remote.pushDefault t)
-            set-upstream set-proxy)
-
+      (let (set-upstream set-proxy)
         (setq set-upstream
               (and .fork (magithub-confirm-no-error 'clone-fork-set-upstream-to-parent
                                                     .parent.full_name))
               set-proxy
               (and set-upstream (magithub-confirm-no-error 'clone-fork-set-proxy-to-upstream)))
-
         (condition-case _
-            (progn
+            (let ((default-directory dir)
+                  (magit-clone-set-remote.pushDefault t))
               (mkdir dir t)
               (magit-clone (magithub-repo--clone-url repo) dir)
               (while (process-live-p magit-this-process)

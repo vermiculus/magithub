@@ -120,3 +120,5 @@
     git rev-list --count BASE..
   #+END_SRC
 - Authenticate correctly when marking notifications as read.  [[PR:277]]
+- Don't call ~magit-get~ in a non-existent directory in ~magithub-clone~.
+  [[PR:282]]
