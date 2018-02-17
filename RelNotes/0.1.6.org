@@ -122,3 +122,5 @@
 - Authenticate correctly when marking notifications as read.  [[PR:277]]
 - Don't call ~magit-get~ in a non-existent directory in ~magithub-clone~.
   [[PR:282]]
+- Pull requests now work in repositories with remotes that point to
+  non-GitHub locations.  [[PR:285]]

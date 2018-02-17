@@ -473,7 +473,8 @@ included in the returned object."
    (magithub-settings-context-remote)))
 
 (defun magithub-repo-from-remote (remote)
-  (magithub-repo (magithub-repo-from-remote--sparse remote)))
+  (when-let* ((repo (magithub-repo-from-remote--sparse remote)))
+    (magithub-repo repo)))
 
 (defun magithub-repo-from-remote--sparse (remote)
   (magithub--url->repo (magit-get "remote" remote "url")))
