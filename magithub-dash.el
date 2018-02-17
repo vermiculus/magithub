@@ -59,18 +59,28 @@
 
 (defvar magithub-dash-map
   (let ((m (make-sparse-keymap)))
-    (set-keymap-parent m magit-mode-map)
     (define-key m (kbd "5") #'magit-section-show-level-5)
     (define-key m (kbd "M-5") #'magit-section-show-level-5-all)
     (define-key m (kbd ";") #'magithub-dashboard-popup)
     (define-key m (kbd "H") #'magithub-dispatch-popup)
+    (define-key m (kbd "g") #'magithub-dash-refresh)
     m)
   "Keymap for `magihtub-dash-mode'.")
 
 (define-derived-mode magithub-dash-mode
   magit-mode "Magithub-Dash"
   "Major mode for your GitHub dashboard."
-  (use-local-map magithub-dash-map))
+  (use-local-map magithub-dash-map)
+  (setq-local default-directory (file-name-as-directory (getenv "HOME"))))
+
+(defun magithub-dash-refresh ()
+  (interactive)
+  (let ((magit-refresh-status-buffer nil))
+    ;; The dashboard runs in $HOME which is not usually going to be a
+    ;; git repository.  If we allow status buffers to be refreshed
+    ;; here, we'll get an error saying no status buffer exists because
+    ;; no git repository exists.
+    (magit-refresh)))
 
 (defun magithub-dash-refresh-buffer (&rest _args)
   "Refresh the dashboard.

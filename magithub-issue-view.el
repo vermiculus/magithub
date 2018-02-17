@@ -38,7 +38,10 @@
     m))
 
 (define-derived-mode magithub-issue-view-mode magit-mode
-  "Issue View" "View GitHub issues with Magithub.")
+  "Issue View" "View GitHub issues with Magithub."
+  (when magit-refresh-args
+    (setq-local magithub-issue (car magit-refresh-args))
+    (setq-local magithub-repo  (magithub-issue-repo (car magit-refresh-args)))))
 
 (defvar magithub-issue-view-headers-hook
   '(magithub-issue-view-insert-title
@@ -72,8 +75,6 @@
     (call-interactively #'magit-refresh)))
 
 (defun magithub-issue-view-refresh-buffer (issue &rest _)
-  (setq-local magithub-issue issue)
-  (setq-local magithub-repo (magithub-issue-repo issue))
   (magit-insert-section (magithub-issue issue)
     (run-hooks 'magithub-issue-view-sections-hook)))
 
@@ -96,10 +97,7 @@ See also `magithub-issue-view--lock-value'."
   (let ((owner  (nth 0 issue-lock-value))
         (repo   (nth 1 issue-lock-value))
         (number (nth 2 issue-lock-value)))
-    (format "*magithub: %s/%s#%d: %s*"
-            owner
-            repo
-            number
+    (format "*magithub: %s/%s#%d: %s*" owner repo number
             (alist-get 'title (magithub-issue `((owner (login . ,owner))
                                                 (name . ,repo))
                                               number)))))
@@ -109,7 +107,10 @@ See also `magithub-issue-view--lock-value'."
   "View ISSUE in a new buffer.
 Return the new buffer."
   (interactive (list (magithub-interactive-issue)))
-  (let ((magit-generate-buffer-name-function #'magithub-issue-view--buffer-name))
+  (let* ((repo (magithub-issue-repo issue))
+         (default-directory (or (magithub-repo-directory repo)
+                                (magithub-repo-directory-get-interactively repo)))
+         (magit-generate-buffer-name-function #'magithub-issue-view--buffer-name))
     (magit-mode-setup-internal #'magithub-issue-view-mode (list issue) t)
     (current-buffer)))
 
@@ -134,8 +135,8 @@ Return the new buffer."
   (insert (format "%-10s" "Author:"))
   (let-alist magithub-issue
     (magit-insert-section (magithub-user .user)
-      (insert (propertize .user.login 'face 'magithub-user) ?\n)
-      (magit-insert-heading))))
+      (insert (propertize .user.login 'face 'magithub-user)))
+    (magit-insert-heading)))
 
 (defun magithub-issue-view-insert-state ()
   "Insert issue state (either \"open\" or \"closed\")."

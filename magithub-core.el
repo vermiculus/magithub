@@ -225,11 +225,6 @@ the age of the oldest cached information."
                                'face 'magit-header-line-key))))
         (insert (format "%s\n" (replace-regexp-in-string (rx bol) (make-string 10 ?\ ) msg)))))))
 
-(eval-after-load 'magit
-  '(add-hook 'magit-status-headers-hook
-             #'magithub-maybe-report-offline-mode
-             'append))
-
 (defun magithub-cache--time-out (time)
   "Convert TIME into a human-readable string.
 Returns \"Xd Xh Xm Xs\" (counting from zero)"
@@ -473,7 +468,8 @@ included in the returned object."
    (magithub-settings-context-remote)))
 
 (defun magithub-repo-from-remote (remote)
-  (magithub-repo (magithub-repo-from-remote--sparse remote)))
+  (when-let* ((repo (magithub-repo-from-remote--sparse remote)))
+    (magithub-repo repo)))
 
 (defun magithub-repo-from-remote--sparse (remote)
   (magithub--url->repo (magit-get "remote" remote "url")))
@@ -530,11 +526,14 @@ of the form `owner/name' (as in `vermiculus/magithub')."
       (browse-url (format "%s/issues" url))
     (user-error "No URL for repo")))
 
-(defun magithub-repo-name (repo)
+(defun magithub-repo-name (repo &optional fully-qualified)
   "Return the full name of REPO.
 If the `full_name' object is present, use that.  Otherwise,
 concatenate `.owner.login' and `.name' with `/'."
-  (let-alist repo (or .full_name (concat .owner.login "/" .name))))
+  (let ((name (let-alist repo (or .full_name (concat .owner.login "/" .name)))))
+    (if fully-qualified
+        (concat (ghubp-host) ":" name)
+      name)))
 
 (defun magithub-repo-admin-p (&optional repo)
   "Non-nil if the currently-authenticated user can manage REPO.
@@ -589,6 +588,70 @@ See also `magithub-repo-remotes'."
                              .remote.owner.login)
                     (string= .repo.name .remote.name))))
            (magit-list-remotes)))
+
+(defvar magithub-repo-directories
+  (magithub-in-data-dir
+   (with-temp-buffer
+     (insert-file-contents "project-directories")
+     (read (current-buffer))))
+  "An alist of repository identifiers to directories.
+When viewing GitHub content for these repositories,
+`default-directory' is locally changed to the directory listed in
+this variable.  If no directory is found for the repository,
+`default-directory' is not changed.
+
+The car of this list is a fully qualified repository name:
+
+    HOST:USER/REPO
+
+See `ghubp-host'.
+
+The cdr of this list is an absolute directory name.
+
+The directory listed here should be the root directory of that
+project -- it's intended to enable external project-based
+functionality.")
+
+(defun magithub-repo-directory-add (repo directory)
+  "Associate REPO with DIRECTORY.
+See `magithub-repo-directories'."
+  (interactive (list (thing-at-point 'github-repository)
+                     (or (magit-toplevel)
+                         (and default-directory
+                              (expand-file-name default-directory)))))
+  (let ((repo-name (magithub-repo-name repo t))
+        overwrite)
+    (when-let* ((existing (assoc-string repo-name magithub-repo-directories)))
+      (magithub-confirm 'pair-repo-with-directory-overwrite
+                        repo-name (cdr existing))
+      (setq overwrite t))
+    (magithub-confirm 'pair-repo-with-directory repo-name directory)
+    (when overwrite
+      (setq magithub-repo-directories
+            (seq-remove (lambda (pair) (string= (car pair) repo-name))
+                        magithub-repo-directories)))
+    (add-to-list 'magithub-repo-directories (cons repo-name directory))
+    (magithub-in-data-dir
+     (with-temp-file "project-directories"
+       (insert (prin1-to-string magithub-repo-directories))))
+    directory))
+
+(defun magithub-repo-directory (repo)
+  (let ((existing (assoc-string (magithub-repo-name repo t)
+                                magithub-repo-directories)))
+    (and (cdr-safe existing)
+         (file-exists-p (cdr existing))
+         (file-directory-p (cdr existing))
+         (cdr existing))))
+
+(defun magithub-register-repo-directory ()
+  "Function on `magit-mode-hook'."
+  (let (repo top)
+    (when (setq repo (magithub-source--sparse-repo))
+      (unless (magithub-repo-directory repo)
+        (when (and repo (setq top (magit-toplevel)))
+          (magithub-repo-directory-add repo top)
+          top)))))
 
 ;;; Feature checking
 (declare-function magithub-pull-request-merge "magithub-issue-tricks"
@@ -964,6 +1027,8 @@ this function: `github-user', `github-issue', `github-label',
            magithub-repo
            (magithub-repo))))
 
+(declare-function magithub-issue--issue-is-pull-p "magithub-issue" (issue))
+(declare-function magithub-issue-repo "magithub-issue" (issue))
 ;;;###autoload
 (put 'github-pull-request 'thing-at-point
      (lambda ()
@@ -1227,11 +1292,26 @@ Interactively, this is the commit at point."
   (interactive (list (magit-current-section)))
   (pp-eval-expression `(oref ,section value)))
 
+;;;###autoload
 (eval-after-load 'magit
   '(progn
      (dolist (hook '(magit-revision-mode-hook git-commit-setup-hook))
        (add-hook hook #'magithub-bug-reference-mode-on))
-     (add-hook 'magit-pre-refresh-hook #'magithub-refresh)))
+     (add-hook 'magit-pre-refresh-hook #'magithub-refresh)
+     (add-hook 'magit-status-headers-hook #'magithub-maybe-report-offline-mode 'append)
+     (add-hook 'magit-mode-hook #'magithub-register-repo-directory)))
 
 (provide 'magithub-core)
 ;;; magithub-core.el ends here
+
+
+(defun magithub-repo-directory-get-interactively (repo)
+  (let ((dir (magithub-repo-directory repo)))
+    (when (and (null dir)
+               (magithub-confirm-no-error 'pair-repo-with-directory-interactive
+                                          (magithub-repo-name repo t)))
+      (unwind-protect
+          (and (setq dir (read-directory-name (format "Use local directory for %s:"
+                                                      (magithub-repo-name repo))
+                                              nil nil t))
+               (magithub-repo-directory-add repo dir))))))

@@ -560,6 +560,17 @@ Interactively, this finds the issue at point."
   (when (magithub-usable-p)
     (number-to-string (length (magithub-pull-requests)))))
 
+(defun magithub-issue-close (issue)
+  "Close ISSUE."
+  (interactive (list (or (thing-at-point 'github-issue)
+                         (thing-at-point 'github-pull-request))))
+  (ghubp-patch-repos-owner-repo-issues-number
+      (magithub-issue-repo issue)
+      issue
+    '((state . closed)))
+  (when (derived-mode-p 'magithub-issue-view-mode)
+    (magithub-issue-view-refresh)))
+
 ;; Pull Request handling
 
 (defun magithub-pull-request (repo number)
