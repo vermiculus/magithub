@@ -55,8 +55,26 @@ use Magithub.  (As of #107, Magithub will not even attempt go online until
 you're properly authenticated.)
 
 To authenticate, you can simply start using Magithub; Ghub should walk you
-through the authentication process.  (Your token is stored in one of your
-~auth-sources~; see [[https://magit.vc/manual/ghub/How-Ghub-uses-Auth_002dSource.html#How-Ghub-uses-Auth_002dSource][Ghub's manual]] for details.)
+through the authentication process unless you use two-factor authentication.
+(Your token is stored in one of your ~auth-sources~; see [[https://magit.vc/manual/ghub/How-Ghub-uses-Auth_002dSource.html#How-Ghub-uses-Auth_002dSource][Ghub's manual]] for
+details.)
+
+If you do use two-factor authentication, you must
+
+1. Manually create a GitHub token (from https://github.com/settings/tokens)
+   for scopes `repo`, `notifications` and `user` (see variable
+   ~magithub-github-token-scopes~)
+2. Store it for Magithub per user in one of your ~auth-sources~
+   (e.g. =~/.authinfo=).  Write a line like this:
+
+   #+BEGIN_EXAMPLE
+   machine api.github.com login YOUR_GITHUB_USERNAME^magithub password YOUR_GITHUB_TOKEN
+   #+END_EXAMPLE
+
+Beware that writing the token in plaintext in =~/.authinfo= (or elsewhere) is
+not secure against attackers with access to that file.  For details and
+better alternatives (like using GPG), see Ghub's manual on [[https://magit.vc/manual/ghub/Manually-Creating-and-Storing-a-Token.html#Manually-Creating-and-Storing-a-Token][Manually Creating
+and Storing a Token]] and [[https://magit.vc/manual/ghub/How-Ghub-uses-Auth_002dSource.html#How-Ghub-uses-Auth_002dSource][How Ghub uses Auth-Source]].
 
 If you want to authenticate Ghub without using Magithub, you can simply
 evaluate the following:
