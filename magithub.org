@@ -215,7 +215,7 @@ embedded right into Magit's status buffer.
 
   Access many Magithub entry-points.  See [[*Dispatch Popup]] for more details.
 
-  - Key: H `, magithub-enabled-toggle
+- Key: H e
 
   Toggle status buffer integration in this repository.
 
@@ -237,7 +237,7 @@ headers.
 
   Refresh statuses from GitHub and then refresh the current buffer.
 
-- Key: H ~, magithub-ci-toggle
+- Key: H s
 
   Enable/disable status checks in this repository.
 
@@ -312,12 +312,10 @@ functionality available right from an issue section.
     | =g=           | Refresh only this section's GitHub content |
     | =C-u g=       | Like =g=, but works on the whole buffer      |
 
-    See also the variable documentation for =magithub-cache=.
-
 *** Offline Mode
     | Default Key | Description         |
     |-------------+---------------------|
-    | =H O=         | Toggle offline mode |
+    | =H C c=       | Toggle offline mode |
 
     Offline mode was introduced for those times when you're on the go, but you'd
     still like to have an overview of GitHub data in your status buffer.  It's
@@ -325,8 +323,13 @@ functionality available right from an issue section.
     with GitHub -- for this purpose, you can use =C-u g= (discussed above) to pull
     data from GitHub while in offline mode.
 
-    To start into offline mode, throw ~(setq magithub-cache t)~ in your
-    configuration.  See that variable's documentation for details.
+    To start into offline mode everywhere, use
+    #+BEGIN_SRC sh
+    git config --global magithub.cache always
+    #+END_SRC
+
+    See the documentation for function ~magithub-settings--set-magithub.cache~
+    for details on appropriate values.
 
 *** Controlling Sections
 
@@ -367,27 +370,37 @@ this popup.  In Magit status buffers, it's bound to =H=.
   Open a new buffer to create an issue or open a pull request.  See
   [[*Creating Content]].
 
-- Key x, magithub-proxy-set
-
-  Set the 'proxy' used for this repository.  See [[*Proxies]].
-
-- Key O, magithub-toggle-online
-
-  Control whether Magithub is considered 'online'.  This controls the
-  behavior of the the cache (via variable ~magithub-cache~).  This may go away
-  in the future.  See [[*Controlling the Cache]] for more details.
-
 ** Configuration
 
-Per-repository configuration is controlled via git variables.
+Per-repository configuration is controlled via git variables reachable from
+the dispatch popup via =H C=.  Use =? <key>= to get online help for each
+variable in that popup.
 
-- Key `, magithub-enabled-toggle
+- Key C e
 
   Turn Magithub on/off (completely).
 
-- Key ~, magithub-ci-toggle
+- Key C s
 
   Turn the project status header on/off.
+
+- Key C c
+
+  Control whether Magithub is considered 'online'.  This controls the
+  behavior of the the cache.  This may go away in the future.  See
+  [[*Controlling the Cache]] for more details.
+
+- Key C i
+
+  Toggle the issues section.
+
+- Key C p
+
+  Toggle the pull requests section.
+
+- Key C x
+
+  Set the 'proxy' used for this repository.  See [[*Proxies]].
 
 ** Meta
 
@@ -497,12 +510,7 @@ in the buffer pertaining to that section.  Otherwise, =C-u g= in any Magit
 buffer will refresh all GitHub data in that buffer.
 
 This behavior may change in the future, but for now, it's the most stable
-option.
-
-- Variable: magithub-cache
-
-  More details on the behavior of the cache can be found in this variable
-  (which also defines the behavior of the cache).
+option.  See
 
 * Proxies
 
