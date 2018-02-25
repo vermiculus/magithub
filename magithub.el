@@ -71,7 +71,6 @@
              (?f "Fork this repo" magithub-fork)
              (?i "Submit an issue" magithub-issue-new)
              (?p "Submit a pull request" magithub-pull-request-new)
-             (?O "Toggle online/offline" magithub-toggle-online)
              "Meta"
              (?& "Request a feature or report a bug" magithub--meta-new-issue)
              (?h "Ask for help on Gitter" magithub--meta-help)))
