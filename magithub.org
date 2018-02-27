@@ -213,7 +213,7 @@ embedded right into Magit's status buffer.
 
 - Key: H, magithub-dispatch-popup
 
-  Access many Magithub entry-points.  See [[*Dispatch Popup]] for more details.
+  Access many Magithub entry-points.  See [[#Dispatch Popup]] for more details.
 
 - Key: H e
 
