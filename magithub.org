@@ -89,6 +89,13 @@ etc.).
 If you're having trouble /authenticating/, [[https://github.com/magit/ghub/issues/new][open a Ghub issue]] or drop by
 [[https://gitter.im/vermiculus/magithub][Magithub's]] or [[https://gitter.im/magit/magit][Magit's]] Gitter channel.
 
+** Enterprise Support
+
+For GitHub Enterprise support, you'll need to add your enterprise domain to
+~magithub-github-hosts~ so that Magithub can detect when it's in a GitHub
+repository.  You will also need to configure your =~/.authinfo= file
+appropriately to authenticate to your domain; see Ghub's manual for details.
+
 * Introduction
 
 Magithub tries to follow closely Magit's lead in general interface.  Most of
@@ -139,6 +146,10 @@ to GitHub.
 
   When non-nil, Magithub is enabled by default.  This is the fallback value
   of git variable =magithub.enabled= is not set in this repository.
+
+- User Option: magithub-github-hosts
+
+  A list of top-level domains that should be recognized as GitHub hosts.
 
 ** Brief Tutorial
 
