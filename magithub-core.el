@@ -404,11 +404,19 @@ See `magithub--api-offline-reason'."
 (defalias 'magithub-api-rate-limit #'ghubp-ratelimit)
 
 ;;; Repository parsing
+(defcustom magithub-github-hosts
+  (list "github.com")
+  "A list of top-level domains that should be recognized as GitHub hosts.
+See also `magithub-github-repository-p'."
+  :group 'magithub
+  :type '(list string))
+
 (defun magithub-github-repository-p ()
-  "Non-nil if \"origin\" points to GitHub or a whitelisted domain."
+  "Non-nil if \"origin\" points to GitHub or a whitelisted domain.
+See also `magithub-github-hosts'."
   (when-let* ((origin (magit-get "remote" (magithub-settings-context-remote) "url")))
     (-some? (lambda (domain) (s-contains? domain origin))
-            (cons "github.com" (magit-get-all "hub" "host")))))
+            magithub-github-hosts)))
 
 (defalias 'magithub--parse-url 'magithub--repo-parse-url)
 (make-obsolete 'magithub--parse-url 'magithub--repo-parse-url "0.1.4")

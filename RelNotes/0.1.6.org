@@ -44,6 +44,9 @@
   For more details on how to set configure Magithub now, consult the
   documentation inside ~magithub-settings-popup~ (=? KEY=) or read
   =magithub-settings.el=.  [[PR:265]]
+- =hub.host= is no longer respected and has been replaced by user option
+  ~magithub-github-hosts~.  This most directly impacts GitHub Enterprise
+  support.
 
 * New Features
 - Browse commits by using =w= on a commit section.  If the current
