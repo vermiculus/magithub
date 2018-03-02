@@ -1,8 +1,16 @@
 #+TITLE: Magithub -- Magit interfaces for GitHub
 #+AUTHOR: Sean Allred
 #+EMAIL: code@seanallred.com
-#+DATE:
+#+DATE: 2017-2018
 #+LANGUAGE: en
+
+#+TEXINFO_DIR_CATEGORY: Emacs
+#+TEXINFO_DIR_TITLE: Magithub: (magithub).
+#+TEXINFO_DIR_DESC: Magit interfaces for GitHub
+#+SUBTITLE: for version 0.1.5 (0.1.5-106-ge4a004c+1)
+#+BIND: ox-texinfo+-before-export-hook ox-texinfo+-update-version-strings
+
+#+TEXINFO_DEFFN: t
 #+OPTIONS: H:4 num:4 toc:2
 
 You may also be interested in [[https://github.com/vermiculus/magithub/tree/master/RelNotes][the most current release notes]].
@@ -12,6 +20,9 @@ interface.  Just as Magit hopes to 'outsmart git', Magithub hopes to add
 smarts to GitHub for performing common tasks.
 
 Happy hacking!
+
+#+TEXINFO: @noindent
+This manual is for Magithub version 0.1.5 (0.1.5-106-ge4a004c+1).
 
 #+BEGIN_QUOTE
 Copyright (C) 2017-2018 Sean Allred <code@seanallred.com>
@@ -28,20 +39,24 @@ General Public License for more details.
 #+END_QUOTE
 
 * Installation
+** _ :ignore:
 
 Magithub can be installed from [[http://melpa.milkbox.net/#/magithub][MELPA]] using =M-x list-packages= or by
 evaluating the following:
+
 #+BEGIN_SRC elisp
   (package-install 'magithub)
 #+END_SRC
 
 Here is the basic recommended [[https://github.com/jwiegley/use-package][=use-package=]] configuration:
+
 #+BEGIN_SRC elisp
   (use-package magithub
     :after magit
     :ensure t
     :config (magithub-feature-autoinject t))
 #+END_SRC
+
 If you prefer to install the package manually, this can of course be done
 via the usual means.
 
@@ -78,10 +93,12 @@ and Storing a Token]] and [[https://magit.vc/manual/ghub/How-Ghub-uses-Auth_002d
 
 If you want to authenticate Ghub without using Magithub, you can simply
 evaluate the following:
+
 #+BEGIN_SRC emacs-lisp
   (require 'magithub)
   (ghub-get "/user" nil :auth 'magithub)
 #+END_SRC
+
 After Ghub walks you through the authentication process during evaluation,
 the ~ghub-get~ form should return familiar information (your login, email,
 etc.).
@@ -97,6 +114,7 @@ repository.  You will also need to configure your =~/.authinfo= file
 appropriately to authenticate to your domain; see Ghub's manual for details.
 
 * Introduction
+** _ :ignore:
 
 Magithub tries to follow closely Magit's lead in general interface.  Most of
 its functionality is developed to tightly integrate with its section/
@@ -226,7 +244,7 @@ embedded right into Magit's status buffer.
 
   Access many Magithub entry-points.  See [[*Dispatch Popup]] for more details.
 
-- Key: H e
+- Key: H C e, FIXME
 
   Toggle status buffer integration in this repository.
 
@@ -248,7 +266,7 @@ headers.
 
   Refresh statuses from GitHub and then refresh the current buffer.
 
-- Key: H s
+- Key: H C s, FIXME
 
   Enable/disable status checks in this repository.
 
@@ -279,8 +297,8 @@ functionality available right from an issue section.
 
   Add labels to the issue.
 
-- Key a, magithub-label-add
-- Key k, magithub-label-remove
+- Key: a, magithub-label-add
+- Key: k, magithub-label-remove
 
   When point is on a label section, you can add/remove labels (provided you
   have permission to do so).
@@ -361,22 +379,22 @@ this popup.  In Magit status buffers, it's bound to =H=.
 
   See [[*Dashboard]].
 
-- Key c, magithub-create
+- Key: c, magithub-create
 
   Push a local repository up to GitHub.
 
-- Key H, magithub-browse
+- Key: H, magithub-browse
 
   Open the current repository in your browser.
 
-- Key f, magithub-fork
+- Key: f, magithub-fork
 
   Fork this repository on GitHub.  This will add your fork as a remote under
   your username.  For example, if user =octocat= forked Magit, we would see a
   new remote called =octocat= pointing to =octocat/magit=.
 
-- Key i, magithub-issue-new
-- Key p, magithub-pull-request-new
+- Key: i, magithub-issue-new
+- Key: p, magithub-pull-request-new
 
   Open a new buffer to create an issue or open a pull request.  See
   [[*Creating Content]].
@@ -387,29 +405,29 @@ Per-repository configuration is controlled via git variables reachable from
 the dispatch popup via =H C=.  Use =? <key>= to get online help for each
 variable in that popup.
 
-- Key C e
+- Key: C e, FIXME
 
   Turn Magithub on/off (completely).
 
-- Key C s
+- Key: C s, FIXME
 
   Turn the project status header on/off.
 
-- Key C c
+- Key: C c, FIXME
 
   Control whether Magithub is considered 'online'.  This controls the
   behavior of the the cache.  This may go away in the future.  See
-  [[*Controlling the Cache]] for more details.
+  [[*Manipulating the Cache]] for more details.
 
-- Key C i
+- Key: C i, FIXME
 
   Toggle the issues section.
 
-- Key C p
+- Key: C p, FIXME
 
   Toggle the pull requests section.
 
-- Key C x
+- Key: C x, FIXME
 
   Set the 'proxy' used for this repository.  See [[*Proxies]].
 
@@ -420,12 +438,12 @@ whom to ask for support (especially for users of preconfigured Emacsen like
 Spacemacs and Prelude).  Hopefully, these functions can direct you to the
 appropriate spot.
 
-- Key &, magithub--meta-new-issue
+- Key: &, magithub--meta-new-issue
 
   Open the browser to create a new issue for Magithub functionality
   described in this document.
 
-- Key h, magithub--meta-help
+- Key: h, magithub--meta-help
 
   Open the browser to ask for help on Gitter, a GitHub-focused chatroom.
 
@@ -483,7 +501,7 @@ information.
 
   View your dashboard.
 
-- Key ;: magithub-dashboard-popup
+- Key: ;, magithub-dashboard-popup
 
   Configure your global dashboard settings.
 
@@ -496,8 +514,8 @@ information.
 It's great to read about what's been happening, but it's even better to
 contribute your own thoughts and activity!
 
-- Key H i, magithub-issue-new
-- Key H p, magithub-pull-request-new
+- Key: H i, magithub-issue-new
+- Key: H p, magithub-pull-request-new
 
   Create issues and pull requests.  If you have push access to the
   repository, you'll have the opportunity to add labels before you submit
@@ -506,14 +524,15 @@ contribute your own thoughts and activity!
   Creating a pull request requires a HEAD branch, a BASE branch, and to know
   which remote points to your fork.
 
-- Key r, magithub-comment-new
-- Key r, magithub-comment-reply
+- Key: r, magithub-comment-new
+- Key: r, magithub-comment-reply
 
   On an issue or pull request section, ~magithub-comment-new~ will allow you
   to post a comment to that issue/PR.  If point is already on a comment,
   ~magithub-comment-reply~ will quote the comment at point for you.
 
 * Caching
+
 Caching is a complicated topic with a long Magithub history of, well,
 failure.  As of today, all data retrieved from the API is cached by
 default.  Using =g= on Magithub sections will usually refresh the information
@@ -531,7 +550,7 @@ proxy is a remote (with a GitHub-associated URL) that you choose to use for
 all GitHub API requests concerning the /actual/ current repository.  This is
 manifest in the git variable =magithub.proxy=.
 
-- Function magithub-proxy-set-default
+- Function: magithub-proxy-set-default
 
   If you consistently use a specific remote name for the bug tracker, you
   can set it globally.
@@ -540,7 +559,6 @@ All GitHub requests specific to the current repository context are routed
 through ~magithub-repo~ which respects this proxy.
 
 * Unfiled
-
 ** Content
 *** Working with Repositories
 **** DONE General
@@ -637,6 +655,33 @@ these functions.  After installation, use =hub browse= from a directory with a
 GitHub repository to force the program to authenticate -- this avoids some
 weirdness on the Emacs side of things.
 
+* _ Copying
+:PROPERTIES:
+:COPYING:    t
+:END:
+
+#+BEGIN_QUOTE
+Copyright (C) 2017-2018 Sean Allred <code@seanallred.com>
+
+You can redistribute this document and/or modify it under the terms
+of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any
+later version.
+
+This document is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+#+END_QUOTE
+
+* _ :ignore:
+
+# IMPORTANT: Also update ORG_ARGS and ORG_EVAL in the Makefile.
 # Local Variables:
 # fill-column: 76
+# eval: (require 'ox-extra nil t)
+# eval: (require 'ox-texinfo+ nil t)
+# eval: (and (featurep 'ox-extra) (ox-extras-activate '(ignore-headlines)))
+# indent-tabs-mode: nil
+# org-src-preserve-indentation: nil
 # End:
