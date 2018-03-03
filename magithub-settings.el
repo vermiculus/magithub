@@ -96,7 +96,7 @@
 
 (defun magithub-settings-include-status-p ()
   "Non-nil if the project status header should be included."
-  (magithub-settings--value-or "magithub.status.includeStatusHeader" t
+  (magithub-settings--value-or "magithub.status.includeStatusHeader" nil
     #'magit-get-boolean))
 
 
