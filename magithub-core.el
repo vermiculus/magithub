@@ -49,7 +49,8 @@
 (defconst magithub-github-token-scopes '(repo user notifications)
   "The authentication scopes Magithub requests.")
 
-;;; Debugging utilities
+;;; Debugging utilities
+
 (defvar magithub-debug-mode nil
   "Controls what kinds of debugging information shows.
 List of symbols.
@@ -94,7 +95,8 @@ If it does not exist, it will be created."
              (lambda (filename)
                (file-in-directory-p filename magithub-dir)))
 
-;;; Turning Magithub on/off
+;;; Turning Magithub on/off
+
 (defmacro magithub-in-data-dir (&rest forms)
   "Execute forms in `magithub-dir'.
 If `magithub-dir' does not yet exist, it and its parents will be
@@ -106,7 +108,8 @@ created automatically."
      (let ((default-directory magithub-dir))
        ,@forms)))
 
-;;; Caching; Online/Offline mode
+;;; Caching; Online/Offline mode
+
 (defun magithub-offline-p ()
   "Non-nil if Magithub is not supposed to make API requests."
   (memq (magithub-settings-cache-behavior) '(t refreshing-when-offline)))
@@ -267,7 +270,8 @@ See also `magithub-cache-ignore-class'."
 (add-hook 'kill-emacs-hook
           #'magithub-cache-write-to-disk)
 
-;;; API availability checking
+;;; API availability checking
+
 (define-error 'magithub-error "Magithub Error")
 (define-error 'magithub-api-timeout "Magithub API Timeout" 'magithub-error)
 
@@ -403,7 +407,8 @@ See `magithub--api-offline-reason'."
 
 (defalias 'magithub-api-rate-limit #'ghubp-ratelimit)
 
-;;; Repository parsing
+;;; Repository parsing
+
 (defcustom magithub-github-hosts
   (list "github.com")
   "A list of top-level domains that should be recognized as GitHub hosts.
@@ -519,7 +524,8 @@ of the form `owner/name' (as in `vermiculus/magithub')."
               (magithub-repo sparse-repo)))
           sparse-repo))))
 
-;;; Repository utilities
+;;; Repository utilities
+
 (defvar magit-magithub-repo-section-map
   (let ((m (make-sparse-keymap)))
     (define-key m [remap magit-visit-thing] #'magithub-repo-visit)
@@ -599,7 +605,8 @@ See also `magithub-repo-remotes'."
                     (string= .repo.name .remote.name))))
            (magit-list-remotes)))
 
-;;; Feature checking
+;;; Feature checking
+
 (declare-function magithub-pull-request-merge "magithub-issue-tricks"
                   (pull-request &optional args))
 (declare-function magithub-maybe-insert-ci-status-header "magithub-ci" ())
@@ -723,7 +730,8 @@ See `magithub-features'."
                (message (concat m "; " s) feature-list)
                (add-to-list 'feature-list '(t . t) t))))))
 
-;;; Getting help
+;;; Getting help
+
 (defun magithub--meta-new-issue ()
   "Open a new Magithub issue.
 See /.github/ISSUE_TEMPLATE.md in this repository."
@@ -778,7 +786,7 @@ describe the error.  If not provided, it is retrieved."
     (magithub--meta-new-issue))
   (error err-message))
 
-;;; Miscellaneous utilities
+;;; Miscellaneous utilities
 
 (defcustom magithub-datetime-format "%c"
   "The display format string for date-time values.
