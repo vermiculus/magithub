@@ -48,7 +48,8 @@
     (define-key m [remap magit-visit-thing] #'magithub-issue-personal-note)
     m))
 
-;; Core
+;;; Core
+
 (defmacro magithub-interactive-issue-or-pr (sym args doc &rest body)
   "Declare an interactive form that works on both issues and PRs.
 SYM is a postfix for the function symbol.  An appropriate prefix
@@ -109,7 +110,8 @@ See also `ghubp-get-repos-owner-repo-issues'."
         (ghubp-unpaginate
          (ghubp-get-repos-owner-repo-issues-number-comments ',repo ',issue))))))
 
-;; Finding issues and pull requests
+;;; Finding issues and pull requests
+
 (defun magithub-issues ()
   "Return a list of issue objects that are actually issues."
   (-filter #'magithub-issue--issue-is-issue-p
@@ -120,7 +122,8 @@ See also `ghubp-get-repos-owner-repo-issues'."
   (-filter #'magithub-issue--issue-is-pull-p
            (magithub--issue-list)))
 
-;; Sorting
+;;; Sorting
+
 (defcustom magithub-issue-sort-function
   #'magithub-issue-sort-ascending
   "Function used for sorting issues and pull requests in the
@@ -140,7 +143,8 @@ status buffer.  Should take two issue-objects as arguments."
   "Sort ISSUES by `magithub-issue-sort-function'."
   (sort issues magithub-issue-sort-function))
 
-;; Getting issues from the user
+;;; Getting issues from the user
+
 (defun magithub-issue--format-for-read (issue)
   "Format ISSUE as a string suitable for completion."
   (let-alist issue (format "%3d %s" .number .title)))
@@ -390,7 +394,8 @@ Each function takes two arguments:
     (magithub-label-insert-list .labels)
     (insert "\n")))
 
-;; Magithub-Status stuff
+;;; Magithub-Status stuff
+
 
 (defun magithub-issue-refresh (even-if-offline)
   "Refresh issues for this repository.
@@ -441,9 +446,9 @@ we'll hit the API) if Magithub is offline."
     map)
   "Keymap for `magithub-pull-request-list' sections.")
 
-;;; By maintaining these as lists of functions, we're setting
-;;; ourselves up to be able to dynamically apply new filters from the
-;;; status buffer (e.g., 'bugs' or 'questions' assigned to me)
+;; By maintaining these as lists of functions, we're setting
+;; ourselves up to be able to dynamically apply new filters from the
+;; status buffer (e.g., 'bugs' or 'questions' assigned to me)
 (defcustom magithub-issue-issue-filter-functions nil
   "List of functions that filter issues.
 Each function will be supplied a single issue object.  If any
@@ -560,7 +565,8 @@ Interactively, this finds the issue at point."
   (when (magithub-usable-p)
     (number-to-string (length (magithub-pull-requests)))))
 
-;; Pull Request handling
+;;; Pull Request handling
+
 
 (defun magithub-pull-request (repo number)
   "Retrieve a pull request in REPO by NUMBER."
