@@ -1,0 +1,1011 @@
+\input texinfo    @c -*- texinfo -*-
+@c %**start of header
+@setfilename magithub.info
+@settitle Magithub -- Magit interfaces for GitHub
+@documentencoding UTF-8
+@documentlanguage en
+@c %**end of header
+
+@copying
+@quotation
+Copyright (C) 2017-2018 Sean Allred <code@@seanallred.com>
+
+You can redistribute this document and/or modify it under the terms
+of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any
+later version.
+
+This document is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+@end quotation
+@end copying
+
+@dircategory Emacs
+@direntry
+* Magithub: (magithub). Magit interfaces for GitHub.
+@end direntry
+
+@finalout
+@titlepage
+@title Magithub -- Magit interfaces for GitHub
+@subtitle for version 0.1.5 (0.1.5-106-ge4a004c+1)
+@author Sean Allred
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@contents
+
+@ifnottex
+@node Top
+@top Magithub -- Magit interfaces for GitHub
+
+You may also be interested in @uref{https://github.com/vermiculus/magithub/tree/master/RelNotes, the most current release notes}.
+
+Magithub provides an integrated GitHub experience through Magit's familiar
+interface.  Just as Magit hopes to 'outsmart git', Magithub hopes to add
+smarts to GitHub for performing common tasks.
+
+Happy hacking!
+
+@noindent
+This manual is for Magithub version 0.1.5 (0.1.5-106-ge4a004c+1).
+
+@quotation
+Copyright (C) 2017-2018 Sean Allred <code@@seanallred.com>
+
+You can redistribute this document and/or modify it under the terms
+of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any
+later version.
+
+This document is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+@end quotation
+@end ifnottex
+
+@menu
+* Installation::
+* Introduction::
+* Status Buffer Integration::
+* Dispatch Popup::
+* 'Features'::
+* Cloning::
+* Dashboard::
+* Creating Content::
+* Caching::
+* Proxies::
+* Unfiled::
+
+@detailmenu
+--- The Detailed Node Listing ---
+
+Installation
+
+* Authentication::
+* Enterprise Support::
+
+Introduction
+
+* Note::
+* Brief Tutorial::
+
+Brief Tutorial
+
+* Clone a repository::
+* Viewing project status::
+* Viewing and replying to an issue::
+* Creating an issue::
+* Creating a pull request::
+
+
+Status Buffer Integration
+
+* Project Status::
+* Open Issues and Pull Requests::
+
+Open Issues and Pull Requests
+
+* Manipulating the Cache::
+* Offline Mode::
+* Controlling Sections::
+
+
+Dispatch Popup
+
+* Configuration::
+* Meta::
+
+Unfiled
+
+* Content::
+* 'Tricks'::
+
+Content
+
+* Working with Repositories::
+* Your Dashboard::
+
+
+@end detailmenu
+@end menu
+
+@node Installation
+@chapter Installation
+
+Magithub can be installed from @uref{http://melpa.milkbox.net/#/magithub, MELPA} using @samp{M-x list-packages} or by
+evaluating the following:
+
+@lisp
+(package-install 'magithub)
+@end lisp
+
+Here is the basic recommended @uref{https://github.com/jwiegley/use-package, @samp{use-package}} configuration:
+
+@lisp
+(use-package magithub
+  :after magit
+  :ensure t
+  :config (magithub-feature-autoinject t))
+@end lisp
+
+If you prefer to install the package manually, this can of course be done
+via the usual means.
+
+For more information, see @ref{Packages,,,emacs,}.
+
+@menu
+* Authentication::
+* Enterprise Support::
+@end menu
+
+@node Authentication
+@section Authentication
+
+Given GitHub's rate-limiting policy, Magithub is unlikely to ever support
+running without authenticating.  As such, you @emph{must} authenticate before you
+use Magithub.  (As of #107, Magithub will not even attempt go online until
+you're properly authenticated.)
+
+To authenticate, you can simply start using Magithub; Ghub should walk you
+through the authentication process unless you use two-factor authentication.
+(Your token is stored in one of your @code{auth-sources}; see @uref{https://magit.vc/manual/ghub/How-Ghub-uses-Auth_002dSource.html#How-Ghub-uses-Auth_002dSource, Ghub's manual} for
+details.)
+
+If you do use two-factor authentication, you must
+
+@itemize
+@item
+Manually create a GitHub token (from @uref{https://github.com/settings/tokens})
+for scopes `repo`, `notifications` and `user` (see variable
+@code{magithub-github-token-scopes})
+
+@item
+Store it for Magithub per user in one of your @code{auth-sources}
+(e.g. @samp{~/.authinfo}).  Write a line like this:
+
+@example
+machine api.github.com login YOUR_GITHUB_USERNAME^magithub password YOUR_GITHUB_TOKEN
+@end example
+@end itemize
+
+Beware that writing the token in plaintext in @samp{~/.authinfo} (or elsewhere) is
+not secure against attackers with access to that file.  For details and
+better alternatives (like using GPG), see Ghub's manual on @uref{https://magit.vc/manual/ghub/Manually-Creating-and-Storing-a-Token.html#Manually-Creating-and-Storing-a-Token, Manually Creating
+and Storing a Token} and @uref{https://magit.vc/manual/ghub/How-Ghub-uses-Auth_002dSource.html#How-Ghub-uses-Auth_002dSource, How Ghub uses Auth-Source}.
+
+If you want to authenticate Ghub without using Magithub, you can simply
+evaluate the following:
+
+@lisp
+(require 'magithub)
+(ghub-get "/user" nil :auth 'magithub)
+@end lisp
+
+After Ghub walks you through the authentication process during evaluation,
+the @code{ghub-get} form should return familiar information (your login, email,
+etc.).
+
+If you're having trouble @emph{authenticating}, @uref{https://github.com/magit/ghub/issues/new, open a Ghub issue} or drop by
+@uref{https://gitter.im/vermiculus/magithub, Magithub's} or @uref{https://gitter.im/magit/magit, Magit's} Gitter channel.
+
+@node Enterprise Support
+@section Enterprise Support
+
+For GitHub Enterprise support, you'll need to add your enterprise domain to
+@code{magithub-github-hosts} so that Magithub can detect when it's in a GitHub
+repository.  You will also need to configure your @samp{~/.authinfo} file
+appropriately to authenticate to your domain; see Ghub's manual for details.
+
+@node Introduction
+@chapter Introduction
+
+Magithub tries to follow closely Magit's lead in general interface.  Most of
+its functionality is developed to tightly integrate with its section/
+framework.  See @uref{https://magit.vc/manual/magit/Sections.html#Sections, Magit's documentation} for information on how to navigate
+using this framework.
+
+Magithub's functionality uses section-specific keymaps to expose
+functionality.  Where it makes sense, the following keys will map to
+functions that 'do the right thing':
+
+@table @asis
+@kindex w
+@cindex magithub-browse-thing
+@item @kbd{w} @tie{}@tie{}@tie{}@tie{}(@code{magithub-browse-thing})
+
+Open a browser to the thing at point.  For instance, when point is on
+issue 42 in your-favorite/github-repo, we'll open
+@samp{http://github.com/your-favorite/github-repo/issue/42}.
+
+@kindex a
+@cindex magithub-add-thing
+@item @kbd{a} @tie{}@tie{}@tie{}@tie{}(@code{magithub-add-thing})
+
+Add something to the thing at point.  For instance, on a list of labels,
+you can add more labels.
+
+@kindex e
+@cindex magithub-edit-thing
+@item @kbd{e} @tie{}@tie{}@tie{}@tie{}(@code{magithub-edit-thing})
+
+Edit the thing at point, such as an issue.
+
+@kindex r
+@cindex magithub-reply-thing
+@item @kbd{r} @tie{}@tie{}@tie{}@tie{}(@code{magithub-reply-thing})
+
+Reply to the thing at point, such as a comment.
+@end table
+
+Magithub also considers the similar placeholder commands introduced by Magit
+which you may already be familiar with:
+
+@table @asis
+@kindex k
+@cindex magit-delete-thing
+@item @kbd{k} @tie{}@tie{}@tie{}@tie{}(@code{magit-delete-thing})
+@kindex RET
+@cindex magit-visit-thing
+@item @kbd{RET} @tie{}@tie{}@tie{}@tie{}(@code{magit-visit-thing})
+@end table
+
+These concepts are intended to provide a more consistent experience
+throughout Magithub within Magit by categorizing your broader interactions
+with all GitHub content.  As with Magit, more commands are added as the
+situation calls for it.
+
+@menu
+* Note::
+* Brief Tutorial::
+@end menu
+
+@node Note
+@section Note
+
+By default, Magithub enables itself in all repositories where @samp{origin} points
+to GitHub.
+
+@defopt magithub-enabled-by-default
+
+When non-nil, Magithub is enabled by default.  This is the fallback value
+of git variable @samp{magithub.enabled} is not set in this repository.
+@end defopt
+
+@defopt magithub-github-hosts
+
+A list of top-level domains that should be recognized as GitHub hosts.
+@end defopt
+
+@node Brief Tutorial
+@section Brief Tutorial
+
+Here's a script that will guide you through the major features of Magithub.
+This is not a replacement for the documentation, but rather an example
+workflow to whet your appetite.
+
+@menu
+* Clone a repository::
+* Viewing project status::
+* Viewing and replying to an issue::
+* Creating an issue::
+* Creating a pull request::
+@end menu
+
+@node Clone a repository
+@subsection Clone a repository
+
+@example
+M-x magithub-clone RET vermiculus/my-new-repository
+@end example
+Cloning a repository this way gets the clone URL from GitHub and forwards
+that on to @code{magit-clone}.  If the repository is a fork, you're prompted to add
+the parent is added under the @samp{upstream} remote.
+
+Fork behavior may change in the future.  It may be more appropriate to
+actually/ clone the source repository and add your remote as a fork.  This
+will cover the 90% case (the 10% case being active forks of unmaintained
+projects).
+
+@node Viewing project status
+@subsection Viewing project status
+
+You are dropped into a status buffer for @samp{vermiculus/my-new-repository}.  You
+see some open issues and pull requests.  You move your cursor to an issue of
+interest and @samp{TAB} to expand it, seeing the author, when it was
+created/updated, any labels, and a preview of the issue contents.
+
+If @samp{vermiculus/my-new-repository} used any status checks, you would see those
+statuses as a header in this buffer.
+
+@node Viewing and replying to an issue
+@subsection Viewing and replying to an issue
+
+You @samp{RET} on the issue and are taken to a dedicated buffer for that issue.
+You can now see its full contents as well as all comments.  You'd like to
+leave a comment -- a suggestion for a fix or an additional use-case to
+consider -- you press @samp{r} to open a new buffer to @emph{reply} to this issue.  You
+write your comment and @samp{C-c C-c} to submit.  But, oh no!  You didn't turn on
+@samp{flyspell-mode} in markdown buffers, so you submitted a spelling error.  A
+simple @samp{e} on the comment will @emph{edit} it.  After submitting again with @samp{C-c C-c},
+everything is well.
+
+Right now, other activity on the issue is not inserted into this buffer.
+Press @samp{w} to open the issue in your browser.
+
+@node Creating an issue
+@subsection Creating an issue
+
+You notice a small issue in how some feature is implemented, so back in the
+status buffer, you use @samp{H i} to create a new issue.  (While inside the GitHub
+repository, you could've used any key bound to @code{magithub-issue-new}.)  The
+first line is the title of the new issue; everything else is the body.  You
+submit the issue with @samp{C-c C-c}.
+
+You come back a little while later to leave additional details -- you reply
+to your own issue in a comment, but realize you should just edit your
+original issue to avoid confusion.  You @samp{k} to @emph{kill} / delete the comment.
+
+@node Creating a pull request
+@subsection Creating a pull request
+
+Since you care about this project and want to help it succeed, you decide to
+fix this issue yourself.  You checkout a new branch (@samp{b c my-feature RET}) and
+get to work.
+
+Because you're so @emph{awesome}, you're ready to push your commit to fix your
+issue.  After realizing you don't have push permissions to this repository,
+you create a fork using @samp{H f}.  You push your branch to your new remote (named
+after your username) and create a pull request with @samp{H p}.  You select the
+head branch as @samp{my-feature} and the base branch as @samp{master} (or whatever the
+production/staging branch is for the project).  You fill out the pull
+request template provided by the project (and inserted into your PR) and off
+you go!
+
+@node Status Buffer Integration
+@chapter Status Buffer Integration
+
+The part of Magithub you're likely to interact with the most is
+embedded right into Magit's status buffer.
+
+@table @asis
+@kindex H
+@cindex magithub-dispatch-popup
+@item @kbd{H} @tie{}@tie{}@tie{}@tie{}(@code{magithub-dispatch-popup})
+
+Access many Magithub entry-points.  See @ref{Dispatch Popup} for more details.
+
+@kindex H e
+@cindex FIXME
+@item @kbd{H e} @tie{}@tie{}@tie{}@tie{}(@code{FIXME})
+
+Toggle status buffer integration in this repository.
+@end table
+
+There are two integrations turned on by default:
+
+@menu
+* Project Status::
+* Open Issues and Pull Requests::
+@end menu
+
+@node Project Status
+@section Project Status
+
+Many services (such as Travis CI and CircleCI) will post statuses to
+commits.  A summary of these statuses are visible in the status buffer
+headers.
+
+@table @asis
+@kindex RET
+@cindex magithub-ci-visit
+@item @kbd{RET} @tie{}@tie{}@tie{}@tie{}(@code{magithub-ci-visit})
+@kindex w
+@cindex magithub-ci-visit
+@item @kbd{w} @tie{}@tie{}@tie{}@tie{}(@code{magithub-ci-visit})
+
+Visit the service's summary of this status.  For example, a status posted
+by Travis CI will open that build on Travis.
+
+@kindex g
+@cindex magithub-ci-refresh
+@item @kbd{g} @tie{}@tie{}@tie{}@tie{}(@code{magithub-ci-refresh})
+
+Refresh statuses from GitHub and then refresh the current buffer.
+
+@kindex H s
+@cindex FIXME
+@item @kbd{H s} @tie{}@tie{}@tie{}@tie{}(@code{FIXME})
+
+Enable/disable status checks in this repository.
+@end table
+
+@node Open Issues and Pull Requests
+@section Open Issues and Pull Requests
+
+These will also display in the status buffer.  There's a lot of
+functionality available right from an issue section.
+
+@table @asis
+@kindex g
+@cindex magithub-issue-refresh
+@item @kbd{g} @tie{}@tie{}@tie{}@tie{}(@code{magithub-issue-refresh})
+
+Refresh issues and pull requests from GitHub and then refresh the current
+buffer.
+
+@kindex RET
+@cindex magithub-issue-visit
+@item @kbd{RET} @tie{}@tie{}@tie{}@tie{}(@code{magithub-issue-visit})
+
+Open a new buffer to view an issue and its comments.
+
+@kindex w
+@cindex magithub-issue-browse
+@item @kbd{w} @tie{}@tie{}@tie{}@tie{}(@code{magithub-issue-browse})
+@kindex w
+@cindex magithub-pull-browse
+@item @kbd{w} @tie{}@tie{}@tie{}@tie{}(@code{magithub-pull-browse})
+
+Browse this issue / pull request on GitHub.
+
+@kindex N
+@cindex magithub-issue-personal-note
+@item @kbd{N} @tie{}@tie{}@tie{}@tie{}(@code{magithub-issue-personal-note})
+
+Opens a buffer for offline note-taking.
+
+@kindex L
+@cindex magithub-issue-add-labels
+@item @kbd{L} @tie{}@tie{}@tie{}@tie{}(@code{magithub-issue-add-labels})
+
+Add labels to the issue.
+
+@kindex a
+@cindex magithub-label-add
+@item @kbd{a} @tie{}@tie{}@tie{}@tie{}(@code{magithub-label-add})
+@kindex k
+@cindex magithub-label-remove
+@item @kbd{k} @tie{}@tie{}@tie{}@tie{}(@code{magithub-label-remove})
+
+When point is on a label section, you can add/remove labels (provided you
+have permission to do so).
+
+@end table
+
+@cindex magithub-label-color-replace
+@deffn Command magithub-label-color-replace
+
+Labels are colored as they would be on GitHub.  In some themes, this
+produces an illegible or otherwise undesirable color.  This command can
+help you find a substitute for labels of this color.
+@end deffn
+
+@defvar magithub-issue-details-hook
+
+Control which issue details display in the status buffer.  Functions
+intended for this variable use the @samp{magithub-issue-detail-insert-*} prefix.
+
+Performance note: judicious use of this variable can improve your overall
+Magit experience in large buffers.
+@end defvar
+
+@defopt magithub-issue-issue-filter-functions
+@end defopt
+@defopt magithub-issue-pull-request-filter-functions
+
+These are lists of functions which must all return non-nil for an issue/PR
+to be displayed in the status buffer.  They all receive the issue/PR
+object as their sole argument.  For example, you might want to filter out
+issues labels @samp{enhancement} from your list:
+
+@lisp
+(setq magithub-issue-issue-filter-functions
+      (list (lambda (issue)          ; don't show enhancement requests
+              (not
+               (member "enhancement"
+                       (let-alist issue
+                         (ghubp-get-in-all '(name) .labels)))))))
+@end lisp
+@end defopt
+
+@menu
+* Manipulating the Cache::
+* Offline Mode::
+* Controlling Sections::
+@end menu
+
+@node Manipulating the Cache
+@subsection Manipulating the Cache
+
+When point is on a Magithub-controlled section (like the status header):
+@multitable {aaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}
+@headitem Default Key
+@tab Description
+@item @samp{g}
+@tab Refresh only this section's GitHub content
+@item @samp{C-u g}
+@tab Like @samp{g}, but works on the whole buffer
+@end multitable
+
+@node Offline Mode
+@subsection Offline Mode
+
+@multitable {aaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaa}
+@headitem Default Key
+@tab Description
+@item @samp{H C c}
+@tab Toggle offline mode
+@end multitable
+
+Offline mode was introduced for those times when you're on the go, but you'd
+still like to have an overview of GitHub data in your status buffer.  It's
+also useful for folks who want to explicitly control when Emacs communicates
+with GitHub -- for this purpose, you can use @samp{C-u g} (discussed above) to pull
+data from GitHub while in offline mode.
+
+To start into offline mode everywhere, use
+@example
+git config --global magithub.cache always
+@end example
+
+See the documentation for function @code{magithub-settings--set-magithub.cache}
+for details on appropriate values.
+
+@node Controlling Sections
+@subsection Controlling Sections
+
+Sections like the issue list and the status header can be toggled with the
+interactive functions of the form @samp{magithub-toggle-*}.  These functions have
+no default keybinding.
+
+Since status checks can be API-hungry and not all projects use them, you can
+disable the status header at the repository-level with @samp{H ~}; see the Status
+Checks section for more information.
+
+@node Dispatch Popup
+@chapter Dispatch Popup
+
+Much of Magithub's functionality, including configuration options, is behind
+this popup.  In Magit status buffers, it's bound to @samp{H}.
+
+@table @asis
+@kindex d
+@cindex magithub-dashboard
+@item @kbd{d} @tie{}@tie{}@tie{}@tie{}(@code{magithub-dashboard})
+
+See @ref{Dashboard}.
+
+@kindex c
+@cindex magithub-create
+@item @kbd{c} @tie{}@tie{}@tie{}@tie{}(@code{magithub-create})
+
+Push a local repository up to GitHub.
+
+@kindex H
+@cindex magithub-browse
+@item @kbd{H} @tie{}@tie{}@tie{}@tie{}(@code{magithub-browse})
+
+Open the current repository in your browser.
+
+@kindex f
+@cindex magithub-fork
+@item @kbd{f} @tie{}@tie{}@tie{}@tie{}(@code{magithub-fork})
+
+Fork this repository on GitHub.  This will add your fork as a remote under
+your username.  For example, if user @samp{octocat} forked Magit, we would see a
+new remote called @samp{octocat} pointing to @samp{octocat/magit}.
+
+@kindex i
+@cindex magithub-issue-new
+@item @kbd{i} @tie{}@tie{}@tie{}@tie{}(@code{magithub-issue-new})
+@kindex p
+@cindex magithub-pull-request-new
+@item @kbd{p} @tie{}@tie{}@tie{}@tie{}(@code{magithub-pull-request-new})
+
+Open a new buffer to create an issue or open a pull request.  See
+@ref{Creating Content}.
+@end table
+
+@menu
+* Configuration::
+* Meta::
+@end menu
+
+@node Configuration
+@section Configuration
+
+Per-repository configuration is controlled via git variables reachable from
+the dispatch popup via @samp{H C}.  Use @samp{? <key>} to get online help for each
+variable in that popup.
+
+@table @asis
+@kindex C e
+@cindex FIXME
+@item @kbd{C e} @tie{}@tie{}@tie{}@tie{}(@code{FIXME})
+
+Turn Magithub on/off (completely).
+
+@kindex C s
+@cindex FIXME
+@item @kbd{C s} @tie{}@tie{}@tie{}@tie{}(@code{FIXME})
+
+Turn the project status header on/off.
+
+@kindex C c
+@cindex FIXME
+@item @kbd{C c} @tie{}@tie{}@tie{}@tie{}(@code{FIXME})
+
+Control whether Magithub is considered 'online'.  This controls the
+behavior of the the cache.  This may go away in the future.  See
+Controlling the Cache for more details.  FIXME there is no such node.
+
+@kindex C i
+@cindex FIXME
+@item @kbd{C i} @tie{}@tie{}@tie{}@tie{}(@code{FIXME})
+
+Toggle the issues section.
+
+@kindex C p
+@cindex FIXME
+@item @kbd{C p} @tie{}@tie{}@tie{}@tie{}(@code{FIXME})
+
+Toggle the pull requests section.
+
+@kindex C x
+@cindex FIXME
+@item @kbd{C x} @tie{}@tie{}@tie{}@tie{}(@code{FIXME})
+
+Set the 'proxy' used for this repository.  See @ref{Proxies}.
+@end table
+
+@node Meta
+@section Meta
+
+Since Magithub is so integrated with Magit, there's often confusion about
+whom to ask for support (especially for users of preconfigured Emacsen like
+Spacemacs and Prelude).  Hopefully, these functions can direct you to the
+appropriate spot.
+
+@table @asis
+@kindex &
+@cindex magithub--meta-new-issue
+@item @kbd{&} @tie{}@tie{}@tie{}@tie{}(@code{magithub--meta-new-issue})
+
+Open the browser to create a new issue for Magithub functionality
+described in this document.
+
+@kindex h
+@cindex magithub--meta-help
+@item @kbd{h} @tie{}@tie{}@tie{}@tie{}(@code{magithub--meta-help})
+
+Open the browser to ask for help on Gitter, a GitHub-focused chatroom.
+@end table
+
+@node 'Features'
+@chapter 'Features'
+
+Given that some features of Magithub are not desired by or appropriate for
+every type of user, there are features that are not turned on by default.
+These are features that are injected into standard Magit popups.
+
+The list of available features is available in constant
+@code{magithub-feature-list}.  Despite its name, this is an alist of symbols (i.e.,
+'features') to functions that install the feature.  While the documentation
+for each feature lives in that symbol, you would normally not otherwise
+interact with it.
+
+@defun magithub-feature-autoinject
+
+This function is the expected interface to install features.  You will
+normally use
+@lisp
+(magithub-feature-autoinject t)
+@end lisp
+in your configuration to install all features, but you have the option of
+installing them one at a time using the symbols from constant
+@code{magithub-feature-list} or as a list of those symbols:
+@lisp
+(magithub-feature-autoinject 'commit-browse)
+(magithub-feature-autoinject '(commit-browse pull-request-merge))
+@end lisp
+@end defun
+
+@node Cloning
+@chapter Cloning
+
+@cindex magithub-clone
+@deffn Command magithub-clone
+
+Clone a repository from GitHub.
+@end deffn
+
+@defopt magithub-clone-default-directory
+
+The default destination directory to use for cloning.
+@end defopt
+
+@defopt magithub-preferred-remote-method
+
+This option is a symbol indicating the preferred cloning method (between
+HTTPS, SSH, and the @samp{git://} protocol).
+@end defopt
+
+@node Dashboard
+@chapter Dashboard
+
+The dashboard shows you information pertaining to @emph{you}:
+@itemize
+@item
+notifications
+
+@item
+issues and pull requests you're assigned per repository
+@end itemize
+as well as contextual information like the logged-in user and @uref{https://developer.github.com/v3/#rate-limiting, rate-limiting}
+information.
+
+@cindex magithub-dashboard
+@deffn Command magithub-dashboard
+
+View your dashboard.
+@end deffn
+
+@table @asis
+@kindex ;
+@cindex magithub-dashboard-popup
+@item @kbd{;} @tie{}@tie{}@tie{}@tie{}(@code{magithub-dashboard-popup})
+
+Configure your global dashboard settings.
+
+@end table
+
+@defopt magithub-dashboard-show-read-notifications
+
+When non-nil, we'll show read notifications in the dashboard.
+@end defopt
+
+@node Creating Content
+@chapter Creating Content
+
+It's great to read about what's been happening, but it's even better to
+contribute your own thoughts and activity!
+
+@table @asis
+@kindex H i
+@cindex magithub-issue-new
+@item @kbd{H i} @tie{}@tie{}@tie{}@tie{}(@code{magithub-issue-new})
+@kindex H p
+@cindex magithub-pull-request-new
+@item @kbd{H p} @tie{}@tie{}@tie{}@tie{}(@code{magithub-pull-request-new})
+
+Create issues and pull requests.  If you have push access to the
+repository, you'll have the opportunity to add labels before you submit
+the issue.
+
+Creating a pull request requires a HEAD branch, a BASE branch, and to know
+which remote points to your fork.
+
+@kindex r
+@cindex magithub-comment-new
+@item @kbd{r} @tie{}@tie{}@tie{}@tie{}(@code{magithub-comment-new})
+@kindex r
+@cindex magithub-comment-reply
+@item @kbd{r} @tie{}@tie{}@tie{}@tie{}(@code{magithub-comment-reply})
+
+On an issue or pull request section, @code{magithub-comment-new} will allow you
+to post a comment to that issue/PR.  If point is already on a comment,
+@code{magithub-comment-reply} will quote the comment at point for you.
+@end table
+
+@node Caching
+@chapter Caching
+
+Caching is a complicated topic with a long Magithub history of, well,
+failure.  As of today, all data retrieved from the API is cached by
+default.  Using @samp{g} on Magithub sections will usually refresh the information
+in the buffer pertaining to that section.  Otherwise, @samp{C-u g} in any Magit
+buffer will refresh all GitHub data in that buffer.
+
+This behavior may change in the future, but for now, it's the most stable
+option.  See
+
+@node Proxies
+@chapter Proxies
+
+It's not uncommon to have repositories where the bug-tracker is in a
+separate repository.  For these cases, you can use the idea of 'proxies'.  A
+proxy is a remote (with a GitHub-associated URL) that you choose to use for
+all GitHub API requests concerning the @emph{actual} current repository.  This is
+manifest in the git variable @samp{magithub.proxy}.
+
+@defun magithub-proxy-set-default
+
+If you consistently use a specific remote name for the bug tracker, you
+can set it globally.
+@end defun
+
+All GitHub requests specific to the current repository context are routed
+through @code{magithub-repo} which respects this proxy.
+
+@node Unfiled
+@chapter Unfiled
+
+@menu
+* Content::
+* 'Tricks'::
+@end menu
+
+@node Content
+@section Content
+
+@menu
+* Working with Repositories::
+* Your Dashboard::
+@end menu
+
+@node Working with Repositories
+@subsection Working with Repositories
+
+@menu
+* General::
+* Issues::
+* Forking and Pull Requests::
+* Labels::
+* Status Checks::
+@end menu
+
+@node General
+@subsubsection @strong{DONE} General
+
+@multitable {aaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}
+@headitem Default Key
+@tab Description
+@item @samp{H H}
+@tab Opens the current repository in the browser
+@item @samp{H c}
+@tab Creates the current local repository on GitHub
+@item @samp{M-x magithub-clone}
+@tab Clone a repository
+@end multitable
+
+@samp{magithub-clone} may appear to be a thin wrapper over @samp{magit-clone}, but it's
+quite a bit smarter than that.  We'll of course respect
+@samp{magithub-preferred-remote-method} when cloning the repository, but we can
+also detect when the repository is a fork and can create and set an upstream
+remote accordingly (similar to @samp{M-x magithub-fork}).
+
+@node Issues
+@subsubsection @strong{DONE} Issues
+
+@multitable {aaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaa}
+@headitem Default Key
+@tab Description
+@item @samp{H i}
+@tab Create a new issue
+@item @samp{RET}
+@tab Open the issue in GitHub
+@end multitable
+
+You can filter issues with @samp{magithub-issue-issue-filter-functions}:
+@lisp
+(setq magithub-issue-issue-filter-functions
+      (list (lambda (issue) ; don't show enhancement requests
+              (not
+               (member "enhancement"
+                       (let-alist issue
+                         (ghubp-get-in-all '(name) .labels)))))))
+@end lisp
+Each function in the @samp{*-functions} list must return non-nil for the issue to
+appear in the issue list.  See also the documentation for that variable.
+
+@node Forking and Pull Requests
+@subsubsection @strong{DONE} Forking and Pull Requests
+
+@multitable {aaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaa}
+@headitem Default Key
+@tab Description
+@item @samp{H f}
+@tab Fork the current repository
+@item @samp{H p}
+@tab Submit pull requests upstream
+@end multitable
+
+You can also filter pull requests with
+@samp{magithub-issue-pull-request-filter-functions}.  See the section on
+issue-filtering for an example.
+
+@node Labels
+@subsubsection @strong{TODO} Labels
+
+@multitable {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}
+@headitem Default Key
+@tab Description
+@item @samp{M-x magithub-label-color-replace}
+@tab Choose a new color for the label at point
+@end multitable
+
+By default, Magithub will adopt the color used by GitHub when showing
+labels.  In some themes, this doesn't provide enough contrast.  Use @samp{M-x
+magithub-label-color-replace} to replace the current label's color with
+another one.  (This will apply to all labels in all repositories, but will
+of course not apply to all @emph{shades} of the original color.)
+
+@node Status Checks
+@subsubsection @strong{TODO} Status Checks
+
+@multitable {aaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}
+@headitem Default Key
+@tab Description
+@item @samp{RET}
+@tab Visit the status's dashboard in your browser
+@item @samp{TAB}
+@tab On the status header, show individual CI details
+@item @samp{H ~}
+@tab Toggle status integration for this repository
+@end multitable
+
+When the status buffer first opens, the status header is inserted at the top
+and probably looks something like this:
+@example
+Status:   Success
+@end example
+
+You can get a breakdown of which checks succeeded and which failed by using
+@samp{TAB}:
+@example
+Status:   Success
+          Checks for ref: develop
+          Success The Travis CI build passed continuous-integration/travis-ci/push
+@end example
+
+Pressing @samp{RET} on the header will take you to the dashboard associated with
+that status check.  If there's more than one status check here, you'll be
+prompted to choose a check (e.g., Travis, Circle, CLA, @dots{}).  Of course, if
+you expand the header to show the individual checks, @samp{RET} on those will take
+you straight to that check.
+
+@node Your Dashboard
+@subsection @strong{TODO} Your Dashboard
+
+Check out @samp{M-x magithub-dashboard} to view your notifications and issues
+assigned to you
+
+@node 'Tricks'
+@section @strong{TODO} 'Tricks'
+
+Most of Magithub is implemented in pure Elisp now, but there are a few
+lingering goodies that haven't been ported (since their real logic is
+non-trivial).  These definitions are relegated to @samp{magithub-issue-tricks.el}.
+
+Make sure to install @uref{https://hub.github.com, @samp{hub}} and add it to your @code{exec-path} if you intend to use
+these functions.  After installation, use @samp{hub browse} from a directory with a
+GitHub repository to force the program to authenticate -- this avoids some
+weirdness on the Emacs side of things.
+
+@bye

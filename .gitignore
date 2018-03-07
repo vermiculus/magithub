@@ -1,3 +1,6 @@
 *.elc
 *~
 /.cask
+/magithub.html
+/magithub.pdf
+/magithub/
