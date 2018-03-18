@@ -117,8 +117,7 @@ remote counterpart."
     (if (magit-rebase-in-progress-p)
         ;; avoid rate-limiting ourselves
         (magithub-debug-message "skipping CI status checks while in rebase")
-      (condition-case _
-          (magithub-cache :ci-status
+      (or (magithub-cache :ci-status
             `(magithub-request
               (ghubp-get-repos-owner-repo-commits-ref-status
                ',(magithub-repo) ,ref))
@@ -132,10 +131,9 @@ remote counterpart."
                     (current-time))
               (message "(magithub): new statuses retrieved -- overall: %s"
                        (alist-get 'state status))))
-        (ghub-404
-         '((state . "error")
-           (total_count . 0)
-           (magithub-message . "ref not found on remote")))))))
+          '((state . "error")
+            (total_count . 0)
+            (magithub-message . "ref not found on remote"))))))
 
 (defvar magithub-ci-status-alist
   '((nil       . ((display . "None")    (face . magithub-ci-no-status)))
