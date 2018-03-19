@@ -211,22 +211,27 @@ the age of the oldest cached information."
              (magithub-offline-p))
     (magit-insert-section (magithub nil t)
       (insert
-       (format "Magithub: %s; use %s to refresh GitHub content or %s to go back online%s\n"
-               (propertize "OFFLINE" 'face 'magit-head)
-               (propertize
-                (substitute-command-keys "\\[universal-argument] \\[magit-refresh]")
-                'face 'magit-header-line-key)
-               (propertize
-                (substitute-command-keys "\\[magithub-dispatch-popup] O")
-                'face 'magit-header-line-key)
-               (propertize "..." 'face 'magit-dimmed)))
+       (format
+	"Magithub: %s; use %s to refresh GitHub content or %s to go back online%s\n"
+        (propertize "OFFLINE" 'face 'magit-head)
+        (propertize
+         (substitute-command-keys "\\[universal-argument] \\[magit-refresh]")
+         'face 'magit-header-line-key)
+        (propertize
+         (substitute-command-keys "\\[magithub-dispatch-popup] O")
+         'face 'magit-header-line-key)
+        (propertize "..." 'face 'magit-dimmed)))
       (magit-insert-heading)
-      (let* ((msg "When Magithub is offline, no API requests are ever made automatically.  Even when online, cached API responses never expire, so they must be updated manually with %s.")
+      (let* ((msg "When Magithub is offline, no API requests are ever made \
+automatically.  Even when online, cached API responses never expire, so \
+they must be updated manually with %s.")
              (msg (s-word-wrap (- fill-column 10) msg))
              (msg (format msg (propertize
-                               (substitute-command-keys "\\[universal-argument] \\[magit-refresh]")
+                               (substitute-command-keys
+				"\\[universal-argument] \\[magit-refresh]")
                                'face 'magit-header-line-key))))
-        (insert (format "%s\n" (replace-regexp-in-string (rx bol) (make-string 10 ?\ ) msg)))))))
+        (insert (format "%s\n" (replace-regexp-in-string
+				(rx bol) (make-string 10 ?\ ) msg)))))))
 
 (eval-after-load 'magit
   '(add-hook 'magit-status-headers-hook
@@ -257,7 +262,9 @@ The cache is writtin to `magithub-cache-file' in
          (insert (prin1-to-string magithub-cache--cache))
          (write-file magithub-cache-file)))
       (setq magithub-cache--needs-write nil)
-      (magithub-debug-message "wrote cache to disk: %S" (expand-file-name magithub-cache-file magithub-dir)))))
+      (magithub-debug-message "wrote cache to disk: %S"
+			      (expand-file-name magithub-cache-file
+						magithub-dir)))))
 
 (defmacro magithub-cache-without-cache (class &rest body)
   "For CLASS, execute BODY without using CLASS's caches.
@@ -298,10 +305,11 @@ threshold, you'll be asked if you'd like to go offline."
 
 (defcustom magithub-api-available-check-frequency 10
   "Minimum number of seconds between each API availability check.
-While online (see `magithub-go-online'), we check to ensure the API is available
-before making a real request. This involves a `/rate_limit' call (or for some
-Enterprise instances, a `/meta' call). Use this setting to configure how often
-this is done. It will be done no more frequently than other API actions.
+While online (see `magithub-go-online'), we check to ensure the
+API is available before making a real request. This involves a
+`/rate_limit' call (or for some Enterprise instances, a `/meta'
+call). Use this setting to configure how often this is done. It
+will be done no more frequently than other API actions.
 
 These calls are guaranteed to not count against your rate limit."
   :group 'magithub
@@ -335,7 +343,8 @@ Pings the API a maximum of once every ten seconds."
                  (magithub-debug-message "making sure authinfo is unlocked")
                  (ghubp-token 'magithub))
              (if (and magithub--api-last-checked
-                      (< (time-to-seconds (time-since magithub--api-last-checked)) magithub-api-available-check-frequency))
+                      (< (time-to-seconds (time-since magithub--api-last-checked))
+			 magithub-api-available-check-frequency))
                  (prog1 magithub--api-last-checked
                    (magithub-debug-message "used cached value for api-last-checked"))
 
@@ -358,8 +367,8 @@ Pings the API a maximum of once every ten seconds."
                                 (ghub-get "/meta" nil :auth 'magithub)))
                              api-status (and response t))
 
-                       (magithub-debug-message "new value retrieved for api-last-available: %S"
-                                               response))
+                       (magithub-debug-message
+			"new value retrieved for api-last-available: %S" response))
 
                    ;; Sometimes, the API can take a long time to respond
                    ;; (whether that's GitHub not responding or requests being
@@ -369,16 +378,19 @@ Pings the API a maximum of once every ten seconds."
                     (setq error-data err
                           magithub--api-offline-reason
                           (concat "API is not responding quickly; "
-                                  "consider customizing `magithub-api-timeout' if this happens often")))
+                                  "consider customizing `magithub-api-timeout' "
+				  "if this happens often")))
 
                    ;; Never hurts to be cautious :-)
                    (error
-                    (setq error-data err
-                          magithub--api-offline-reason (format "unknown issue: %S" err))))
+                    (setq error-data err)
+                    (setq magithub--api-offline-reason
+			  (format "unknown issue: %S" err))))
 
                  (when error-data
-                   (magithub-debug-message "consider reporting unknown error while checking api-available: %S"
-                                           error-data))
+                   (magithub-debug-message
+		    "consider reporting unknown error while checking api-available: %S"
+                    error-data))
 
                  api-status)))
       (when magithub--api-offline-reason
@@ -509,7 +521,8 @@ of the form `owner/name' (as in `vermiculus/magithub')."
                           sparse-repo))
                ;; Repo may not exist; ignore 404
                (ghub-404 nil)))
-          (when (memq (magithub-settings-cache-behavior) '(when-present refreshing-when-offline))
+          (when (memq (magithub-settings-cache-behavior)
+		      '(when-present refreshing-when-offline))
             (let ((magithub-settings-cache-behavior-override nil))
               (magithub-repo sparse-repo)))
           sparse-repo))))
@@ -801,7 +814,8 @@ Eventually, TIME will always be a time value."
             (magithub--parse-time-string time))
        time)))
 
-(defun magithub--completing-read (prompt collection &optional format-function predicate require-match default)
+(defun magithub--completing-read
+    (prompt collection &optional format-function predicate require-match default)
   "Using PROMPT, get a list of elements in COLLECTION.
 This function continues until all candidates have been entered or
 until the user enters a value of \"\".  Duplicate entries are not
@@ -814,7 +828,8 @@ allowed."
                            (when default (funcall format-function default)))
           collection))))
 
-(defun magithub--completing-read-multiple (prompt collection &optional format-function predicate require-match default)
+(defun magithub--completing-read-multiple
+    (prompt collection &optional format-function predicate require-match default)
   "Using PROMPT, get a list of elements in COLLECTION.
 This function continues until all candidates have been entered or
 until the user enters a value of \"\".  Duplicate entries are not
@@ -1132,7 +1147,9 @@ COMPARE is used on the application of ACCESSOR to each argument."
   "Refresh GitHub data.
 Use directly at your own peril; this is intended for use with
 `magit-pre-refresh-hook'."
-  (interactive (user-error (substitute-command-keys "This is no longer an interactive function; use \\[universal-argument] \\[magit-refresh] instead :-)")))
+  (interactive (user-error (substitute-command-keys
+			    "This is no longer an interactive function; \
+use \\[universal-argument] \\[magit-refresh] instead :-)")))
   (when (and current-prefix-arg
              (magithub-usable-p)
              (magithub-confirm-no-error 'refresh)
@@ -1150,10 +1167,11 @@ Use directly at your own peril; this is intended for use with
               (`t 'refreshing-when-offline)
               (`nil nil)
               (`when-present 'refreshing)))
-      (run-with-idle-timer 0 nil (lambda ()
-                                   (setq magithub-settings-cache-behavior-override old-override-value
-                                         magithub-cache--refreshed-forms nil)
-                                   (message "(magithub): buffer data refreshed"))))))
+      (run-with-idle-timer
+       0 nil (lambda ()
+               (setq magithub-settings-cache-behavior-override old-override-value)
+               (setq magithub-cache--refreshed-forms nil)
+               (message "(magithub): buffer data refreshed"))))))
 
 (defun magithub-wash-gfm (text)
   "Wash TEXT as it comes from the API."
@@ -1182,7 +1200,8 @@ Use directly at your own peril; this is intended for use with
 (defun magithub-commit-browse (rev)
   "Browse REV on GitHub.
 Interactively, this is the commit at point."
-  (interactive (list (or (when-let* ((rev (magit-rev-verify (oref (magit-current-section) value))))
+  (interactive (list (or (when-let* ((rev (magit-rev-verify
+					   (oref (magit-current-section) value))))
                            rev)
                          (thing-at-point 'git-revision))))
   (if-let ((parsed (magit-rev-parse rev)))

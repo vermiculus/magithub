@@ -43,13 +43,15 @@
       (magithub-bug-reference-mode-on)
       (magit-display-buffer (current-buffer)))))
 
-(defun magithub-pull-request-new-from-issue (repo issue base head &optional maintainer-can-modify)
+(defun magithub-pull-request-new-from-issue
+    (repo issue base head &optional maintainer-can-modify)
   "Create a pull request from an existing issue.
 REPO is the parent repository of ISSUE.  BASE and HEAD are as
 they are in `magithub-pull-request-new'."
   (interactive (if-let ((issue-at-point (thing-at-point 'github-issue)))
                    (let-alist (magithub-pull-request-new-arguments)
-                     (let ((allow-maint-mod (magithub-confirm-no-error 'pr-allow-maintainers-to-submit)))
+                     (let ((allow-maint-mod (magithub-confirm-no-error
+					     'pr-allow-maintainers-to-submit)))
                        (magithub-confirm 'submit-pr-from-issue
                                          (magithub-issue-reference issue-at-point)
                                          .user+head .base)
@@ -121,7 +123,8 @@ See also URL
                                 (magit-get-upstream-branch head-branch))
                            (let-alist parent-repo .default_branch))))
          (user+head   (format "%s:%s" this-repo-owner head-branch)))
-    (when (magithub-request (ghubp-get-repos-owner-repo-pulls parent-repo nil :head user+head))
+    (when (magithub-request (ghubp-get-repos-owner-repo-pulls parent-repo nil
+			      :head user+head))
       (user-error "A pull request on %s already exists for head \"%s\""
                   (magithub-repo-name parent-repo)
                   user+head))
@@ -137,7 +140,8 @@ See also URL
 (defun magithub-pull-request-new (repo base fork head head-no-user)
   "Create a new pull request."
   (interactive (let-alist (magithub-pull-request-new-arguments)
-                 (magithub-confirm 'pre-submit-pr .user+head (magithub-repo-name .repo) .base)
+                 (magithub-confirm 'pre-submit-pr .user+head
+				   (magithub-repo-name .repo) .base)
                  (list .repo .base .fork .head .head-no-user)))
   (let ((is-single-commit
          (string= "1" (magit-git-string "rev-list" "--count" (format "%s.." base)))))
@@ -149,7 +153,8 @@ See also URL
                                      head
                                      (magithub-repo-name repo)
                                      base)
-            :header (let-alist repo (format "PR %s/%s (%s->%s)" .owner.login .name head base))
+            :header (let-alist repo (format "PR %s/%s (%s->%s)"
+					    .owner.login .name head base))
             :submit #'magithub-pull-request-submit
             :file (expand-file-name "new-pull-request-draft"
                                     (magithub-repo-data-dir repo))

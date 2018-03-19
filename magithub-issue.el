@@ -286,12 +286,15 @@ See also `magithub-issue-insert-sections'."
       (let-alist issue
         (magit-insert-heading
           (format (format "%%%ds  %%s" (1+ pad-num-to-len)) ;1+ accounts for #
-                  (propertize (format "#%d" .number) 'face 'magithub-issue-number)
-                  (propertize .title                 'face (if (magithub-issue-has-personal-note-p issue)
-                                                               'magithub-issue-title-with-note
-                                                             'magithub-issue-title))))
+                  (propertize (format "#%d" .number)
+			      'face 'magithub-issue-number)
+                  (propertize .title
+			      'face (if (magithub-issue-has-personal-note-p issue)
+                                        'magithub-issue-title-with-note
+                                      'magithub-issue-title))))
         (run-hook-with-args 'magithub-issue-details-hook issue
-                            (format " %s  %%-12s" (make-string pad-num-to-len ?\ )))))))
+                            (format " %s  %%-12s"
+				    (make-string pad-num-to-len ?\ )))))))
 
 (defvar magithub-issue-details-hook
   '(magithub-issue-detail-insert-personal-notes
@@ -375,7 +378,9 @@ Each function takes two arguments:
         (setq maxchar (* 3 width))
         (setq did-cut (< maxchar (length .body)))
         (setq maxchar (if did-cut (- maxchar 3) maxchar))
-        (setq text (if did-cut (substring .body 0 (min (length .body) (* 4 width))) .body))
+        (setq text (if did-cut
+		       (substring .body 0 (min (length .body) (* 4 width)))
+		     .body))
         (setq text (replace-regexp-in-string "" "" text))
         (setq text (let ((fill-column width))
                      (thread-last text

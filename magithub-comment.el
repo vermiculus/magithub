@@ -202,7 +202,8 @@ initial contents of the reply if there is no draft."
 
     (unless (string= (alist-get 'body comment)
                      (alist-get 'body updated))
-      (message "Comment has changed since information was cached; updated content pulled in for edit"))))
+      (message "Comment has changed since information was cached; \
+updated content pulled in for edit"))))
 
 (defun magithub-comment-reply (comment &optional discard-draft issue)
   "Reply to COMMENT on ISSUE.

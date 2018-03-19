@@ -36,7 +36,8 @@
 ;;;###autoload
 (defun magithub-completion-complete-issues ()
   "A `completion-at-point' function which completes \"#123\" issue references.
-Add this to `completion-at-point-functions' in buffers where you want this to be available."
+Add this to `completion-at-point-functions' in buffers where you
+want this to be available."
   (when (magithub-enabled-p)
     (when (looking-back "#\\([0-9]*\\)" (- (point) 10))
       (let ((start (match-beginning 1))
@@ -58,7 +59,8 @@ Add this to `completion-at-point-functions' in buffers where you want this to be
                                        .title))
               :company-doc-buffer (lambda (c)
                                     (save-window-excursion
-                                      (magithub-issue-visit (get-text-property 0 :issue c)))))))))
+                                      (magithub-issue-visit
+				       (get-text-property 0 :issue c)))))))))
 
 ;;;###autoload
 (defun magithub-completion-complete-users ()
@@ -81,7 +83,8 @@ list of all users who created issues or pull requests."
                                       .author_association)))
                 (push (propertize candidate :user .user :association association)
                       completions)))))
-        (list start end (sort (cl-remove-duplicates completions :test #'string=) #'string<)
+        (list start end (sort (cl-remove-duplicates completions :test #'string=)
+			      #'string<)
               :exclusive 'no
               :company-docsig (lambda (c) (get-text-property 0 :association c))
               :annotation-function (lambda (c) (get-text-property 0 :association c)))))))
@@ -90,7 +93,8 @@ list of all users who created issues or pull requests."
 (defun magithub-completion-enable ()
   "Enable completion of info from magithub in the current buffer."
   (make-local-variable 'completion-at-point-functions)
-  (dolist (f '(magithub-completion-complete-issues magithub-completion-complete-users))
+  (dolist (f '(magithub-completion-complete-issues
+	       magithub-completion-complete-users))
     (add-to-list 'completion-at-point-functions f)))
 
 
