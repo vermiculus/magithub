@@ -20,8 +20,6 @@
 
 ;;; Commentary:
 
-;;
-
 ;;; Code:
 
 (require 'magit)

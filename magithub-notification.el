@@ -20,7 +20,7 @@
 
 ;;; Commentary:
 
-;; View and interact with notifications
+;; View and interact with notifications.
 
 ;;; Code:
 

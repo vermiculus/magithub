@@ -20,7 +20,7 @@
 
 ;;; Commentary:
 
-;;
+;; Core functions for Magithub.
 
 ;;; Code:
 

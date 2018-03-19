@@ -20,7 +20,7 @@
 
 ;;; Commentary:
 
-;; Code for dealing with the current users and other users
+;; Code for dealing with the current user and other users.
 
 ;;; Code:
 
