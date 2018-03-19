@@ -1138,12 +1138,10 @@ COMPARE is used on the application of ACCESSOR to each argument."
   (interactive)
   (magit-section-show-level -5))
 
-(defvar magithub-reset-settings-cache-behavior-override nil)
 (defun magithub-reset-settings-cache-behavior-override ()
   "Reset everything to the defaults after refreshing.
 To be added to `magit-unwind-refresh-hook'."
-  (setq magithub-settings-cache-behavior-override
-	magithub-reset-settings-cache-behavior-override)
+  (setq magithub-settings-cache-behavior-override 'none)
   (setq magithub-cache--refreshed-forms nil))
 
 (defun magithub-refresh ()
@@ -1151,8 +1149,6 @@ To be added to `magit-unwind-refresh-hook'."
 Use directly at your own peril; this is intended for use with
 `magit-pre-refresh-hook'."
   (interactive (user-error (substitute-command-keys "This is no longer an interactive function; use \\[universal-argument] \\[magit-refresh] instead :-)")))
-  (setq magithub-reset-settings-cache-behavior-override
-	magithub-settings-cache-behavior-override)
   (when (and current-prefix-arg
              (magithub-usable-p)
              (magithub-confirm-no-error 'refresh)
