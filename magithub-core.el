@@ -1033,7 +1033,7 @@ of a signal (e.g., for interactive forms)."
 One of the following:
 
   `clone_url' (https://github.com/octocat/Hello-World.git)
-  `git_url'   (git:github.com/octocat/Hello-World.git)
+  `git_url'   (git://github.com/octocat/Hello-World.git)
   `ssh_url'   (git@github.com:octocat/Hello-World.git)"
   :group 'magithub
   :type '(choice
