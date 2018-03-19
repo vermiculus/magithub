@@ -190,8 +190,9 @@ AFTER-UPDATE is a function to run after the cache is updated."
                (run-with-idle-timer 600 nil #'magithub-cache-write-to-disk)
                (when refreshing
                  (push entry magithub-cache--refreshed-forms))
-               (when (functionp after-update)
-                 (funcall after-update new-value))))
+               (if (functionp after-update)
+                   (funcall after-update new-value)
+		 new-value)))
         cached-value)))
 
 (defun magithub-cache-invalidate ()
