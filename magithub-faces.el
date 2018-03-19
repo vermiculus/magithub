@@ -1,4 +1,4 @@
-;;; magithub-faces.el --- faces of Magithub          -*- lexical-binding: t; -*-
+;;; magithub-faces.el --- faces of Magithub      -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2017-2018  Sean Allred
 

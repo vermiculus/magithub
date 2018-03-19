@@ -1,4 +1,4 @@
-;;; magithub-orgs.el --- Organization handling  -*- lexical-binding: t; -*-
+;;; magithub-orgs.el --- Organization handling   -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2016-2018  Sean Allred
 

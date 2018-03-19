@@ -1,4 +1,4 @@
-;;; magithub-repo.el --- repo tools                  -*- lexical-binding: t; -*-
+;;; magithub-repo.el --- repo tools              -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2017-2018  Sean Allred
 

@@ -1,4 +1,4 @@
-;;; magithub-issue-view.el --- view issues           -*- lexical-binding: t; -*-
+;;; magithub-issue-view.el --- view issues       -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2017-2018  Sean Allred
 

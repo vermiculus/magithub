@@ -1,4 +1,4 @@
-;;; magithub-comment.el --- tools for comments       -*- lexical-binding: t; -*-
+;;; magithub-comment.el --- tools for comments   -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2017-2018  Sean Allred
 

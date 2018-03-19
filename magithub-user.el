@@ -1,4 +1,4 @@
-;;; magithub-user.el --- Inspect users  -*- lexical-binding: t; -*-
+;;; magithub-user.el --- Inspect users           -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2016-2018  Sean Allred
 

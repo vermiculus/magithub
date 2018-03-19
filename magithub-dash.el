@@ -1,4 +1,4 @@
-;;; magithub-dash.el --- magithub dashboard          -*- lexical-binding: t; -*-
+;;; magithub-dash.el --- magithub dashboard      -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2017-2018  Sean Allred
 
