@@ -1138,32 +1138,36 @@ COMPARE is used on the application of ACCESSOR to each argument."
   (interactive)
   (magit-section-show-level -5))
 
+(defvar magithub-reset-settings-cache-behavior-override nil)
+(defun magithub-reset-settings-cache-behavior-override ()
+  "Reset everything to the defaults after refreshing.
+To be added to `magit-unwind-refresh-hook'."
+  (setq magithub-settings-cache-behavior-override
+	magithub-reset-settings-cache-behavior-override)
+  (setq magithub-cache--refreshed-forms nil))
+
 (defun magithub-refresh ()
   "Refresh GitHub data.
 Use directly at your own peril; this is intended for use with
 `magit-pre-refresh-hook'."
   (interactive (user-error (substitute-command-keys "This is no longer an interactive function; use \\[universal-argument] \\[magit-refresh] instead :-)")))
+  (setq magithub-reset-settings-cache-behavior-override
+	magithub-settings-cache-behavior-override)
   (when (and current-prefix-arg
              (magithub-usable-p)
              (magithub-confirm-no-error 'refresh)
              (or (magithub--api-available-p)
                  (magithub-confirm-no-error 'refresh-when-API-unresponsive)))
-    (let ((old-override-value magithub-settings-cache-behavior-override)
-          (old-behavior (magithub-settings-cache-behavior)))
-      ;; `magithub-refresh' is part of `magit-pre-refresh-hook' and our requests
-      ;; are made as part of `magit-refresh'.  There's no way we can let-bind
-      ;; `magithub-settings-cache-behavior-override' around that entire form, so
-      ;; we do the next best thing: as soon as emacs is idle (i.e., magit is
-      ;; done refreshing), we reset the override back to its old value.
-      (setq magithub-settings-cache-behavior-override
-            (pcase old-behavior
-              (`t 'refreshing-when-offline)
-              (`nil nil)
-              (`when-present 'refreshing)))
-      (run-with-idle-timer 0 nil (lambda ()
-                                   (setq magithub-settings-cache-behavior-override old-override-value
-                                         magithub-cache--refreshed-forms nil)
-                                   (message "(magithub): buffer data refreshed"))))))
+    ;; `magithub-refresh' is part of `magit-pre-refresh-hook' and our requests
+    ;; are made as part of `magit-refresh'.  There's no way we can let-bind
+    ;; `magithub-settings-cache-behavior-override' around that entire form, so
+    ;; we do the next best thing: use `magit-unwind-refresh-hook' to reset the
+    ;; override back to its old value.
+    (setq magithub-settings-cache-behavior-override
+          (pcase (magithub-settings-cache-behavior)
+            (`t 'refreshing-when-offline)
+            (`nil nil)
+            (`when-present 'refreshing)))))
 
 (defun magithub-wash-gfm (text)
   "Wash TEXT as it comes from the API."
@@ -1248,7 +1252,9 @@ Interactively, this is the commit at point."
   '(progn
      (dolist (hook '(magit-revision-mode-hook git-commit-setup-hook))
        (add-hook hook #'magithub-bug-reference-mode-on))
-     (add-hook 'magit-pre-refresh-hook #'magithub-refresh)))
+     (add-hook 'magit-pre-refresh-hook #'magithub-refresh)
+     (add-hook 'magit-unwind-refresh-hook
+	       #'magithub-reset-settings-cache-behavior-override)))
 
 (provide 'magithub-core)
 ;;; magithub-core.el ends here
