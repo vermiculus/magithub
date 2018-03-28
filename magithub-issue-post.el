@@ -90,12 +90,13 @@ See also URL
 
 (defun magithub-remote-branches-choose (prompt remote &optional default)
   "Using PROMPT, choose a branch on REMOTE."
-  (magit-completing-read
-   (format "[%s] %s"
-           (magithub-repo-name (magithub-repo-from-remote remote))
-           prompt)
-   (magithub-remote-branches remote)
-   nil t nil nil default))
+  (let ((branches (magithub-remote-branches remote)))
+    (magit-completing-read
+     (format "[%s] %s"
+             (magithub-repo-name (magithub-repo-from-remote remote))
+             prompt)
+     branches
+     nil t nil nil (and (member default branches) default))))
 
 (defun magithub-pull-request-new-arguments ()
   (unless (magit-get-push-remote)
