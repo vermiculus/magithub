@@ -331,18 +331,9 @@ Pings the API a maximum of once every ten seconds."
   (when (magithub-enabled-p)
     (magithub-debug-message "checking if the API is available")
     (prog1 (when
-               (condition-case _
-                   (progn
-                     (magithub-debug-message "making sure authinfo is unlocked")
-                     (ghubp-token 'magithub))
-                 ;; Magithub only works when authenticated.
-                 (ghub-auth-error
-                  (prog1 nil
-                    (if (y-or-n-p "Not yet authenticated; open instructions in your browser? ")
-                        (progn
-                          (browse-url "https://github.com/magit/ghub#initial-configuration")
-                          (setq magithub--api-offline-reason "Try again once you've authenticated"))
-                      (setq magithub--api-offline-reason "Not yet authenticated per ghub's README")))))
+               (progn
+                 (magithub-debug-message "making sure authinfo is unlocked")
+                 (ghubp-token 'magithub))
              (if (and magithub--api-last-checked
                       (< (time-to-seconds (time-since magithub--api-last-checked)) magithub-api-available-check-frequency))
                  (prog1 magithub--api-last-checked
