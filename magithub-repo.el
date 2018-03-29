@@ -1,6 +1,6 @@
 ;;; magithub-repo.el --- repo tools                  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017  Sean Allred
+;; Copyright (C) 2017-2018  Sean Allred
 
 ;; Author: Sean Allred <code@seanallred.com>
 ;; Keywords: lisp

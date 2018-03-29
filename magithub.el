@@ -1,6 +1,6 @@
 ;;; magithub.el --- Magit interfaces for GitHub  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016-2017  Sean Allred
+;; Copyright (C) 2016-2018  Sean Allred
 
 ;; Author: Sean Allred <code@seanallred.com>
 ;; Keywords: git, tools, vc

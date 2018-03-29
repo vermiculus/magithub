@@ -1,6 +1,6 @@
 ;;; magithub-tests.el --- tests for Magithub
 
-;; Copyright (C) 2016  Sean Allred
+;; Copyright (C) 2016-2018  Sean Allred
 ;;
 ;; License: GPLv3
 
