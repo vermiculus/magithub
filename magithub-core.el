@@ -346,12 +346,11 @@ Pings the API a maximum of once every ten seconds."
                  (condition-case err
                      (progn
                        (setq response
-                             (condition-case _
+                             (ghubp-catch _
                                  (with-timeout (magithub-api-timeout
                                                 (signal 'magithub-api-timeout nil))
                                    (ghub-get "/rate_limit" nil :auth 'magithub))
-
-                               (ghub-404
+                               (404
                                 ;; Rate-limiting is often disabled on
                                 ;; Enterprise instances.  Try using /meta
                                 ;; which should (hopefully) always work.  See
