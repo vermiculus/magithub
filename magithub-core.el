@@ -364,7 +364,7 @@ Pings the API a maximum of once every ten seconds."
 
                    ;; Sometimes, the API can take a long time to respond
                    ;; (whether that's GitHub not responding or requests being
-                   ;; blocked by some client-side firewal).  Handle this
+                   ;; blocked by some client-side firewall).  Handle this
                    ;; possibility gracefully.
                    (magithub-api-timeout
                     (setq error-data err
