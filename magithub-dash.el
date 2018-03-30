@@ -1,6 +1,6 @@
-;;; magithub-dash.el --- magithub dashboard          -*- lexical-binding: t; -*-
+;;; magithub-dash.el --- magithub dashboard      -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017  Sean Allred
+;; Copyright (C) 2017-2018  Sean Allred
 
 ;; Author: Sean Allred <code@seanallred.com>
 ;; Keywords: hypermedia
@@ -138,26 +138,32 @@ See also `magithub-dash-headers-hook'."
 
 (defun magithub-dash-insert-notifications (&optional notifications)
   "Insert NOTIFICATIONS into the buffer bucketed by repository."
-  (setq notifications (or notifications (magithub-notifications
-                                         magithub-dashboard-show-read-notifications)))
+  (setq notifications (or notifications
+			  (magithub-notifications
+                           magithub-dashboard-show-read-notifications)))
   (if notifications
-      (let* ((bucketed (magithub-core-bucket notifications (apply-partially #'alist-get 'repository)))
+      (let* ((bucketed (magithub-core-bucket
+			notifications
+			(apply-partially #'alist-get 'repository)))
              (unread (if magithub-dashboard-show-read-notifications
                          (-filter #'magithub-notification-unread-p notifications)
                        notifications))
              (hide (not unread))
              (heading (if magithub-dashboard-show-read-notifications
                           (format "%s (%d unread of %d)"
-                                  (propertize "Notifications" 'face 'magit-section-heading)
+                                  (propertize "Notifications"
+					      'face 'magit-section-heading)
                                   (length unread)
                                   (length notifications))
                         (format "%s (%d)"
-                                (propertize "Notifications" 'face 'magit-section-heading)
+                                (propertize "Notifications"
+					    'face 'magit-section-heading)
                                 (length notifications)))))
         (magit-insert-section (magithub-notifications notifications hide)
           (magit-insert-heading heading)
           (magithub-for-each-bucket bucketed repo repo-notifications
-            (setq hide (null (-filter #'magithub-notification-unread-p repo-notifications)))
+            (setq hide (null (-filter #'magithub-notification-unread-p
+				      repo-notifications)))
             (magit-insert-section (magithub-repo repo hide)
               (magit-insert-heading
                 (concat (propertize (magithub-repo-name repo) 'face 'magithub-repo)
@@ -188,9 +194,10 @@ will be used."
                   #'magithub-issue-repo
                   (lambda (repo) (alist-get 'owner repo)))))
      (magit-insert-section (magithub-users-repo-issue-buckets)
-       (magit-insert-heading (format "%s (%d)"
-                                     (propertize title 'face 'magit-section-heading)
-                                     (length issues)))
+       (magit-insert-heading
+	 (format "%s (%d)"
+                 (propertize title 'face 'magit-section-heading)
+                 (length issues)))
        (magithub-for-each-bucket user-repo-issue-buckets user repo-issue-buckets
          (magit-insert-section (magithub-user-repo-issues)
            (magit-insert-heading
@@ -199,7 +206,8 @@ will be used."
            (magithub-for-each-bucket repo-issue-buckets repo repo-issues
              (magit-insert-section (magithub-repo-issues repo)
                (magit-insert-heading
-                 (format "%s:" (propertize (alist-get 'name repo) 'face 'magithub-repo)))
+                 (format "%s:" (propertize (alist-get 'name repo)
+					   'face 'magithub-repo)))
                (magithub-issue-insert-sections repo-issues)
                (insert "\n")))))
        (insert "\n")))))

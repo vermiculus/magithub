@@ -1,11 +1,11 @@
 ;;; magithub.el --- Magit interfaces for GitHub  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016-2017  Sean Allred
+;; Copyright (C) 2016-2018  Sean Allred
 
 ;; Author: Sean Allred <code@seanallred.com>
 ;; Keywords: git, tools, vc
 ;; Homepage: https://github.com/vermiculus/magithub
-;; Package-Requires: ((emacs "25") (magit "2.8") (s "1.12.0") (ghub+ "0.2.1") (git-commit "2.8") (markdown-mode "2.3"))
+;; Package-Requires: ((emacs "25") (magit "2.12") (s "1.12.0") (ghub+ "0.2.1") (git-commit "2.8") (markdown-mode "2.3"))
 ;; Package-Version: 0.1.5
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -160,7 +160,8 @@ be returned without prompting the user."
     ;; This is not very clever, but it gets the job done.  I'd like to
     ;; either have instant feedback on what's valid or not allow users
     ;; to enter invalid names at all.  Could code from Ivy be used?
-    (while (not (s-matches-p valid-regexp (setq ret (read-string prompt nil nil dirnam))))
+    (while (not (s-matches-p valid-regexp
+			     (setq ret (read-string prompt nil nil dirnam))))
       (message "invalid name")
       (sit-for 1))
     ret))
@@ -247,10 +248,12 @@ See also `magithub-preferred-remote-method'."
     (when (magithub-confirm-no-error 'clone .full_name dir)
       (let (set-upstream set-proxy)
         (setq set-upstream
-              (and .fork (magithub-confirm-no-error 'clone-fork-set-upstream-to-parent
-                                                    .parent.full_name))
+              (and .fork (magithub-confirm-no-error
+			  'clone-fork-set-upstream-to-parent
+                          .parent.full_name))
               set-proxy
-              (and set-upstream (magithub-confirm-no-error 'clone-fork-set-proxy-to-upstream)))
+              (and set-upstream (magithub-confirm-no-error
+				 'clone-fork-set-proxy-to-upstream)))
         (condition-case _
             (let ((default-directory dir)
                   (magit-clone-set-remote.pushDefault t))
@@ -264,7 +267,8 @@ See also `magithub-preferred-remote-method'."
                 (let ((upstream "upstream"))
                   (when set-proxy (magit-set upstream "magithub.proxy"))
                   (magit-remote-add upstream (magithub-repo--clone-url .parent))
-                  (magit-set-branch*merge/remote (magit-get-current-branch) upstream)))))))))
+                  (magit-set-branch*merge/remote (magit-get-current-branch)
+						 upstream)))))))))
 
 (defun magithub-clone--finished (user repo dir)
   "After finishing the clone, allow the user to jump to their new repo."

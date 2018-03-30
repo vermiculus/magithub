@@ -1,6 +1,6 @@
-;;; magithub-comment.el --- tools for comments       -*- lexical-binding: t; -*-
+;;; magithub-comment.el --- tools for comments   -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017  Sean Allred
+;; Copyright (C) 2017-2018  Sean Allred
 
 ;; Author: Sean Allred <code@seanallred.com>
 ;; Keywords: lisp
@@ -202,7 +202,8 @@ initial contents of the reply if there is no draft."
 
     (unless (string= (alist-get 'body comment)
                      (alist-get 'body updated))
-      (message "Comment has changed since information was cached; updated content pulled in for edit"))))
+      (message "Comment has changed since information was cached; \
+updated content pulled in for edit"))))
 
 (defun magithub-comment-reply (comment &optional discard-draft issue)
   "Reply to COMMENT on ISSUE.

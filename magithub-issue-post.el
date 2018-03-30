@@ -1,3 +1,26 @@
+;;; magithub-issue-post.el ---                   -*- lexical-binding: t; -*-
+
+;; Copyright (C) 2017-2018  Sean Allred
+
+;; Author: Sean Allred <code@seanallred.com>
+
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;;; Code:
+
 (require 'magithub-core)
 (require 'magithub-issue)
 (require 'magithub-label)
@@ -43,13 +66,15 @@
       (magithub-bug-reference-mode-on)
       (magit-display-buffer (current-buffer)))))
 
-(defun magithub-pull-request-new-from-issue (repo issue base head &optional maintainer-can-modify)
+(defun magithub-pull-request-new-from-issue
+    (repo issue base head &optional maintainer-can-modify)
   "Create a pull request from an existing issue.
 REPO is the parent repository of ISSUE.  BASE and HEAD are as
 they are in `magithub-pull-request-new'."
   (interactive (if-let ((issue-at-point (thing-at-point 'github-issue)))
                    (let-alist (magithub-pull-request-new-arguments)
-                     (let ((allow-maint-mod (magithub-confirm-no-error 'pr-allow-maintainers-to-submit)))
+                     (let ((allow-maint-mod (magithub-confirm-no-error
+					     'pr-allow-maintainers-to-submit)))
                        (magithub-confirm 'submit-pr-from-issue
                                          (magithub-issue-reference issue-at-point)
                                          .user+head .base)
@@ -90,12 +115,13 @@ See also URL
 
 (defun magithub-remote-branches-choose (prompt remote &optional default)
   "Using PROMPT, choose a branch on REMOTE."
-  (magit-completing-read
-   (format "[%s] %s"
-           (magithub-repo-name (magithub-repo-from-remote remote))
-           prompt)
-   (magithub-remote-branches remote)
-   nil t nil nil default))
+  (let ((branches (magithub-remote-branches remote)))
+    (magit-completing-read
+     (format "[%s] %s"
+             (magithub-repo-name (magithub-repo-from-remote remote))
+             prompt)
+     branches
+     nil t nil nil (and (member default branches) default))))
 
 (defun magithub-pull-request-new-arguments ()
   (unless (magit-get-push-remote)
@@ -120,7 +146,8 @@ See also URL
                                 (magit-get-upstream-branch head-branch))
                            (let-alist parent-repo .default_branch))))
          (user+head   (format "%s:%s" this-repo-owner head-branch)))
-    (when (magithub-request (ghubp-get-repos-owner-repo-pulls parent-repo nil :head user+head))
+    (when (magithub-request (ghubp-get-repos-owner-repo-pulls parent-repo nil
+			      :head user+head))
       (user-error "A pull request on %s already exists for head \"%s\""
                   (magithub-repo-name parent-repo)
                   user+head))
@@ -136,7 +163,8 @@ See also URL
 (defun magithub-pull-request-new (repo base fork head head-no-user)
   "Create a new pull request."
   (interactive (let-alist (magithub-pull-request-new-arguments)
-                 (magithub-confirm 'pre-submit-pr .user+head (magithub-repo-name .repo) .base)
+                 (magithub-confirm 'pre-submit-pr .user+head
+				   (magithub-repo-name .repo) .base)
                  (list .repo .base .fork .head .head-no-user)))
   (let ((is-single-commit
          (string= "1" (magit-git-string "rev-list" "--count" (format "%s.." base)))))
@@ -148,7 +176,8 @@ See also URL
                                      head
                                      (magithub-repo-name repo)
                                      base)
-            :header (let-alist repo (format "PR %s/%s (%s->%s)" .owner.login .name head base))
+            :header (let-alist repo (format "PR %s/%s (%s->%s)"
+					    .owner.login .name head base))
             :submit #'magithub-pull-request-submit
             :file (expand-file-name "new-pull-request-draft"
                                     (magithub-repo-data-dir repo))
@@ -189,3 +218,4 @@ See also URL
       (magithub-issue-view pr))))
 
 (provide 'magithub-issue-post)
+;;; magithub-issue-post.el ends here

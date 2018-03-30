@@ -1,6 +1,6 @@
-;;; magithub-user.el --- Inspect users  -*- lexical-binding: t; -*-
+;;; magithub-user.el --- Inspect users           -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016-2017  Sean Allred
+;; Copyright (C) 2016-2018  Sean Allred
 
 ;; Author: Sean Allred <code@seanallred.com>
 ;; Keywords: lisp
@@ -20,7 +20,7 @@
 
 ;;; Commentary:
 
-;; Code for dealing with the current users and other users
+;; Code for dealing with the current user and other users.
 
 ;;; Code:
 
