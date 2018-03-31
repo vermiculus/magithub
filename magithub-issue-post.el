@@ -160,12 +160,12 @@ See also URL
       (fork . ,this-repo)
       (user+head . ,user+head))))
 
-(defun magithub-pull-request-new (repo base fork head head-no-user)
+(defun magithub-pull-request-new (repo base head head-no-user)
   "Create a new pull request."
   (interactive (let-alist (magithub-pull-request-new-arguments)
                  (magithub-confirm 'pre-submit-pr .user+head
 				   (magithub-repo-name .repo) .base)
-                 (list .repo .base .fork .head .head-no-user)))
+                 (list .repo .base .head .head-no-user)))
   (let ((is-single-commit
          (string= "1" (magit-git-string "rev-list" "--count" (format "%s.." base)))))
     (unless is-single-commit
