@@ -26,7 +26,6 @@
 
 (require 'magit)
 (require 'magit-section)
-(require 'magit-popup)
 (require 'dash)
 (require 's)
 

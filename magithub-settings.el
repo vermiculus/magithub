@@ -40,9 +40,9 @@
           (Sfmt (intern Nfmt)))
       `(progn
          (defun ,Sset () ,docstring (interactive)
-                (magit-popup-set-variable ,variable ,choices ,default))
+                (magit--set-popup-variable ,variable ,choices ,default))
          (defun ,(intern Nfmt) () ,(format "See `%s'." Nset)
-                (magit-popup-format-variable ,variable ,choices ,default))
+                (magit--format-popup-variable:choices ,variable ,choices ,default))
          (magit-define-popup-variable ',popup ,key ,variable ',Sset ',Sfmt)))))
 
 (defun magithub-settings--value-or (variable default &optional accessor)

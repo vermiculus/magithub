@@ -45,7 +45,6 @@
 
 (require 'magit)
 (require 'magit-process)
-(require 'magit-popup)
 (require 'cl-lib)
 (require 's)
 (require 'dash)
