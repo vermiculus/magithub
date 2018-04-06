@@ -37,7 +37,7 @@
     (when (s-blank-p (alist-get 'title issue))
       (user-error "Title is required"))
     (when (magithub-repo-push-p repo)
-      (when-let* ((issue-labels (magithub-label-read-labels "Labels: ")))
+      (when-let ((issue-labels (magithub-label-read-labels "Labels: ")))
         (push (cons 'labels issue-labels) issue)))
     (magithub-confirm 'submit-issue)
     (let ((issue (magithub-request
@@ -90,7 +90,7 @@ they are in `magithub-pull-request-new'."
 
 (defun magithub-issue--template-text (template)
   (with-temp-buffer
-    (when-let* ((template (magithub-issue--template-find template)))
+    (when-let ((template (magithub-issue--template-find template)))
       (insert-file-contents template)
       (buffer-string))))
 

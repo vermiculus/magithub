@@ -116,7 +116,7 @@ See also `magithub-dash-headers-hook'."
 (defun magithub-dash-insert-ratelimit-header ()
   "If API requests are being rate-limited, insert relevant information."
   (magithub-request
-   (when-let* ((ratelimit (ghubp-ratelimit)))
+   (when-let ((ratelimit (ghubp-ratelimit)))
      (when (time-less-p (alist-get 'reset ratelimit) (current-time))
        (ghub-get "/rate_limit" nil :auth 'magithub)))
    (let-alist (ghubp-ratelimit)
@@ -188,7 +188,7 @@ will be used."
    (setq issues (or issues (magithub-cache :issues `(magithub-request
                                                      (ghubp-get-issues))))
          title (or title "Issues Assigned to Me"))
-   (when-let* ((user-repo-issue-buckets
+   (when-let ((user-repo-issue-buckets
                 ;; bucket by user then by repo
                 (magithub-core-bucket-multi issues
                   #'magithub-issue-repo

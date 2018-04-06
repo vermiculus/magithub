@@ -92,7 +92,7 @@ It may fail if the fork has multiple branches named BRANCH."
 
 (defun magithub-pull-request-branch->pr--gitconfig (branch)
   "Gets a pull request object from branch.BRANCH.magithub.sourcePR"
-  (when-let* ((source (magit-get "branch" branch "magithub" "sourcePR")))
+  (when-let ((source (magit-get "branch" branch "magithub" "sourcePR")))
     (magithub-pull-request (magithub-repo) (string-to-number source))))
 
 (defun magithub-ci-status--get-default-ref (&optional branch)
@@ -107,7 +107,7 @@ remote counterpart."
                      (with-demoted-errors "Error: %S"
                        (magithub-pull-request-branch->pr--ghub branch))))))
       (let-alist pull-request .head.sha)
-    (when-let* ((push-branch (magit-get-push-branch branch)))
+    (when-let ((push-branch (magit-get-push-branch branch)))
       (when (magit-branch-p push-branch)
         (cdr (magit-split-branch-name push-branch))))))
 
