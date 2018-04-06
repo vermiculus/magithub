@@ -519,7 +519,7 @@ buffer."
 (defmacro magithub-issue--insert-generic-section
     (spec title list filters)
   (let ((sym-filtered (cl-gensym)))
-    `(when-let* ((,sym-filtered (magithub-filter-all ,filters ,list)))
+    `(when-let ((,sym-filtered (magithub-filter-all ,filters ,list)))
        (magit-insert-section ,spec
          (insert (format "%s%s:"
                          (propertize ,title 'face 'magit-section-heading)
@@ -557,7 +557,7 @@ Interactively, this finds the pull request at point."
 (defun magithub-issue--browse (issue-or-pr)
   "Visits ISSUE-OR-PR in the browser.
 Interactively, this finds the issue at point."
-  (when-let* ((url (alist-get 'html_url issue-or-pr)))
+  (when-let ((url (alist-get 'html_url issue-or-pr)))
     (browse-url url)))
 
 (defun magithub-repolist-column-issue (_id)

@@ -40,12 +40,6 @@
 (require 'magithub-settings)
 (require 'magithub-faces)
 
-;; Compatibility
-(eval-and-compile
-  (when (version< emacs-version "26")
-    (defalias 'if-let* #'if-let)
-    (defalias 'when-let* #'when-let)))
-
 (defconst magithub-github-token-scopes '(repo user notifications)
   "The authentication scopes Magithub requests.")
 
@@ -422,7 +416,7 @@ See also `magithub-github-repository-p'."
 (defun magithub-github-repository-p ()
   "Non-nil if \"origin\" points to GitHub or a whitelisted domain.
 See also `magithub-github-hosts'."
-  (when-let* ((origin (magit-get "remote" (magithub-settings-context-remote) "url")))
+  (when-let ((origin (magit-get "remote" (magithub-settings-context-remote) "url")))
     (-some? (lambda (domain) (s-contains? domain origin))
             magithub-github-hosts)))
 
@@ -489,7 +483,7 @@ included in the returned object."
    (magithub-settings-context-remote)))
 
 (defun magithub-repo-from-remote (remote)
-  (when-let* ((repo (magithub-repo-from-remote--sparse remote)))
+  (when-let ((repo (magithub-repo-from-remote--sparse remote)))
     (magithub-repo repo)))
 
 (defun magithub-repo-from-remote--sparse (remote)
@@ -513,7 +507,7 @@ of the form `owner/name' (as in `vermiculus/magithub')."
                          sparse-repo))
       (magithub-repo `((owner (login . ,(match-string 1 sparse-repo)))
                        (name . ,(match-string 2 sparse-repo))))
-    (when-let* ((sparse-repo (or sparse-repo (magithub-source--sparse-repo))))
+    (when-let ((sparse-repo (or sparse-repo (magithub-source--sparse-repo))))
       (or (magithub-cache :repo-demographics
             `(condition-case e
                  (or (magithub-request
@@ -993,7 +987,7 @@ this function: `github-user', `github-issue', `github-label',
 (put 'github-pull-request 'thing-at-point
      (lambda ()
        (or (magithub--section-value-at-point 'pull-request)
-           (when-let* ((issue (thing-at-point 'github-issue)))
+           (when-let ((issue (thing-at-point 'github-issue)))
              (and
               (magithub-issue--issue-is-pull-p issue)
               (magithub-cache :issues
@@ -1019,7 +1013,7 @@ of a signal (e.g., for interactive forms)."
   "In GitHub repositories, configure `bug-reference-mode'."
   (interactive)
   (when (magithub-usable-p)
-    (when-let* ((repo (magithub-repo)))
+    (when-let ((repo (magithub-repo)))
       (bug-reference-mode 1)
       (setq-local bug-reference-bug-regexp "#\\(?2:[0-9]+\\)")
       (setq-local bug-reference-url-format
@@ -1202,7 +1196,7 @@ use \\[universal-argument] \\[magit-refresh] instead :-)")))
 (defun magithub-commit-browse (rev)
   "Browse REV on GitHub.
 Interactively, this is the commit at point."
-  (interactive (list (or (when-let* ((rev (magit-rev-verify
+  (interactive (list (or (when-let ((rev (magit-rev-verify
 					   (oref (magit-current-section) value))))
                            rev)
                          (thing-at-point 'git-revision))))
