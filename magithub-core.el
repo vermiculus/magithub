@@ -581,7 +581,9 @@ REPO defaults to the current repository."
   "Return GitHub repositories in this repository.
 `magit-list-remotes' is filtered to those remotes that point to
 GitHub repositories."
-  (delq nil (mapcar (lambda (r) (cons r (magithub-repo-from-remote r)))
+  (delq nil (mapcar (lambda (r)
+                      (when-let ((repo (magithub-repo-from-remote r)))
+                        (cons r repo)))
                     (magit-list-remotes))))
 
 (defun magithub-read-repo (prompt)
