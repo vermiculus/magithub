@@ -127,3 +127,5 @@
   [[PR:282]]
 - Pull requests now work in repositories with remotes that point to
   non-GitHub locations.  [[PR:285]]
+- We now only prompt to refresh GitHub data when the command being run
+  by the user is solely intended to refresh the buffer.  [[PR:318]]

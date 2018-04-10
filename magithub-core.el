@@ -1154,6 +1154,10 @@ Use directly at your own peril; this is intended for use with
 			    "This is no longer an interactive function; \
 use \\[universal-argument] \\[magit-refresh] instead :-)")))
   (when (and current-prefix-arg
+             (memq this-command '(magit-refresh
+                                  magit-refresh-all
+                                  magithub-ci-refresh
+                                  magithub-issue-refresh))
              (magithub-usable-p)
              (magithub-confirm-no-error 'refresh)
              (or (magithub--api-available-p)
