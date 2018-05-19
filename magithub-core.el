@@ -196,7 +196,7 @@ the age of the oldest cached information."
          (substitute-command-keys "\\[universal-argument] \\[magit-refresh]")
          'face 'magit-header-line-key)
         (propertize
-         (substitute-command-keys "\\[magithub-dispatch-popup] O")
+         (substitute-command-keys "\\[magithub-dispatch-popup] C o")
          'face 'magit-header-line-key)
         (propertize "..." 'face 'magit-dimmed)))
       (magit-insert-heading)
