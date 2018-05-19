@@ -180,8 +180,9 @@ AFTER-UPDATE is a function to run after the cache is updated."
     (or (and recalc
              (prog1 (setq new-value (with-temp-message message (eval form)))
                (puthash entry new-value magithub-cache--cache)
-               (setq magithub-cache--needs-write t)
-               (run-with-idle-timer 600 nil #'magithub-cache-write-to-disk)
+               (unless magithub-cache--needs-write
+                 (setq magithub-cache--needs-write t)
+                 (run-with-idle-timer 600 nil #'magithub-cache-write-to-disk))
                (when refreshing
                  (push entry magithub-cache--refreshed-forms))
                (if (functionp after-update)
