@@ -37,7 +37,8 @@
          (Nset (concat "magithub-settings--set-" variable))
          (Nfmt (concat "magithub-settings--format-" variable)))
     (let ((Sset (intern Nset))
-          (Sfmt (intern Nfmt)))
+          (Sfmt (intern Nfmt))
+          (docstring (format "%s\n\nThis is the Git variable %S." docstring variable)))
       `(progn
          (defun ,Sset () ,docstring (interactive)
                 (magit--set-popup-variable ,variable ,choices ,default))
