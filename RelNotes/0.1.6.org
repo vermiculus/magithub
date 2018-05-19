@@ -50,7 +50,8 @@
 ** Caching  [[PR:328]]
 Caching has been reworked mostly from the ground-up.  'Offline mode'
 is now manifest in a single, Boolean-valued git variable
-"magithub.cache", which see.
+"magithub.online", which see ~magithub-settings--set-magithub.online~
+for that behavior.
 
 - ~magithub-cache-invalidate~ was not used, so it is no longer
   available.
