@@ -62,6 +62,7 @@
   '("true" "false") "true")
 
 (defun magithub-enabled-p ()
+  "Returns non-nil if Magithub content is available."
   (magithub-settings--value-or "magithub.enabled" t
     #'magit-get-boolean))
 

@@ -248,7 +248,7 @@ Returns \"Xd Xh Xm Xs\" (counting from zero)"
 
 (defun magithub-cache-write-to-disk ()
   "Write the cache to disk.
-The cache is writtin to `magithub-cache-file' in
+The cache is written to `magithub-cache-file' in
 `magithub-dir'"
   (if (active-minibuffer-window)
       (run-with-idle-timer 600 nil #'magithub-cache-write-to-disk) ;defer
