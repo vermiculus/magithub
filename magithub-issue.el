@@ -401,16 +401,11 @@ Each function takes two arguments:
 
 ;;; Magithub-Status stuff
 
-
-(defun magithub-issue-refresh (even-if-offline)
-  "Refresh issues for this repository.
-If EVEN-IF-OFFLINE is non-nil, we'll still refresh (that is,
-we'll hit the API) if Magithub is offline."
-  (interactive "P")
-  (let ((magithub-settings-cache-behavior-override
-         (if even-if-offline nil (magithub-settings-cache-behavior))))
-    (magithub-cache-without-cache :issues
-      (ignore (magithub--issue-list))))
+(defun magithub-issue-refresh ()
+  "Refresh issues for this repository."
+  (interactive)
+  (magithub-cache-without-cache :issues
+    (magithub--issue-list))
   (when (derived-mode-p 'magit-status-mode)
     (magit-refresh)))
 

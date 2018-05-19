@@ -104,10 +104,6 @@ created automatically."
 
 ;;; Caching; Online/Offline mode
 
-(defun magithub-offline-p ()
-  "Non-nil if Magithub is not supposed to make API requests."
-  (memq (magithub-settings-cache-behavior) '(t refreshing-when-offline)))
-
 (defcustom magithub-cache-file "cache"
   "Use this file for Magithub's persistent cache."
   :group 'magithub
@@ -136,15 +132,9 @@ Occasionally written to `magithub-cache-file' by
 When non-nil, the cache will be written to disk next time the
 idle timer runs.")
 
-(defvar magithub-cache-ignore-class nil
-  "Class to ignore in `magithub-cache'.
-See also `magithub-cache-without-cache'.
-
-If t, all classes are ignored.")
-
 (defvar magithub-cache--refreshed-forms nil
   "Forms that have been refreshed this session.
-See also `magithub-refresh'.")
+See also `magithub--refresh'.")
 
 (cl-defun magithub-cache (class form &key message after-update)
   "The cached value for FORM if available.
@@ -152,38 +142,37 @@ See also `magithub-refresh'.")
 If FORM has not been cached or its CLASS dictates the cache has
 expired, FORM will be re-evaluated.
 
-CLASS: The kind of data this is; see `magithub-cache-ignore-class'.
+CLASS: The kind of data this is; see `magithub-cache--refresh'.
 
 MESSAGE may be specified for intensive functions.  We'll display
 this with `with-temp-message' while the form is evaluating.
 
 AFTER-UPDATE is a function to run after the cache is updated."
   (declare (indent defun))
-  (let* ((behavior (magithub-settings-cache-behavior))
+  (let* ((no-value-sym (cl-gensym))
          (entry (list (ghubp-get-context) class form))
-         (refreshing (memq behavior '(refreshing refreshing-when-offline)))
-         (recalc (or (null behavior)
-                     (and refreshing
-                          (not (member entry magithub-cache--refreshed-forms)))
-                     (and magithub-cache-ignore-class
-                          (or (eq magithub-cache-ignore-class t)
-                              (eq magithub-cache-ignore-class class)))))
-         no-value-sym cached-value new-value)
+         (online (magithub-online-p))
+         (cached-value (gethash entry magithub-cache--cache no-value-sym))
+         (value-does-not-exist (eq cached-value no-value-sym))
+         (cached-value (if value-does-not-exist nil cached-value))
+         make-request new-value)
 
-    (unless recalc
-      (setq no-value-sym (cl-gensym)
-            cached-value (gethash entry magithub-cache--cache no-value-sym)
-            recalc (and (not (eq behavior t))
-                        (eq cached-value no-value-sym))
-            cached-value (if (eq cached-value no-value-sym) nil cached-value)))
+    (when online
+      (if (or (eq magithub-cache--refresh t)
+              (eq magithub-cache--refresh class))
+          ;; if we're refreshing (and we haven't seen this form
+          ;; before), go ahead and make the request if it's the class
+          ;; we're refreshing (or t, which encompasses all classes)
+          (setq make-request (not (member entry magithub-cache--refreshed-forms)))
+        (setq make-request value-does-not-exist)))
 
-    (or (and recalc
+    (or (and make-request
              (prog1 (setq new-value (with-temp-message message (eval form)))
                (puthash entry new-value magithub-cache--cache)
                (unless magithub-cache--needs-write
                  (setq magithub-cache--needs-write t)
                  (run-with-idle-timer 600 nil #'magithub-cache-write-to-disk))
-               (when refreshing
+               (when magithub-cache--refresh
                  (push entry magithub-cache--refreshed-forms))
                (if (functionp after-update)
                    (funcall after-update new-value)
@@ -197,7 +186,7 @@ insert a header notifying the user that all data shown is cached.
 To aid in determining if the cache should be refreshed, we report
 the age of the oldest cached information."
   (when (and (magithub-usable-p)
-             (magithub-offline-p))
+             (not (magithub-online-p)))
     (magit-insert-section (magithub nil t)
       (insert
        (format
@@ -258,9 +247,9 @@ The cache is written to `magithub-cache-file' in
 (defmacro magithub-cache-without-cache (class &rest body)
   "For CLASS, execute BODY without using CLASS's caches.
 Use t to ignore previously cached values completely.
-See also `magithub-cache-ignore-class'."
+See also `magithub-cache--refresh'."
   (declare (indent 1) (debug t))
-  `(let ((magithub-cache-ignore-class ,class))
+  `(let ((magithub-cache--refresh ,class))
      ,@body))
 
 (add-hook 'kill-emacs-hook
@@ -510,9 +499,8 @@ of the form `owner/name' (as in `vermiculus/magithub')."
                           sparse-repo))
                ;; Repo may not exist; ignore 404
                (ghub-404 nil)))
-          (when (memq (magithub-settings-cache-behavior)
-		      '(when-present refreshing-when-offline))
-            (let ((magithub-settings-cache-behavior-override nil))
+          (when (magithub-online-p)
+            (let ((magithub-cache--refresh t))
               (magithub-repo sparse-repo)))
           sparse-repo))))
 
@@ -1134,19 +1122,31 @@ COMPARE is used on the application of ACCESSOR to each argument."
   (interactive)
   (magit-section-show-level -5))
 
-(defun magithub-reset-settings-cache-behavior-override ()
+(defun magithub--refresh-reset ()
   "Reset everything to the defaults after refreshing.
 To be added to `magit-unwind-refresh-hook'."
-  (setq magithub-settings-cache-behavior-override 'none)
+  (setq magithub-cache--refresh nil)
+  ;; reclaim some memory
   (setq magithub-cache--refreshed-forms nil))
 
+(defvar magithub-cache--refresh nil
+  ;; Can also consider making this a list in the future to refresh
+  ;; multiple forms.  No current use-case for this, though.
+  "Non-nil when refreshing.
+If t, all form classes will be refreshed.  Otherwise, if non-nil,
+this variable is expected to be `eq' to the class of forms that
+should be selectively refreshed.")
+
+(make-obsolete 'magithub-refresh 'magithub--refresh "0.2")
 (defun magithub-refresh ()
+  (interactive (user-error (substitute-command-keys
+			    "This is no longer an interactive function; \
+use \\[universal-argument] \\[magit-refresh] instead :-)"))))
+
+(defun magithub--refresh ()
   "Refresh GitHub data.
 Use directly at your own peril; this is intended for use with
 `magit-pre-refresh-hook'."
-  (interactive (user-error (substitute-command-keys
-			    "This is no longer an interactive function; \
-use \\[universal-argument] \\[magit-refresh] instead :-)")))
   (when (and current-prefix-arg
              (memq this-command '(magit-refresh
                                   magit-refresh-all
@@ -1156,16 +1156,13 @@ use \\[universal-argument] \\[magit-refresh] instead :-)")))
              (magithub-confirm-no-error 'refresh)
              (or (magithub--api-available-p)
                  (magithub-confirm-no-error 'refresh-when-API-unresponsive)))
-    ;; `magithub-refresh' is part of `magit-pre-refresh-hook' and our requests
+    ;; `magithub--refresh' is part of `magit-pre-refresh-hook' and our requests
     ;; are made as part of `magit-refresh'.  There's no way we can let-bind
-    ;; `magithub-settings-cache-behavior-override' around that entire form, so
-    ;; we do the next best thing: use `magit-unwind-refresh-hook' to reset the
-    ;; override back to its old value.
-    (setq magithub-settings-cache-behavior-override
-          (pcase (magithub-settings-cache-behavior)
-            (`t 'refreshing-when-offline)
-            (`nil nil)
-            (`when-present 'refreshing)))))
+    ;; `magithub-settings--refresh' around that entire form, so  we do the next
+    ;; best thing: use `magit-unwind-refresh-hook' to reset the  override back
+    ;; to its old value.
+    (setq magithub-cache--refresh t)
+    (setq magithub-cache--refreshed-forms nil)))
 
 (defun magithub-wash-gfm (text)
   "Wash TEXT as it comes from the API."
@@ -1251,9 +1248,9 @@ Interactively, this is the commit at point."
   '(progn
      (dolist (hook '(magit-revision-mode-hook git-commit-setup-hook))
        (add-hook hook #'magithub-bug-reference-mode-on))
-     (add-hook 'magit-pre-refresh-hook #'magithub-refresh)
+     (add-hook 'magit-pre-refresh-hook #'magithub--refresh)
      (add-hook 'magit-unwind-refresh-hook
-	       #'magithub-reset-settings-cache-behavior-override)))
+	       #'magithub--refresh-reset)))
 
 (provide 'magithub-core)
 ;;; magithub-core.el ends here

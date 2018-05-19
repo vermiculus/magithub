@@ -47,7 +47,14 @@
 - =hub.host= is no longer respected and has been replaced by user option
   ~magithub-github-hosts~.  This most directly impacts GitHub Enterprise
   support.
-- ~magithub-cache-invalidate~ was not used, so it is no longer available.
+** Caching  [[PR:328]]
+Caching has been reworked mostly from the ground-up.  'Offline mode'
+is now manifest in a single, Boolean-valued git variable
+"magithub.cache", which see.
+
+- ~magithub-cache-invalidate~ was not used, so it is no longer
+  available.
+- ~magithub-issue-refresh~ no longer takes parameters.
 
 * New Features
 - Browse commits by using =w= on a commit section.  If the current

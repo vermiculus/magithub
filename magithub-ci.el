@@ -103,7 +103,7 @@ remote counterpart."
   (setq branch (or branch (magit-get-current-branch)))
   (if-let ((pull-request
             (or (magithub-pull-request-branch->pr--gitconfig branch)
-                (and (not (magithub-offline-p))
+                (and (magithub-online-p)
                      (with-demoted-errors "Error: %S"
                        (magithub-pull-request-branch->pr--ghub branch))))))
       (let-alist pull-request .head.sha)
@@ -196,11 +196,9 @@ remote counterpart."
   "Keymap for `magithub-ci-status' header section.")
 
 (defun magithub-ci-refresh ()
-  "Invalidate the CI cache and refresh the buffer.
-If EVEN-IF-OFFLINE is non-nil, we'll still refresh (that is,
-we'll hit the API) if Magithub is offline."
+  "Invalidate the CI cache and refresh the buffer."
   (interactive)
-  (when (magithub-offline-p)
+  (unless (magithub-online-p)
     (magithub-confirm 'ci-refresh-when-offline))
   (magithub-cache-without-cache :ci-status
     (magithub-ci-status (magithub-ci-status--get-default-ref)))
