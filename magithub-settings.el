@@ -43,7 +43,8 @@
                 (magit--set-popup-variable ,variable ,choices ,default))
          (defun ,(intern Nfmt) () ,(format "See `%s'." Nset)
                 (magit--format-popup-variable:choices ,variable ,choices ,default))
-         (magit-define-popup-variable ',popup ,key ,variable ',Sset ',Sfmt)))))
+         (magit-define-popup-variable ',popup ,key ,variable ',Sset ',Sfmt)
+         ,variable))))
 
 (defun magithub-settings--value-or (variable default &optional accessor)
   (declare (indent 2))
