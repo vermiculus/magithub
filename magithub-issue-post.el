@@ -196,7 +196,7 @@ See also URL
                                      'magithub-issue-title-edit t)))
       (magithub-bug-reference-mode-on)
       (setq magithub-issue--extra-data
-            `((base . ,base) (head . ,head)))
+            `((base . ,base) (head . ,head) (repo . ,repo)))
       (magit-display-buffer (current-buffer)))))
 
 (defun magithub-pull-request-submit ()
@@ -211,7 +211,9 @@ See also URL
       (push (cons 'maintainer_can_modify t) pull-request))
     (let ((pr (condition-case _
                   (magithub-request
-                   (ghubp-post-repos-owner-repo-pulls (magithub-repo) pull-request))
+                   (ghubp-post-repos-owner-repo-pulls
+                       (alist-get 'repo magithub-issue--extra-data)
+                     pull-request))
                 (ghub-422
                  (user-error "This pull request already exists!")))))
       (magithub-edit-delete-draft)
