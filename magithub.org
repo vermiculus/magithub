@@ -558,6 +558,27 @@ manifest in the git variable =magithub.proxy=.
 All GitHub requests specific to the current repository context are routed
 through ~magithub-repo~ which respects this proxy.
 
+* Configuring
+
+Magithub uses a standardized configuration scheme implemented using Git
+variables.  This allows your Magithub configuration to use all the powerful
+features of =git-config(1)= and allows tight integration into Magit's existing
+repository configuration workflows.
+
+To get the most up-to-date list of configuration options, use
+#+BEGIN_SRC example
+M-x apropos-command RET magithub-settings--set
+#+END_SRC
+to summarize them all.  If an important option is missing from this manual,
+reports and pull requests are welcome!
+
+The decision to implement these as Git variables stems from the varying size
+of project repositories: it is extremely common to contribute to
+exceptionally large repositories where including, say, the 'issues' section
+would bring Emacs to its knees -- but it is equally common to work on
+smaller repositories where such concern is negligible and the issues section
+is a nice feature.
+
 * Unfiled
 ** Content
 *** Working with Repositories
