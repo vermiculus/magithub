@@ -26,6 +26,18 @@ Ugh, nasty bugs!  Every software project has them (except
 you.  As you write your issue, please follow the instructions the
 issue template provides.  A stack trace helps tremendously!
 
+Sometimes there are intermittent bugs that cannot be reproduced
+easily.  Anyone who develops software can tell you that it is very
+difficult to debug an issue that you cannot see.  For this reason, the
+'unconfirmed' label indicates an issue that hasn't been reproduced by
+a maintainer and the 'waiting' label indicates an issue is waiting for
+some response from the folks who are actually experiencing it.  Any
+issue that has had the 'waiting' label for more than two weeks can be
+closed as 'not reproducible'.  If you are still having the issue after
+that time, please do re-open the issue!  I don't mean to say that bugs
+are features, but I don't want to give a false first impression of
+bugginess.
+
 ## Suggesting Features
 
 Feature requests are always welcome!  Pull requests even more so.
