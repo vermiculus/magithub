@@ -332,18 +332,18 @@ Pings the API a maximum of once every ten seconds."
                (let (api-status error-data response)
                  (condition-case err
                      (progn
-                       (setq response
-                             (ghubp-catch _
-                                 (with-timeout (magithub-api-timeout
-                                                (signal 'magithub-api-timeout nil))
-                                   (ghub-get "/rate_limit" nil :auth 'magithub))
-                               (404
-                                ;; Rate-limiting is often disabled on
-                                ;; Enterprise instances.  Try using /meta
-                                ;; which should (hopefully) always work.  See
-                                ;; also issue #107.
-                                (ghub-get "/meta" nil :auth 'magithub)))
-                             api-status (and response t))
+                       (with-timeout (magithub-api-timeout
+                                      (signal 'magithub-api-timeout nil))
+                         (setq response
+                               ;; /rate_limit is free for GitHub.com.
+                               ;; If rate limiting is disabled
+                               ;; (i.e. GHE), try using /meta which
+                               ;; should (hopefully) always work.  See
+                               ;; also issue #107.
+                               (or (ghubp-ratelimit)
+                                   (ghub-get "/meta" nil :auth 'magithub))
+
+                               api-status (and response t)))
 
                        (magithub-debug-message
 			"new value retrieved for api-last-available: %S" response))

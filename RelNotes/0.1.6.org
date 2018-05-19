@@ -2,6 +2,7 @@
 #+Date:
 
 #+LINK: PR https://www.github.com/vermiculus/magithub/pull/%s
+#+LINK: BUG https://www.github.com/vermiculus/magithub/issues/%s
 
 * Breaking Changes
 - If you were using ~magit-header-line~ to customize the appearance of
@@ -138,3 +139,6 @@ for that behavior.
   non-GitHub locations.  [[PR:285]]
 - We now only prompt to refresh GitHub data when the command being run
   by the user is solely intended to refresh the buffer.  [[PR:318]]
+- We no longer ever call =/rate_limit= directly, instead relying on an
+  improved version of ~ghubp-ratelimit~ that handles GitHub Enterprise
+  sanely.  [[BUG:327]]

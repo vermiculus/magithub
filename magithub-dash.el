@@ -118,7 +118,7 @@ See also `magithub-dash-headers-hook'."
   (magithub-request
    (when-let ((ratelimit (ghubp-ratelimit)))
      (when (time-less-p (alist-get 'reset ratelimit) (current-time))
-       (ghub-get "/rate_limit" nil :auth 'magithub)))
+       (ghubp-ratelimit 'no-headers)))
    (let-alist (ghubp-ratelimit)
      (when .limit
        (magit-insert-section (magithub-ratelimit)
