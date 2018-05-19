@@ -190,13 +190,6 @@ AFTER-UPDATE is a function to run after the cache is updated."
 		 new-value)))
         cached-value)))
 
-(defun magithub-cache-invalidate ()
-  "Clear the cache from memory."
-  (maphash
-   (lambda (k _)
-     (remhash k magithub-cache--cache))
-   magithub-cache--cache))
-
 (defun magithub-maybe-report-offline-mode ()
   "Conditionally inserts the OFFLINE header.
 If this is a Magithub-enabled repository and we're offline, we

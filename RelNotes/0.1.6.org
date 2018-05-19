@@ -47,6 +47,7 @@
 - =hub.host= is no longer respected and has been replaced by user option
   ~magithub-github-hosts~.  This most directly impacts GitHub Enterprise
   support.
+- ~magithub-cache-invalidate~ was not used, so it is no longer available.
 
 * New Features
 - Browse commits by using =w= on a commit section.  If the current
