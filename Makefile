@@ -1,6 +1,7 @@
 -include config.mk
 
 PKG = magithub
+PKG_VERSION = $(shell git describe --tags | rev | cut -d- -f3- | rev)
 
 EMACS      ?= emacs
 EMACS_ARGS ?=
@@ -44,7 +45,7 @@ test: test-build test-tag test-ert
 
 # make sure the build errors if the package-version isn't up-to-date
 test-tag:
-	grep "Package-Version: $(shell git describe --tags | rev | cut -d- -f3- | rev)" magithub.el
+	grep "^;; Package-Version: $(PKG_VERSION)$$" magithub.el > /dev/null && echo "Success"
 
 # make sure there were no compile errors/warnings
 test-build: build
