@@ -45,7 +45,7 @@ emake.el:
 install: .elpa/
 
 build: install
-	$(EMAKE) build | tee build.log
+	$(EMAKE) compile | tee build.log
 
 test: test-build test-ert
 
