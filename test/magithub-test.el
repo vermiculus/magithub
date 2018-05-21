@@ -10,6 +10,8 @@
 (require 'magithub-core)
 (require 'ghub+)
 
+(load "test-helper.el")
+
 (setq ghubp-request-override-function
       #'magithub-mock-ghub-request)
 

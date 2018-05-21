@@ -4,3 +4,6 @@
 /magithub.html
 /magithub.pdf
 /magithub/
+.elpa/
+/build.log
+/magithub-autoloads.el

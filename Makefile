@@ -16,6 +16,9 @@ INSTALL_INFO     ?= $(shell command -v ginstall-info || printf install-info)
 MAKEINFO         ?= makeinfo
 MANUAL_HTML_ARGS ?= --css-ref /assets/the.css
 
+EENVS := PACKAGE_FILE="magithub.el" PACKAGE_ARCHIVES="gnu melpa" PACKAGE_LISP="$(wildcard magithub*.el)"
+EMAKE := $(EENVS) emacs -batch -l emake.el --eval "(emake (pop argv))"
+
 doc: info html html-dir pdf
 
 help:
@@ -31,14 +34,18 @@ help:
 
 clean:
 	rm -f *.elc
-	rm -rf .cask/
+	rm -rf .elpa/
 
-install: .cask/
-.cask/:
-	cask --verbose install
+emake.el:
+	wget 'https://raw.githubusercontent.com/vermiculus/emake.el/master/emake.el'
 
-build: .cask/
-	cask build 2>&1 | tee build.log
+.elpa/: emake.el
+	$(EMAKE) install
+
+install: .elpa/
+
+build: install
+	$(EMAKE) build | tee build.log
 
 test: test-build test-ert
 
@@ -47,16 +54,14 @@ test-build: build
 	! grep -oe '.*:\(Error\|Warning\):.*' build.log
 
 # run ERT tests
-test-ert:
-	cask exec ert-runner
+test-ert: emake.el
+	$(EMAKE) test
 
 setup-CI:
 	export PATH="$(HOME)/bin:$(PATH)"
 	wget 'https://raw.githubusercontent.com/flycheck/emacs-travis/master/emacs-travis.mk'
 	make -f emacs-travis.mk install_emacs
-	make -f emacs-travis.mk install_cask
 	emacs --version
-	cask exec emacs --version
 
 info: $(PKG).info dir
 html: $(PKG).html

@@ -1,11 +1,5 @@
 ;;; Allow loading package files
-(require 'cask)
 (require 'cl-lib)
-
-(let ((source-directory (locate-dominating-file load-file-name "Cask")))
-  (cask-initialize source-directory)
-  (add-to-list 'load-path source-directory)
-  (setq magithub-dir (expand-file-name ".cask" source-directory)))
 
 (defun magithub-in-test-dir (file)
   "Expand FILE in the test directory."
