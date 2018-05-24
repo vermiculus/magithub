@@ -18,8 +18,14 @@ MANUAL_HTML_ARGS ?= --css-ref /assets/the.css
 
 EENVS  = PACKAGE_FILE="magithub.el"
 EENVS += PACKAGE_TESTS="test/magithub-test.el"
-EENVS += PACKAGE_ARCHIVES="gnu melpa"
 EENVS += PACKAGE_LISP="$(wildcard magithub*.el)"
+
+ifeq ($(MELPA_STABLE),true)
+EENVS += PACKAGE_ARCHIVES="gnu melpa-stable"
+else
+EENVS += PACKAGE_ARCHIVES="gnu melpa"
+endif
+
 EMAKE := $(EENVS) emacs -batch -l emake.el --eval "(emake (pop argv))"
 
 doc: info html html-dir pdf
