@@ -16,7 +16,10 @@ INSTALL_INFO     ?= $(shell command -v ginstall-info || printf install-info)
 MAKEINFO         ?= makeinfo
 MANUAL_HTML_ARGS ?= --css-ref /assets/the.css
 
-EENVS := PACKAGE_FILE="magithub.el" PACKAGE_ARCHIVES="gnu melpa" PACKAGE_LISP="$(wildcard magithub*.el)"
+EENVS  = PACKAGE_FILE="magithub.el"
+EENVS += PACKAGE_TESTS="test/magithub-test.el"
+EENVS += PACKAGE_ARCHIVES="gnu melpa"
+EENVS += PACKAGE_LISP="$(wildcard magithub*.el)"
 EMAKE := $(EENVS) emacs -batch -l emake.el --eval "(emake (pop argv))"
 
 doc: info html html-dir pdf
@@ -45,17 +48,13 @@ emake.el:
 install: .elpa/
 
 build: install
-	$(EMAKE) compile | tee build.log
+	$(EMAKE) compile ~error-on-warn
 
-test: test-build test-ert
-
-# make sure there were no compile errors/warnings
-test-build: build
-	! grep -oe '.*:\(Error\|Warning\):.*' build.log
+test: build test-ert
 
 # run ERT tests
 test-ert: emake.el
-	$(EMAKE) test
+	$(EMAKE) test ert
 
 setup-CI:
 	export PATH="$(HOME)/bin:$(PATH)"
