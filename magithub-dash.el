@@ -57,7 +57,7 @@
          (lambda (&rest _) "*magithub-dash*")))
     (magit-mode-setup #'magithub-dash-mode)))
 
-(defvar magithub-dash-map
+(defvar magithub-dash-mode-map
   (let ((m (make-sparse-keymap)))
     (set-keymap-parent m magit-mode-map)
     (define-key m (kbd "5") #'magit-section-show-level-5)
@@ -66,11 +66,14 @@
     (define-key m (kbd "H") #'magithub-dispatch-popup)
     m)
   "Keymap for `magithub-dash-mode'.")
+(defvaralias 'magithub-dash-map 'magithub-dash-mode-map
+  "Old name of `magithub-dash-mode-map'.
+This will be removed in a future version.")
+;; todo: remove on version bump
 
 (define-derived-mode magithub-dash-mode
   magit-mode "Magithub-Dash"
-  "Major mode for your GitHub dashboard."
-  (use-local-map magithub-dash-map))
+  "Major mode for your GitHub dashboard.")
 
 (defun magithub-dash-refresh-buffer (&rest _args)
   "Refresh the dashboard.
