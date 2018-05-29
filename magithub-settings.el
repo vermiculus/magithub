@@ -146,6 +146,7 @@ When set, the proxy is used whenever a GitHub repository is needed."
     (clone-fork-set-upstream-to-parent short "This repository appears to be a fork of %s; set upstream to that remote?")
     (clone-fork-set-proxy-to-upstream  short "Use upstream as a proxy for issues, etc.?")
     (clone-open-magit-status           short "%s/%s has finished cloning to %s.  Open?")
+    (clone-create-directory            short "%s does not exist.  Create it?")
     (ci-refresh-when-offline           short "Magithub offline; refresh statuses anyway?")
     (refresh                           short "Refresh GitHub data?")
     (refresh-when-API-unresponsive     short "GitHub doesn't seem to be responding, are you sure?")

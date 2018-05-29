@@ -240,6 +240,10 @@ See also `magithub-preferred-remote-method'."
       (let-alist repo
         (user-error "Repository %s/%s does not exist"
                     .owner.login .name))))
+  (let ((parent (file-name-directory dir)))
+    (unless (file-exists-p parent)
+      (when (magithub-confirm 'clone-create-directory parent)
+        (mkdir parent t))))
   (unless (file-writable-p dir)
     (user-error "%s does not exist or is not writable" dir))
 
