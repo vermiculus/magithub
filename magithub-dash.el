@@ -65,7 +65,7 @@
     (define-key m (kbd ";") #'magithub-dashboard-popup)
     (define-key m (kbd "H") #'magithub-dispatch-popup)
     m)
-  "Keymap for `magihtub-dash-mode'.")
+  "Keymap for `magithub-dash-mode'.")
 
 (define-derived-mode magithub-dash-mode
   magit-mode "Magithub-Dash"
