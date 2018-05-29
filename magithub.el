@@ -245,7 +245,7 @@ See also `magithub-preferred-remote-method'."
       (when (magithub-confirm 'clone-create-directory parent)
         (mkdir parent t))))
   (unless (file-writable-p dir)
-    (user-error "%s does not exist or is not writable" dir))
+    (user-error "%s is not writable" dir))
 
   (let-alist repo
     (when (magithub-confirm-no-error 'clone .full_name dir)
