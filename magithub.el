@@ -192,6 +192,9 @@ be returned without prompting the user."
       (when (magithub-confirm-no-error 'fork-set-upstream-to-me .owner.login)
         (call-interactively #'magit-set-branch*merge/remote)))))
 
+(defvar magithub-clone-history nil
+  "History for `magithub-clone' prompt.")
+
 (defun magithub-clone--get-repo ()
   "Prompt for a user and a repository.
 Returns a sparse repository object."
@@ -205,7 +208,8 @@ Returns a sparse repository object."
                    "Clone GitHub repository "
                    (if repo "(format is \"user/repo\"; C-g to quit)" "(user/repo)")
                    ": ")
-                  (when user (concat user "/")))))
+                  (when user (concat user "/"))
+                  nil nil 'magithub-clone-history)))
     `((owner (login . ,(match-string 1 repo)))
       (name . ,(match-string 2 repo)))))
 
