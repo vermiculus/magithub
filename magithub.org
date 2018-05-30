@@ -217,6 +217,10 @@ repository, you could've used any key bound to ~magithub-issue-new~.)  The
 first line is the title of the new issue; everything else is the body.  You
 submit the issue with =C-c C-c=.
 
+From here you will be prompted to add labels by selecting them from the list
+and adding them with =RET=. To skip adding labels and submit the issue without
+any you can enter "" in the field and then =RET=.
+
 You come back a little while later to leave additional details -- you reply
 to your own issue in a comment, but realize you should just edit your
 original issue to avoid confusion.  You =k= to /kill/ / delete the comment.
