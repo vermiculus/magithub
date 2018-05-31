@@ -57,6 +57,9 @@
          (lambda (&rest _) "*magithub-dash*")))
     (magit-mode-setup #'magithub-dash-mode)))
 
+(defvaralias 'magithub-dash-map 'magithub-dash-mode-map
+  "Old name of `magithub-dash-mode-map'.
+This will be removed in a future version.")
 (defvar magithub-dash-mode-map
   (let ((m (make-sparse-keymap)))
     (set-keymap-parent m magit-mode-map)
@@ -66,9 +69,6 @@
     (define-key m (kbd "H") #'magithub-dispatch-popup)
     m)
   "Keymap for `magithub-dash-mode'.")
-(defvaralias 'magithub-dash-map 'magithub-dash-mode-map
-  "Old name of `magithub-dash-mode-map'.
-This will be removed in a future version.")
 ;; todo: remove on version bump
 
 (define-derived-mode magithub-dash-mode
