@@ -1,0 +1,5 @@
+#+Title: Magithub Release 0.2
+#+Date:
+
+#+LINK: PR https://www.github.com/vermiculus/magithub/pull/%s
+#+LINK: BUG https://www.github.com/vermiculus/magithub/issues/%s

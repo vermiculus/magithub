@@ -1,5 +1,5 @@
 #+Title: Magithub Release 0.1.6
-#+Date:
+#+Date: [2018-06-02 Sat]
 
 #+LINK: PR https://www.github.com/vermiculus/magithub/pull/%s
 #+LINK: BUG https://www.github.com/vermiculus/magithub/issues/%s
