@@ -492,13 +492,10 @@ of the form `owner/name' (as in `vermiculus/magithub')."
                        (name . ,(match-string 2 sparse-repo))))
     (when-let ((sparse-repo (or sparse-repo (magithub-source--sparse-repo))))
       (or (magithub-cache :repo-demographics
-            `(condition-case e
-                 (or (magithub-request
-                      (ghubp-get-repos-owner-repo ',sparse-repo))
-                     (and (not (magithub--api-available-p))
-                          sparse-repo))
-               ;; Repo may not exist; ignore 404
-               (ghub-404 nil)))
+            `(or (magithub-request
+                  (ghubp-get-repos-owner-repo ',sparse-repo))
+                 (and (not (magithub--api-available-p))
+                      sparse-repo)))
           (when (magithub-online-p)
             (let ((magithub-cache--refresh t))
               (magithub-repo sparse-repo)))
