@@ -108,6 +108,7 @@
     m)
   "Keymap for `magithub-gfm-view-mode'.")
 
+(declare-function gfm-view-mode "ext:markdown-mode.el")
 (define-derived-mode magithub-gfm-view-mode gfm-view-mode "M:GFM-View"
   "Major mode for viewing GitHub markdown content.")
 
