@@ -17,7 +17,7 @@ MAKEINFO         ?= makeinfo
 MANUAL_HTML_ARGS ?= --css-ref /assets/the.css
 
 EENVS  = PACKAGE_FILE="magithub.el"
-EENVS += PACKAGE_TESTS="test/magithub-test.el"
+EENVS += PACKAGE_TESTS="test/test-helper.el test/magithub-test.el"
 EENVS += PACKAGE_LISP="$(wildcard magithub*.el)"
 
 ifeq ($(MELPA_STABLE),true)
