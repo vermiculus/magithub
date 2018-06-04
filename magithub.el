@@ -256,26 +256,27 @@ See also `magithub-preferred-remote-method'."
       (let (set-upstream set-proxy)
         (setq set-upstream
               (and .fork (magithub-confirm-no-error
-			  'clone-fork-set-upstream-to-parent
+                          'clone-fork-set-upstream-to-parent
                           .parent.full_name))
               set-proxy
               (and set-upstream (magithub-confirm-no-error
-				 'clone-fork-set-proxy-to-upstream)))
+                                 'clone-fork-set-proxy-to-upstream)))
         (condition-case _
             (let ((default-directory dir)
                   (magit-clone-set-remote.pushDefault t))
               (mkdir dir t)
               (magit-clone (magithub-repo--clone-url repo) dir)
-              (while (process-live-p magit-this-process)
-                (magit-process-buffer)
-                (message "Waiting for clone to finish...")
-                (sit-for 1))
-              (when set-upstream
-                (let ((upstream "upstream"))
-                  (when set-proxy (magit-set upstream "magithub.proxy"))
-                  (magit-remote-add upstream (magithub-repo--clone-url .parent))
-                  (magit-set-branch*merge/remote (magit-get-current-branch)
-						 upstream)))))))))
+              (add-function
+               :after
+               (process-sentinel magit-this-process)
+               (lambda (process event)
+                 (unless (process-live-p process)
+                   (when set-upstream
+                     (let ((upstream "upstream"))
+                       (when set-proxy (magit-set upstream "magithub.proxy"))
+                       (magit-remote-add upstream (magithub-repo--clone-url .parent))
+                       (magit-set-branch*merge/remote (magit-get-current-branch)
+                                                      upstream))))))))))))
 
 (defun magithub-clone--finished (user repo dir)
   "After finishing the clone, allow the user to jump to their new repo."
