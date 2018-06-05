@@ -108,8 +108,8 @@ for that behavior.
 
 * Bug Fixes
 - ~magithub-clone~ is now asynchonous, and defers to the user whether
-  or not to display the magit-process-bufer according to the value of
-  ~magit-process-popup-time~..
+  or not to display the magit-process-buffer according to the value of
+  ~magit-process-popup-time~.  [[https://github.com/vermiculus/magithub/pull/340][PR:340]]
 - In ~magithub-repo~, an API request is no longer made when the
   repository context cannot be determined.
 - The list of labels is now correctly cached per-repository.  [[PR:203]]

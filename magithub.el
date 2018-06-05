@@ -269,7 +269,7 @@ See also `magithub-preferred-remote-method'."
               (add-function
                :after
                (process-sentinel magit-this-process)
-               (lambda (process event)
+               (lambda (process _event)
                  (unless (process-live-p process)
                    (when set-upstream
                      (let ((upstream "upstream"))
