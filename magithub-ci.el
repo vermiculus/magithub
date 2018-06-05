@@ -101,12 +101,11 @@ It may fail if the fork has multiple branches named BRANCH."
 Handles cases where the local branch's name is different than its
 remote counterpart."
   (setq branch (or branch (magit-get-current-branch)))
-  (if-let ((pull-request
-            (or (magithub-pull-request-branch->pr--gitconfig branch)
-                (and (magithub-online-p)
-                     (with-demoted-errors "Error: %S"
-                       (magithub-pull-request-branch->pr--ghub branch))))))
-      (let-alist pull-request .head.sha)
+  (if (or (magithub-pull-request-branch->pr--gitconfig branch)
+          (and (magithub-online-p)
+               (with-demoted-errors "Error: %S"
+                 (magithub-pull-request-branch->pr--ghub branch))))
+      (magit-rev-parse branch)
     (when-let ((push-branch (magit-get-push-branch branch)))
       (when (magit-branch-p push-branch)
         (cdr (magit-split-branch-name push-branch))))))
