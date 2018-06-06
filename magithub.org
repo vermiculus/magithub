@@ -221,6 +221,9 @@ From here you will be prompted to add labels by selecting them from the list
 and adding them with =RET=. To skip adding labels and submit the issue without
 any you can enter "" in the field and then =RET=.
 
+/Note: your completion framework may have special functionality to enter null
+here (ie. in Ivy you must use =C-M-j= to accept without input)./
+
 You come back a little while later to leave additional details -- you reply
 to your own issue in a comment, but realize you should just edit your
 original issue to avoid confusion.  You =k= to /kill/ / delete the comment.
