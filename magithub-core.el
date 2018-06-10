@@ -237,8 +237,9 @@ The cache is written to `magithub-cache-file' in
     (when magithub-cache--needs-write
       (magithub-in-data-dir
        (with-temp-buffer
-         (insert (prin1-to-string magithub-cache--cache))
-         (write-file magithub-cache-file)))
+         (let ((require-final-newline nil))
+           (insert (prin1-to-string magithub-cache--cache))
+           (write-file magithub-cache-file))))
       (setq magithub-cache--needs-write nil)
       (magithub-debug-message "wrote cache to disk: %S"
 			      (expand-file-name magithub-cache-file

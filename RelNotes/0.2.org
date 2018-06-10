@@ -3,3 +3,7 @@
 
 #+LINK: PR https://www.github.com/vermiculus/magithub/pull/%s
 #+LINK: BUG https://www.github.com/vermiculus/magithub/issues/%s
+
+* Bug Fixes
+- ~magithub-cache-write-to-disk~ now will write to the disk without prompting
+  when ~require-final-newline~ is set to t.  [[PR:343]]
