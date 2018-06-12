@@ -559,7 +559,7 @@ GitHub repositories."
                         (cons r repo)))
                     (magit-list-remotes))))
 
-(defun magithub-read-repo (prompt)
+(defun magithub-read-repo (prompt &optional default-input)
   "Using PROMPT, read a GitHub repository.
 See also `magithub-repo-remotes'."
   (let* ((remotes (magithub-repo-remotes))
@@ -573,7 +573,8 @@ See also `magithub-repo-remotes'."
            prompt (magithub-repo-remotes)
            (lambda (remote-repo-pair)
              (let-alist (cdr remote-repo-pair)
-               (format fmt (car remote-repo-pair) .owner.login .name))))))))
+               (format fmt (car remote-repo-pair) .owner.login .name)))
+           nil nil nil default-input)))))
 
 (defun magithub-repo-remotes-for-repo (repo)
   (-filter (lambda (remote)
@@ -791,7 +792,7 @@ Eventually, TIME will always be a time value."
        time)))
 
 (defun magithub--completing-read
-    (prompt collection &optional format-function predicate require-match default)
+    (prompt collection &optional format-function predicate require-match default initial-input)
   "Using PROMPT, get a list of elements in COLLECTION.
 This function continues until all candidates have been entered or
 until the user enters a value of \"\".  Duplicate entries are not
@@ -801,7 +802,9 @@ allowed."
          (collection (magithub--zip collection format-function nil)))
     (cdr (assoc-string
           (completing-read prompt collection nil require-match
-                           (when default (funcall format-function default)))
+                           (or initial-input
+                               (and default
+                                    (funcall format-function default))))
           collection))))
 
 (defun magithub--completing-read-multiple
