@@ -22,6 +22,7 @@
 ;;; Code:
 
 (require 'magithub-core)
+(require 'magithub-repo)
 (require 'magithub-issue)
 (require 'magithub-label)
 (require 'magithub-edit-mode)
