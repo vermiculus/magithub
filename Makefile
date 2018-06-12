@@ -1,6 +1,6 @@
 -include config.mk
 
-PKG = magithub
+PACKAGE_BASENAME = magithub
 
 EMACS      ?= emacs
 EMACS_ARGS ?=
@@ -68,9 +68,9 @@ setup-CI:
 	make -f emacs-travis.mk install_emacs
 	emacs --version
 
-info: $(PKG).info dir
-html: $(PKG).html
-pdf:  $(PKG).pdf
+info: $(PACKAGE_BASENAME).info dir
+html: $(PACKAGE_BASENAME).html
+pdf:  $(PACKAGE_BASENAME).pdf
 
 ORG_ARGS  = --batch -Q $(ORG_LOAD_PATH) -l ox-extra -l ox-texinfo+.el
 ORG_EVAL  = --eval "(ox-extras-activate '(ignore-headlines))"
@@ -87,15 +87,15 @@ ORG_EVAL += --funcall org-texinfo-export-to-texinfo
 #
 .PHONY: texi
 texi:
-	@$(EMACS) $(ORG_ARGS) $(PKG).org $(ORG_EVAL)
-	@printf "\n" >> $(PKG).texi
-	@rm -f $(PKG).texi~
+	@$(EMACS) $(ORG_ARGS) $(PACKAGE_BASENAME).org $(ORG_EVAL)
+	@printf "\n" >> $(PACKAGE_BASENAME).texi
+	@rm -f $(PACKAGE_BASENAME).texi~
 
 %.info: %.texi
 	@printf "Generating $@\n"
 	@$(MAKEINFO) --no-split $< -o $@
 
-dir: $(PKG).info
+dir: $(PACKAGE_BASENAME).info
 	@printf "Generating $@\n"
 	@printf "%s" $^ | xargs -n 1 $(INSTALL_INFO) --dir=$@
 
@@ -103,8 +103,8 @@ dir: $(PKG).info
 	@printf "Generating $@\n"
 	@$(MAKEINFO) --html --no-split $(MANUAL_HTML_ARGS) $<
 
-html-dir: $(PKG).texi
-	@printf "Generating $(PKG)/*.html\n"
+html-dir: $(PACKAGE_BASENAME).texi
+	@printf "Generating $(PACKAGE_BASENAME)/*.html\n"
 	@$(MAKEINFO) --html $(MANUAL_HTML_ARGS) $<
 
 %.pdf: %.texi
