@@ -62,9 +62,10 @@ test: build test-ert
 test-ert: emake.el
 	$(EMAKE) test ert
 
-setup-CI:
-	export PATH="$(HOME)/bin:$(PATH)"
+emacs-travis.mk:
 	wget 'https://raw.githubusercontent.com/flycheck/emacs-travis/master/emacs-travis.mk'
+setup-CI: emacs-travis.mk
+	export PATH="$(HOME)/bin:$(PATH)"
 	make -f emacs-travis.mk install_emacs
 	emacs --version
 
