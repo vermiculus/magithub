@@ -167,6 +167,12 @@ ask to save a draft here if post is cancelled."
         (kill-buffer (current-buffer))))
 
     (with-current-buffer (get-buffer-create buffer-name)
+      (when file
+        (let ((orig-name (buffer-name))
+              (dir default-directory))
+          (set-visited-file-name file)
+          (rename-buffer orig-name)
+          (cd dir)))
       (magithub-edit-mode)
 
       (setq magithub-edit-previous-buffer prevbuf
@@ -178,13 +184,6 @@ ask to save a draft here if post is cancelled."
           (when header
             (setq line (concat line " | " header)))
           line)))
-
-      (when file
-        (let ((orig-name (buffer-name))
-              (dir default-directory))
-          (set-visited-file-name file)
-          (rename-buffer orig-name)
-          (cd dir)))
 
       (cond
        (draft
