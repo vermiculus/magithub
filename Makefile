@@ -1,9 +1,33 @@
 -include config.mk
 
-PACKAGE_BASENAME = magithub
+PACKAGE_BASENAME      := magithub
+EMAKE_SHA1            := 3caabb0b5b2b0f42d242a18642d3d5d8b2320012
 
-EMACS      ?= emacs
-EMACS_ARGS ?=
+# override defaults
+ifeq ($(MELPA_STABLE),true)
+PACKAGE_ARCHIVES      := gnu melpa-stable
+else
+PACKAGE_ARCHIVES      := gnu melpa
+endif
+
+PACKAGE_TEST_ARCHIVES := gnu melpa
+
+include emake.mk
+
+.DEFAULT_GOAL: help
+
+### Magithub targets
+
+.PHONY: clean install compile test
+
+emake.mk: ## download the emake Makefile
+	wget 'https://raw.githubusercontent.com/vermiculus/emake.el/master/emake.mk'
+
+test: compile test-ert ## run tests
+lint: lint-package-lint lint-checkdoc ## run lints
+
+
+### Manual-building
 
 ifndef ORG_LOAD_PATH
 ORG_LOAD_PATH  = -L ../dash
@@ -13,65 +37,14 @@ ORG_LOAD_PATH += -L ../ox-texinfo+
 endif
 
 INSTALL_INFO     ?= $(shell command -v ginstall-info || printf install-info)
+EMACS            ?= emacs
 MAKEINFO         ?= makeinfo
 MANUAL_HTML_ARGS ?= --css-ref /assets/the.css
 
-EENVS  = PACKAGE_FILE="magithub.el"
-EENVS += PACKAGE_TESTS="test/test-helper.el test/magithub-test.el"
-EENVS += PACKAGE_LISP="$(wildcard magithub*.el)"
-
-ifeq ($(MELPA_STABLE),true)
-EENVS += PACKAGE_ARCHIVES="gnu melpa-stable"
-else
-EENVS += PACKAGE_ARCHIVES="gnu melpa"
-endif
-
-EMAKE := $(EENVS) emacs -batch -l emake.el --eval "(emake (pop argv))"
-
-doc: info html html-dir pdf
-
-help:
-	$(info make doc          - generate most manual formats)
-	$(info make texi         - generate texi manual (see comments))
-	$(info make info         - generate info manual)
-	$(info make html         - generate html manual file)
-	$(info make html-dir     - generate html manual directory)
-	$(info make pdf          - generate pdf manual)
-	@printf "\n"
-
-.PHONY: clean install build test
-
-clean:
-	rm -f *.elc
-	rm -rf .elpa/
-
-emake.el:
-	wget 'https://raw.githubusercontent.com/vermiculus/emake.el/master/emake.el'
-
-.elpa/: emake.el
-	$(EMAKE) install
-
-install: .elpa/
-
-build: install
-	$(EMAKE) compile ~error-on-warn
-
-test: build test-ert
-
-# run ERT tests
-test-ert: emake.el
-	$(EMAKE) test ert
-
-emacs-travis.mk:
-	wget 'https://raw.githubusercontent.com/flycheck/emacs-travis/master/emacs-travis.mk'
-setup-CI: emacs-travis.mk
-	export PATH="$(HOME)/bin:$(PATH)"
-	make -f emacs-travis.mk install_emacs
-	emacs --version
-
-info: $(PACKAGE_BASENAME).info dir
-html: $(PACKAGE_BASENAME).html
-pdf:  $(PACKAGE_BASENAME).pdf
+doc: info html html-dir pdf ## generate most manual formats
+info: $(PACKAGE_BASENAME).info dir ## generate info manual
+html: $(PACKAGE_BASENAME).html ## generate html manual file
+pdf:  $(PACKAGE_BASENAME).pdf ## generate pdf manual
 
 ORG_ARGS  = --batch -Q $(ORG_LOAD_PATH) -l ox-extra -l ox-texinfo+.el
 ORG_EVAL  = --eval "(ox-extras-activate '(ignore-headlines))"
@@ -87,7 +60,7 @@ ORG_EVAL += --funcall org-texinfo-export-to-texinfo
 #   VERSION=N make texi  Update manual for release.
 #
 .PHONY: texi
-texi:
+texi:				## generate texi manual (see comments)
 	@$(EMACS) $(ORG_ARGS) $(PACKAGE_BASENAME).org $(ORG_EVAL)
 	@printf "\n" >> $(PACKAGE_BASENAME).texi
 	@rm -f $(PACKAGE_BASENAME).texi~
@@ -104,7 +77,7 @@ dir: $(PACKAGE_BASENAME).info
 	@printf "Generating $@\n"
 	@$(MAKEINFO) --html --no-split $(MANUAL_HTML_ARGS) $<
 
-html-dir: $(PACKAGE_BASENAME).texi
+html-dir: $(PACKAGE_BASENAME).texi ## generate html manual directory
 	@printf "Generating $(PACKAGE_BASENAME)/*.html\n"
 	@$(MAKEINFO) --html $(MANUAL_HTML_ARGS) $<
 

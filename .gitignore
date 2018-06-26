@@ -7,3 +7,5 @@
 .elpa/
 /build.log
 /magithub-autoloads.el
+/emake.el
+/emake.mk

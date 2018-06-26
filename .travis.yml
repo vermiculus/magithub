@@ -18,9 +18,10 @@ env:
   - EMACS_VERSION=26.1 MELPA_STABLE=true
   - EMACS_VERSION=snapshot
 before_install:
-- make setup-CI
+- make emake.mk
+- make setup
 install:
-- make install
+- make .elpa
 script:
 - make --keep-going test
 notifications:
