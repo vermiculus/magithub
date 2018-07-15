@@ -127,7 +127,7 @@ See also URL
 (defun magithub-pull-request-new-arguments ()
   (unless (magit-get-push-remote)
     (user-error "Nothing on remote yet; have you pushed your branch?  Aborting"))
-  (let* ((this-repo (magithub-read-repo "Fork's remote (this is you!) " (ghubp-username)))
+  (let* ((this-repo (magithub-read-repo "Fork's remote (this is you!) " (ghubp-username) t))
          (this-repo-owner (let-alist this-repo .owner.login))
          (parent-repo (or (alist-get 'parent this-repo) this-repo))
          (this-remote (car (magithub-repo-remotes-for-repo this-repo)))
