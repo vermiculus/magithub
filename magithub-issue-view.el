@@ -81,12 +81,13 @@
   "Run `magithub-issue-view-headers-hook'."
   (magit-insert-headers magithub-issue-view-headers-hook))
 
-(defun magithub-issue-view--lock-value (issue &rest _args)
+(defun magithub-issue-view--lock-value (args)
   "Provide an identifying value for ISSUE.
 See also `magit-buffer-lock-functions'."
-  (let-alist `((repo . ,(magithub-issue-repo issue))
-               (issue . ,issue))
-    (list .repo.owner.login .repo.name .issue.number)))
+  (let ((issue (car args)))
+    (let-alist `((repo . ,(magithub-issue-repo issue))
+                 (issue . ,issue))
+      (list .repo.owner.login .repo.name .issue.number))))
 (push (cons 'magithub-issue-view-mode #'magithub-issue-view--lock-value)
       magit-buffer-lock-functions)
 
