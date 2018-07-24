@@ -560,22 +560,25 @@ GitHub repositories."
                         (cons r repo)))
                     (magit-list-remotes))))
 
-(defun magithub-read-repo (prompt &optional default-input)
+(defun magithub-read-repo (prompt &optional default-input skip-prompt-for-sole-remote)
   "Using PROMPT, read a GitHub repository.
-See also `magithub-repo-remotes'."
+See also `magithub-repo-remotes'.
+If there's only one remote available, optionally return it without prompting."
   (let* ((remotes (magithub-repo-remotes))
          (maxlen (->> remotes
                       (mapcar #'car)
                       (mapcar #'length)
                       (apply #'max)))
          (fmt (format "%%-%ds (%%s/%%s)" maxlen)))
-    (magithub-repo
-     (cdr (magithub--completing-read
-           prompt (magithub-repo-remotes)
-           (lambda (remote-repo-pair)
-             (let-alist (cdr remote-repo-pair)
-               (format fmt (car remote-repo-pair) .owner.login .name)))
-           nil nil nil default-input)))))
+    (if (and skip-prompt-for-sole-remote (= (length remotes) 1))
+        (car remotes)
+      (magithub-repo
+       (cdr (magithub--completing-read
+             prompt (magithub-repo-remotes)
+             (lambda (remote-repo-pair)
+               (let-alist (cdr remote-repo-pair)
+                 (format fmt (car remote-repo-pair) .owner.login .name)))
+             nil nil nil default-input))))))
 
 (defun magithub-repo-remotes-for-repo (repo)
   (-filter (lambda (remote)
