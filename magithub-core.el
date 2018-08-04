@@ -395,7 +395,7 @@ See `magithub--api-offline-reason'."
   "A list of top-level domains that should be recognized as GitHub hosts.
 See also `magithub-github-repository-p'."
   :group 'magithub
-  :type '(list string))
+  :type '(repeat string))
 
 (defun magithub-github-repository-p ()
   "Non-nil if \"origin\" points to GitHub or a whitelisted domain.

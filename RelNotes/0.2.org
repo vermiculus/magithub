@@ -7,3 +7,5 @@
 * Bug Fixes
 - ~magithub-cache-write-to-disk~ now will write to the disk without prompting
   when ~require-final-newline~ is set to t.  [[PR:343]]
+- ~magithub-github-hosts~ can now support more than one host when
+  customized through the customization interface [[https://github.com/vermiculus/magithub/pull/357][PR:357]]
