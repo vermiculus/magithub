@@ -101,7 +101,7 @@ Runs `magithub-dash-sections-hook'."
 (defun magithub-dash-insert-headers ()
   "Insert dashboard headers.
 See also `magithub-dash-headers-hook'."
-  (magit-insert-headers magithub-dash-headers-hook))
+  (magit-insert-headers 'magithub-dash-headers-hook))
 
 (defun magithub-dash-insert-user-name-header (&optional user)
   "Inserts a header for USER's name and login."

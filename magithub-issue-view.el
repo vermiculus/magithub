@@ -79,7 +79,7 @@
 
 (defun magithub-issue-view-insert-headers ()
   "Run `magithub-issue-view-headers-hook'."
-  (magit-insert-headers magithub-issue-view-headers-hook))
+  (magit-insert-headers 'magithub-issue-view-headers-hook))
 
 (defun magithub-issue-view--lock-value (args)
   "Provide an identifying value for ISSUE.
