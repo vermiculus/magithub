@@ -345,8 +345,9 @@ Pings the API a maximum of once every ten seconds."
                                ;; (i.e. GHE), try using /meta which
                                ;; should (hopefully) always work.  See
                                ;; also issue #107.
-                               (or (ghubp-ratelimit)
-                                   (ghub-get "/meta" nil :auth 'magithub))
+                               (magithub-request
+                                (or (ghubp-ratelimit)
+                                    (ghubp-request 'get "/meta" nil nil)))
 
                                api-status (and response t)))
 
