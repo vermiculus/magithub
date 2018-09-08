@@ -139,10 +139,12 @@ Return the new buffer."
       (magit-insert-heading))))
 
 (defun magithub-issue-view-insert-state ()
-  "Insert issue state (either \"open\" or \"closed\")."
-  (let-alist magithub-issue
-    (magithub-issue-view-insert--generic "State:" .state
-      :face 'magit-dimmed)))
+  "Insert issue state."
+  (magithub-issue-view-insert--generic "State:"
+      (if (magithub-issue-open-p magithub-issue)
+          (propertize "Open" 'face 'magithub-issue-open)
+        (propertize "Closed" 'face 'magithub-issue-closed))
+    :face 'magit-dimmed))
 
 (defun magithub-issue-view-insert-asked ()
   "Insert posted time."
