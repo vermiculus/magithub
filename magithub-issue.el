@@ -50,6 +50,60 @@
 
 ;;; Core
 
+(defun magithub-issue--admin-p (issue)
+  "Returns non-nil if ISSUE can be managed by the current user."
+  (magithub-request
+   (or (string= (let-alist issue .user.login)
+                (let-alist (magithub-user-me) .user.login))
+       (magithub-repo-admin-p))))
+
+(defun magithub-issue--ensure-admin (issue user-error-message)
+  "Ensure the user can administrate ISSUE.
+If not, error out with USER-ERROR-MESSAGE."
+  (declare (indent 1))
+  (unless (magithub-issue--admin-p issue)
+    (user-error "%s: not the issue owner or an administrator of this repo" user-error-message)))
+
+(defun magithub-issue-open-p (issue)
+  "Returns non-nil if ISSUE is open."
+  (string= (let-alist issue .state) "open"))
+
+(defun magithub-issue--open-close (issue do-close)
+  "Open or close ISSUE.  If DO-CLOSE is non-nil, ISSUE will be closed."
+  (magithub-issue--ensure-admin issue
+    (if do-close
+        "Cannot close this issue"
+      "Cannot reopen this issue"))
+  ;; valid states: issue is  open    and we want to  close
+  ;;               issue is  closed  and we want to  open
+  ;; (not ...) is to coerce to t or nil
+  (unless (eq (not (magithub-issue-open-p issue)) (not do-close))
+    (user-error (if do-close
+                    "Issue already closed"
+                  "Issue already open")))
+  (magithub-confirm (if do-close 'issue-close 'issue-reopen)
+                    (magithub-issue-reference issue))
+  (prog1
+      (magithub-request
+       (ghubp-patch-repos-owner-repo-issues-number
+           (magithub-repo) issue
+         `((state . ,(if do-close "closed" "open")))))
+    (when (derived-mode-p 'magithub-issue-view-mode)
+      (magithub-issue-view-refresh))
+    (magithub-message "%s %s"
+                      (if do-close "closed" "reopened")
+                      (magithub-issue-reference issue))))
+
+(defun magithub-issue-close (issue)
+  "Close ISSUE."
+  (interactive (list (magithub-interactive-issue)))
+  (magithub-issue--open-close issue t))
+
+(defun magithub-issue-open (issue)
+  "Open ISSUE."
+  (interactive (list (magithub-interactive-issue)))
+  (magithub-issue--open-close issue nil))
+
 (defmacro magithub-interactive-issue-or-pr (sym args doc &rest body)
   "Declare an interactive form that works on both issues and PRs.
 SYM is a postfix for the function symbol.  An appropriate prefix
@@ -417,6 +471,8 @@ Each function takes two arguments:
     (define-key map [remap magithub-reply-thing] #'magithub-comment-new)
     (define-key map "L" #'magithub-issue-add-labels)
     (define-key map "N" #'magithub-issue-personal-note)
+    (define-key map "C" #'magithub-issue-close)
+    (define-key map "O" #'magithub-issue-open)
     map)
   "Keymap for `magithub-issue' sections.")
 

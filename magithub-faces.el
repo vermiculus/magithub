@@ -89,6 +89,16 @@ See also `magithub-issue-personal-note'."
   "Face used when CI status is `unknown'."
   :group 'magithub-faces)
 
+(defface magithub-issue-open
+  '((t :inherit success))
+  "Face used to indicate an issue is open."
+  :group 'magithub-faces)
+
+(defface magithub-issue-closed
+  '((t :inherit error))
+  "Face used to indicate an issue is closed."
+  :group 'magithub-faces)
+
 (defface magithub-label '((t :box t))
   "The inherited face used for labels.
 Feel free to customize any part of this face, but be aware that

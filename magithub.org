@@ -296,6 +296,11 @@ functionality available right from an issue section.
 
   Browse this issue / pull request on GitHub.
 
+- Key: O, magithub-issue-open
+- Key: C, magithub-issue-close
+
+  Open/close an issue.
+
 - Key: N, magithub-issue-personal-note
 
   Opens a buffer for offline note-taking.

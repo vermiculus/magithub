@@ -59,6 +59,10 @@ If SUBMODE is supplied, specifically check for that mode in
   (and (listp magithub-debug-mode)
        (memq submode magithub-debug-mode)))
 
+(defun magithub-message (fmt &rest args)
+  "Print a message."
+  (message "magithub: %s" (apply #'format fmt args)))
+
 (defun magithub-debug-message (fmt &rest args)
   "Print a debug message.
 Respects `magithub-debug-mode' and `debug-on-error'."
