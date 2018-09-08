@@ -68,6 +68,7 @@ If not, error out with USER-ERROR-MESSAGE."
   "Returns non-nil if ISSUE is open."
   (string= (let-alist issue .state) "open"))
 
+(declare-function magithub-issue-view-refresh "magithub-issue-view")
 (defun magithub-issue--open-close (issue do-close)
   "Open or close ISSUE.  If DO-CLOSE is non-nil, ISSUE will be closed."
   (magithub-issue--ensure-admin issue
@@ -89,6 +90,7 @@ If not, error out with USER-ERROR-MESSAGE."
            (magithub-repo) issue
          `((state . ,(if do-close "closed" "open")))))
     (when (derived-mode-p 'magithub-issue-view-mode)
+      (require 'magithub-issue-view)
       (magithub-issue-view-refresh))
     (magithub-message "%s %s"
                       (if do-close "closed" "reopened")
@@ -463,6 +465,7 @@ Each function takes two arguments:
   (when (derived-mode-p 'magit-status-mode)
     (magit-refresh)))
 
+(declare-function magithub-comment-new "magithub-comment")
 (defvar magit-magithub-issue-section-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map magithub-map)

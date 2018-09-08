@@ -25,8 +25,9 @@
 ;;; Code:
 
 (require 'thingatpt)
+(require 'magit-section)
 
-(require 'magithub-issue-view)
+(require 'magithub-core)
 
 (defvar magit-magithub-notification-section-map
   (let ((m (make-sparse-keymap)))
@@ -106,6 +107,7 @@ get a more verbose explanation."
                            "(Unknown)"))
       .reason)))
 
+(declare-function magithub-issue-view "magithub-issue-view" (issue))
 (defalias 'magithub-notification-visit #'magithub-notification-browse)
 (defun magithub-notification-browse (notification)
   "Visits the URL pointed to by NOTIFICATION."
@@ -116,6 +118,7 @@ get a more verbose explanation."
          (cond
           ((member .subject.type '("Issue" "PullRequest"))
            (ghubp-patch-notifications-threads-id notification)
+           (require 'magithub-issue-view)
            (magithub-issue-view (ghubp-follow-get .subject.url)))
           (t (if-let ((url (or .subject.latest_comment_url .subject.url))
                       (html-url (alist-get 'html_url (ghubp-follow-get url))))

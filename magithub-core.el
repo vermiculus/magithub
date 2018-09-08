@@ -391,8 +391,6 @@ See `magithub--api-offline-reason'."
              magithub--api-offline-reason)
     (setq magithub--api-offline-reason nil)))
 
-(defalias 'magithub-api-rate-limit #'ghubp-ratelimit)
-
 ;;; Repository parsing
 
 (defcustom magithub-github-hosts
