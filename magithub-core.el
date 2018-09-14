@@ -945,7 +945,9 @@ this function: `github-user', `github-issue', `github-label',
 ;;;###autoload
 (put 'github-user 'thing-at-point
      (lambda ()
-       (magithub--section-value-at-point 'user)))
+       (or
+        (magithub--section-value-at-point 'user)
+        (magithub--section-value-at-point 'reviewer))))
 
 ;;;###autoload
 (put 'github-issue 'thing-at-point

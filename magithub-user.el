@@ -45,6 +45,13 @@
     (define-key m [remap magit-delete-thing] #'magithub-assignee-remove)
     m))
 
+(defvar magit-magithub-reviewer-section-map
+  (let ((m (make-sparse-keymap)))
+    (set-keymap-parent m magit-magithub-user-section-map)
+    (define-key m [remap magithub-add-thing] #'magithub-reviewer-add)
+    (define-key m [remap magit-delete-thing] #'magithub-reviewer-remove)
+    m))
+
 (defun magithub-user-me ()
   "Return the currently-authenticated user."
   (magithub-cache :user-demographics
@@ -100,6 +107,47 @@
       (magithub-cache-without-cache :issues
         (magit-refresh-buffer)))))
 
+(defun magithub-reviewer--verify-manage ()
+  (or (magithub-repo-push-p)
+      (user-error "You don't have permission to manage reviewers in this repository")))
+
+(defun magithub-reviewer-add (issue user)
+  (interactive (when (magithub-reviewer--verify-manage)
+                 (let ((issue (thing-at-point 'github-pull-request)))
+                   (list issue
+                         (magithub-user-choose-reviewer
+                          "Choose a reviewer: "
+                          (magithub-issue-repo issue))))))
+  (unless (and issue user)
+    (error "Missing required arguments"))
+  (let-alist `((repo . ,(magithub-issue-repo issue))
+               (issue . ,issue)
+               (user . ,user))
+    (magithub-confirm 'reviewer-add .user.login (magithub-issue-reference .issue))
+    (prog1 (magithub-request
+            (ghubp-post-repos-owner-repo-pulls-number-requested_reviewers
+                .repo .issue (list .user)))
+      (let ((sec (magit-current-section)))
+        (magithub-cache-without-cache :issues
+          (magit-refresh-buffer))
+        (magit-section-show sec)))))
+
+(defun magithub-reviewer-remove (issue user)
+  "Remove from ISSUE a reviewer USER."
+  (interactive (when (magithub-reviewer--verify-manage)
+                 (list (thing-at-point 'github-issue)
+                       (thing-at-point 'github-user))))
+  (unless (and issue user)
+    (error "Missing required arguments"))
+  (let-alist user
+    (magithub-confirm 'reviewer-remove .login (magithub-issue-reference issue))
+    (prog1 (magithub-request
+            (ghubp-delete-repos-owner-repo-pulls-number-requested_reviewers
+                (magithub-issue-repo issue) issue
+              `((reviewers . ,(list .login)))))
+      (magithub-cache-without-cache :issues
+        (magit-refresh-buffer)))))
+
 (defun magithub-user-choose (prompt &optional default-user)
   (let (ret-user new-username)
     (while (not ret-user)
@@ -108,11 +156,8 @@
              (concat prompt
                      (if new-username (format " ['%s' not found]" new-username)))
              (alist-get 'login default-user)))
-      (when-let ((try (condition-case _
-                          (magithub-request
-                           (ghubp-get-users-username `((login . ,new-username))))
-                        (ghub-404 nil))))
-        (setq ret-user try)))
+      (setq ret-user (magithub-request
+                      (ghubp-get-users-username `((login . ,new-username))))))
     ret-user))
 
 (defun magithub-user-choose-assignee (prompt &optional repo default-user)
@@ -120,6 +165,16 @@
    prompt
    (magithub-request
     (ghubp-get-repos-owner-repo-assignees repo))
+   (lambda (user) (let-alist user .login))
+   nil t default-user))
+
+(defun magithub-user-choose-reviewer (prompt repo &optional default-user)
+  "Choose a reviewer with PROMPT for REPO.
+Default to DEFAULT-USER."
+  (magithub--completing-read
+   prompt
+   (magithub-request
+    (ghubp-get-repos-owner-repo-collaborators repo))
    (lambda (user) (let-alist user .login))
    nil t default-user))
 

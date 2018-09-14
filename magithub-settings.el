@@ -155,6 +155,8 @@ When set, the proxy is used whenever a GitHub repository is needed."
     (user-email-self                   short "Email yourself?")
     (assignee-add                      long  "Assign '%s' to %s#%d?")
     (assignee-remove                   long  "Remove '%s' from %s#%d?")
+    (reviewer-add                      long  "Add '%s' to review %s?")
+    (reviewer-remove                   long  "Remove '%s' from %s?")
     (comment                           short "Submit this comment to %s?")
     (comment-edit                      short "Commit this edit?")
     (comment-delete                    long  "Are you sure you wish to delete this comment?")

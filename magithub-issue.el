@@ -358,6 +358,7 @@ See also `magithub-issue-insert-sections'."
     magithub-issue-detail-insert-updated
     magithub-issue-detail-insert-author
     magithub-issue-detail-insert-assignees
+    magithub-issue-detail-insert-reviewers
     magithub-issue-detail-insert-labels
     magithub-issue-detail-insert-body-preview)
   "Detail functions for issue-type sections.
@@ -406,6 +407,31 @@ Each function takes two arguments:
             (when assignees
               (insert " "))))
       (magit-insert-section (magithub-assignee)
+        (insert (propertize "none" 'face 'magit-dimmed))))
+    (insert "\n")))
+
+(defun magithub-issue--pull-reviewers (pull)
+  "Get pull request reviewers for PULL.
+This a helper function for `magithub-issue-detail-insert-reviewers'"
+  (let ((repo (magithub-issue-repo pull)))
+    (magithub-cache :issues
+      `(magithub-request
+        (ghubp-get-repos-owner-repo-pulls-number-requested_reviewers
+            ',repo ',pull)))))
+
+(defun magithub-issue-detail-insert-reviewers (issue fmt)
+  "Insert the reviewers of ISSUE using FMT."
+  (let-alist (magithub-issue--pull-reviewers issue)
+    (insert (format fmt "Reviewer:"))
+    (if .users
+        (let ((reviewers .users) reviewer)
+          (while (setq reviewer (pop reviewers))
+            (magit-insert-section (magithub-reviewer (magithub-user reviewer))
+              (insert (propertize (alist-get 'login reviewer)
+                                  'face 'magithub-user)))
+            (when reviewers
+              (insert " "))))
+      (magit-insert-section (magithub-reviewer)
         (insert (propertize "none" 'face 'magit-dimmed))))
     (insert "\n")))
 
