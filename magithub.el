@@ -98,10 +98,11 @@ Jump to parent directory if you not in buffer with non-dired mode."
   (interactive)
   (unless (magithub-github-repository-p)
     (user-error "Not a GitHub repository"))
-  (let* ((github-branch-path (format "%s/%s/%s/"
-                                     (alist-get 'html_url (magithub-repo))
-                                     "blob"
-                                     (magit-get-current-branch)))
+  (let* ((github-branch-path (let-alist (magithub-repo)
+                               (format "%s/%s/%s/"
+                                       .html_url
+                                       "blob"
+                                       (magit-get-current-branch))))
          (file-relative-path (replace-regexp-in-string
                               (magit-toplevel)
                               ""
