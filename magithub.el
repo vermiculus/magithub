@@ -89,6 +89,18 @@
     (user-error "Not a GitHub repository"))
   (magithub-repo-visit (magithub-repo)))
 
+(defun magithub-browse-file ()
+  "Open the git file in your browser."
+  (interactive)
+  (unless (magithub-github-repository-p)
+    (user-error "Not a GitHub repository"))
+  (let* ((repo (magithub-repo))
+         (html-url (alist-get 'html_url repo))
+         (branch (alist-get 'default_branch repo))
+         (github-branch-path (apply 'concat (mapcar 'file-name-as-directory (list html-url "blob" branch))))
+         (file-relative-path (replace-regexp-in-string (magit-toplevel) "" (buffer-file-name))))
+    (browse-url (concat github-branch-path file-relative-path))))
+
 (defvar magithub-after-create-messages
   '("Don't be shy!"
     "Don't let your dreams be dreams!")
