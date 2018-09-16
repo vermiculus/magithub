@@ -102,14 +102,14 @@ Jump to parent directory if you not in buffer with non-dired mode."
                                (format "%s/%s/%s/"
                                        .html_url
                                        "blob"
-                                       (magit-get-current-branch))))
+                                       (magit-git-string "rev-parse" "--abbrev-ref" "HEAD"))))
          (file-relative-path (replace-regexp-in-string
                               (magit-toplevel)
                               ""
                               (expand-file-name
-                               (if (buffer-file-name)
+                               (if-let ((filepath (buffer-file-name)))
                                    ;; Get file relative path and line number if `buffer-file-name' is non-nil.
-                                   (format "%s#L%s" (buffer-file-name) (line-number-at-pos))
+                                   (format "%s#L%s" filepath (line-number-at-pos))
                                  (if (derived-mode-p 'dired-mode)
                                      ;; Get file relative path if in `dired-mode'
                                      (dired-file-name-at-point)
