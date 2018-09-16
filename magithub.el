@@ -90,7 +90,11 @@
   (magithub-repo-visit (magithub-repo)))
 
 (defun magithub-browse-file ()
-  "Open the git file in your browser."
+  "Open the git file in your browser.
+
+Jump to file with line number if you in buffer of git file.
+Jump to file if you in dired mode.
+Jump to parent directory if you not in buffer with non-dired mode."
   (interactive)
   (unless (magithub-github-repository-p)
     (user-error "Not a GitHub repository"))
@@ -98,8 +102,15 @@
          (html-url (alist-get 'html_url repo))
          (branch (alist-get 'default_branch repo))
          (github-branch-path (apply 'concat (mapcar 'file-name-as-directory (list html-url "blob" branch))))
-         (file-relative-path (replace-regexp-in-string (magit-toplevel) "" (buffer-file-name))))
-    (browse-url (concat github-branch-path file-relative-path))))
+         (file-relative-path (if (buffer-file-name)
+                                 ;; Get file relative path and line number if `buffer-file-name' is non-nil.
+                                 (concat (buffer-file-name) "#L" (prin1-to-string (line-number-at-pos)))
+                               (if (equal major-mode 'dired-mode)
+                                   ;; Get file relative path if in `dired-mode'
+                                   (expand-file-name (dired-file-name-at-point))
+                                 ;; Otherwise, get current directory as relative path
+                                 default-directory))))
+    (browse-url (concat github-branch-path (replace-regexp-in-string (magit-toplevel) "" file-relative-path)))))
 
 (defvar magithub-after-create-messages
   '("Don't be shy!"
