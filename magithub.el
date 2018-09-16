@@ -98,19 +98,23 @@ Jump to parent directory if you not in buffer with non-dired mode."
   (interactive)
   (unless (magithub-github-repository-p)
     (user-error "Not a GitHub repository"))
-  (let* ((repo (magithub-repo))
-         (html-url (alist-get 'html_url repo))
-         (branch (alist-get 'default_branch repo))
-         (github-branch-path (apply 'concat (mapcar 'file-name-as-directory (list html-url "blob" branch))))
-         (file-relative-path (if (buffer-file-name)
-                                 ;; Get file relative path and line number if `buffer-file-name' is non-nil.
-                                 (concat (buffer-file-name) "#L" (prin1-to-string (line-number-at-pos)))
-                               (if (equal major-mode 'dired-mode)
-                                   ;; Get file relative path if in `dired-mode'
-                                   (expand-file-name (dired-file-name-at-point))
-                                 ;; Otherwise, get current directory as relative path
-                                 default-directory))))
-    (browse-url (concat github-branch-path (replace-regexp-in-string (magit-toplevel) "" file-relative-path)))))
+  (let* ((github-branch-path (format "%s/%s/%s/"
+                                     (alist-get 'html_url (magithub-repo))
+                                     "blob"
+                                     (magit-get-current-branch)))
+         (file-relative-path (replace-regexp-in-string
+                              (magit-toplevel)
+                              ""
+                              (expand-file-name
+                               (if (buffer-file-name)
+                                   ;; Get file relative path and line number if `buffer-file-name' is non-nil.
+                                   (format "%s#L%s" (buffer-file-name) (line-number-at-pos))
+                                 (if (derived-mode-p 'dired-mode)
+                                     ;; Get file relative path if in `dired-mode'
+                                     (dired-file-name-at-point)
+                                   ;; Otherwise, get current directory as relative path
+                                   default-directory))))))
+    (browse-url (concat github-branch-path file-relative-path))))
 
 (defvar magithub-after-create-messages
   '("Don't be shy!"
