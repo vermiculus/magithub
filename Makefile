@@ -1,7 +1,7 @@
 -include config.mk
 
 PACKAGE_BASENAME      := magithub
-EMAKE_SHA1            := 3caabb0b5b2b0f42d242a18642d3d5d8b2320012
+EMAKE_SHA1            := 1b23379eb5a9f82d3e2d227d0f217864e40f23e0
 
 # override defaults
 ifeq ($(MELPA_STABLE),true)
@@ -20,8 +20,12 @@ include emake.mk
 
 .PHONY: clean install compile test
 
+clean:
+	rm -rf $(EMAKE_WORKDIR)
+	rm -rf *.elc
+
 emake.mk: ## download the emake Makefile
-	wget 'https://raw.githubusercontent.com/vermiculus/emake.el/master/emake.mk'
+	wget 'https://raw.githubusercontent.com/vermiculus/emake.el/$(EMAKE_SHA1)/emake.mk'
 
 test: compile test-ert ## run tests
 lint: lint-package-lint lint-checkdoc ## run lints

@@ -1,11 +1,9 @@
 *.elc
 *~
-/.cask
 /magithub.html
 /magithub.pdf
 /magithub/
-.elpa/
 /build.log
 /magithub-autoloads.el
-/emake.el
+/.emake/
 /emake.mk

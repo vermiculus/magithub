@@ -10,6 +10,8 @@ matrix:
   - env: EMACS_VERSION=snapshot
   - env: EMACS_VERSION=26.1 MELPA_STABLE=true
 env:
+  global:
+  - EMAKE_SHA1=1b23379eb5a9f82d3e2d227d0f217864e40f23e0
   matrix:
   - EMACS_VERSION=25.1
   - EMACS_VERSION=25.2
@@ -18,10 +20,10 @@ env:
   - EMACS_VERSION=26.1 MELPA_STABLE=true
   - EMACS_VERSION=snapshot
 before_install:
-- make emake.mk
+- wget "https://raw.githubusercontent.com/vermiculus/emake.el/${EMAKE_SHA1}/emake.mk"
 - make setup
 install:
-- make .elpa
+- make install
 script:
 - make --keep-going test
 notifications:
