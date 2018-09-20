@@ -89,32 +89,41 @@
     (user-error "Not a GitHub repository"))
   (magithub-repo-visit (magithub-repo)))
 
-(defun magithub-browse-file ()
-  "Open the git file in your browser.
+(defun magithub-browse-file (&optional file line)
+  "Open the git file with line in your browser.
 
-Jump to file with line number if you in buffer of git file.
-Jump to file if you in dired mode.
-Jump to parent directory if you not in buffer with non-dired mode."
+This function will be executed according to the following priorities:
+
+1. Browse `file' with `line' if argument `file' and `line' is non-nil.
+2. Browse file with line number if you in buffer of git file.
+3. Browse file if you in dired mode.
+4. Browse parent directory if you not in buffer with non-dired mode."
   (interactive)
-  (unless (magithub-github-repository-p)
-    (user-error "Not a GitHub repository"))
-  (let* ((github-branch-path (let-alist (magithub-repo)
-                               (format "%s/%s/%s/"
-                                       .html_url
-                                       "blob"
-                                       (magit-git-string "rev-parse" "HEAD"))))
-         (file-relative-path (string-remove-prefix
-                              (magit-toplevel)
-                              (expand-file-name
-                               (if-let ((filepath (buffer-file-name)))
-                                   ;; Get file relative path and line number if `buffer-file-name' is non-nil.
-                                   (format "%s#L%s" filepath (line-number-at-pos))
-                                 (if (derived-mode-p 'dired-mode)
-                                     ;; Get file relative path if in `dired-mode'
-                                     (dired-file-name-at-point)
-                                   ;; Otherwise, get current directory as relative path
-                                   default-directory))))))
-    (browse-url (concat github-branch-path file-relative-path))))
+  (let* ((current-buffer-file (buffer-file-name))
+         ;; Switch to git repository with file or buffer-file-name.
+         (default-directory (cond (file (file-name-directory file))
+                                  (current-buffer-file (file-name-directory current-buffer-file))
+                                  (t default-directory))))
+    ;; Check whether in git repository.
+    (unless (magithub-github-repository-p)
+      (user-error "Not a GitHub repository"))
+    (let* ((file-relative-path (string-remove-prefix
+                                (magit-toplevel)
+                                (expand-file-name
+                                 (cond (file file)
+                                       (current-buffer-file current-buffer-file)
+                                       ((derived-mode-p 'dired-mode) (dired-file-name-at-point))
+                                       (t default-directory)))))
+           (file-line-string (cond (file (if line (format "#L%s" line) ""))
+                                   (current-buffer-file (format "#L%s" (line-number-at-pos)))
+                                   (t ""))))
+      (browse-url (let-alist (magithub-repo)
+                    (if (equal file-relative-path "")
+                        ;; Browse homepage if relative path is empty.
+                        .html_url
+                      ;; Browse file with line in browser.
+                      (format "%s/blob/%s/%s%s" .html_url (magit-git-string "rev-parse" "HEAD") file-relative-path file-line-string)
+                      ))))))
 
 (defvar magithub-after-create-messages
   '("Don't be shy!"
