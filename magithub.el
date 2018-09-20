@@ -89,6 +89,42 @@
     (user-error "Not a GitHub repository"))
   (magithub-repo-visit (magithub-repo)))
 
+(defun magithub-browse-file (&optional file line)
+  "Open the git file with line in your browser.
+
+This function will be executed according to the following priorities:
+
+1. Browse `file' with `line' if argument `file' and `line' is non-nil.
+2. Browse file with line number if you in buffer of git file.
+3. Browse file if you in dired mode.
+4. Browse parent directory if you not in buffer with non-dired mode."
+  (interactive)
+  (let* ((current-buffer-file (buffer-file-name))
+         ;; Switch to git repository with file or buffer-file-name.
+         (default-directory (cond (file (file-name-directory file))
+                                  (current-buffer-file (file-name-directory current-buffer-file))
+                                  (t default-directory))))
+    ;; Check whether in git repository.
+    (unless (magithub-github-repository-p)
+      (user-error "Not a GitHub repository"))
+    (let* ((file-relative-path (string-remove-prefix
+                                (magit-toplevel)
+                                (expand-file-name
+                                 (cond (file file)
+                                       (current-buffer-file current-buffer-file)
+                                       ((derived-mode-p 'dired-mode) (dired-file-name-at-point))
+                                       (t default-directory)))))
+           (file-line-string (cond (file (if line (format "#L%s" line) ""))
+                                   (current-buffer-file (format "#L%s" (line-number-at-pos)))
+                                   (t ""))))
+      (browse-url (let-alist (magithub-repo)
+                    (if (equal file-relative-path "")
+                        ;; Browse homepage if relative path is empty.
+                        .html_url
+                      ;; Browse file with line in browser.
+                      (format "%s/blob/%s/%s%s" .html_url (magit-git-string "rev-parse" "HEAD") file-relative-path file-line-string)
+                      ))))))
+
 (defvar magithub-after-create-messages
   '("Don't be shy!"
     "Don't let your dreams be dreams!")
