@@ -89,53 +89,62 @@
     (user-error "Not a GitHub repository"))
   (magithub-repo-visit (magithub-repo)))
 
-(defun magithub-browse-file (&optional file line)
-  "Open FILE at LINE in your browser.
+(defun magithub-browse-file (&optional file begin end)
+  "Open FILE in your browser highlighting lines BEGIN to END.
 
 FILE is a path to relative to the root of the Git repository.
 
-If FILE and LINE are not provided, they are detected from the
-current context:
+If FILE and BEGIN/END are not provided, they are detected from
+the current context:
 
-1. In a file-visiting buffer, the buffer's file context is used.
-2. In a dired-like buffer, the file at point is used.
-3. Otherwise, use the current directory."
+  1. In a file-visiting buffer, the buffer's file context and
+     active region are used.
+
+  2. In a dired- or magit-like buffer, the file at point is used."
   (interactive)
-  (let* ((current-buffer-file (buffer-file-name))
-         ;; Switch to git repository with file or buffer-file-name.
-         (default-directory (cond (file
-                                   (file-name-directory file))
-                                  (current-buffer-file
-                                   (file-name-directory current-buffer-file))
-                                  (t default-directory))))
-    ;; Check whether in git repository.
-    (unless (magithub-github-repository-p)
-      (user-error "Not a GitHub repository"))
-    (let* ((file-relative-path (string-remove-prefix
-                                (magit-toplevel)
-                                (expand-file-name
-                                 (cond (file
-                                        file)
-                                       (current-buffer-file
-                                        current-buffer-file)
-                                       ((derived-mode-p 'dired-mode)
-                                        (dired-file-name-at-point))
-                                       (t default-directory)))))
-           (file-line-string (cond (file
-                                    (if line (format "#L%s" line) ""))
-                                   (current-buffer-file
-                                    (format "#L%s" (line-number-at-pos)))
-                                   (t ""))))
-      (browse-url (let-alist (magithub-repo)
-                    (if (equal file-relative-path "")
-                        ;; Browse homepage if relative path is empty.
-                        .html_url
-                      ;; Browse file with line in browser.
-                      (format "%s/blob/%s/%s%s"
-                              .html_url
-                              (magit-git-string "rev-parse" "HEAD")
-                              file-relative-path
-                              file-line-string)))))))
+  (let ((region-active-p (region-active-p)))
+    (setq file
+          (or file
+              buffer-file-name
+              (and (derived-mode-p 'dired-mode)
+                   (or (dired-file-name-at-point)
+                       default-directory))
+              (and (derived-mode-p 'magit-status-mode)
+                   (magit-file-at-point))
+              (user-error "Could not detect a file at point"))
+
+          begin
+          (or begin
+              (and buffer-file-name
+                   (line-number-at-pos
+                    (if region-active-p
+                        (region-beginning)
+                      (point)))))
+
+          end
+          (or end
+              (and buffer-file-name
+                   region-active-p
+                   (line-number-at-pos
+                    (region-end)))))
+
+    (setq file (expand-file-name file))
+
+    (let* ((default-directory (if (file-directory-p file)
+                                  file
+                                (file-name-directory file)))
+           (root-url (let-alist (magithub-repo) .html_url))
+           (git-rev (magit-git-string "rev-parse" "HEAD"))
+           (anchor (cond
+                    ((and begin end) (format "#L%d-L%d" begin end))
+                    (begin (format "#L%d" begin)))))
+      (unless (magithub-github-repository-p)
+        (user-error "Not a GitHub repository"))
+      (setq file (string-remove-prefix (magit-toplevel) file))
+      (browse-url
+       (if (string-empty-p file)
+           (format "%s/tree/%s" root-url git-rev)
+         (format "%s/blob/%s/%s%s" root-url git-rev file (or anchor "")))))))
 
 (defvar magithub-after-create-messages
   '("Don't be shy!"
