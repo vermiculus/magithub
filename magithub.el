@@ -89,7 +89,7 @@
     (user-error "Not a GitHub repository"))
   (magithub-repo-visit (magithub-repo)))
 
-(defun magithub-browse-file (&optional file begin end)
+(defun magithub-browse-file (file &optional begin end use-default-branch)
   "Open FILE in your browser highlighting lines BEGIN to END.
 
 FILE is a path to relative to the root of the Git repository.
@@ -100,80 +100,93 @@ the current context:
   1. In a file-visiting buffer, the buffer's file context and
      active region are used.
 
-  2. In a dired- or magit-like buffer, the file at point is used."
-  (interactive)
-  (let ((region-active-p (region-active-p)))
-    (setq file
-          (or file
-              (magithub-browse-file--get-file)
-              (user-error "Could not detect a file at point"))
+  2. In a dired- or magit-like buffer, the file at point is used.
 
-          begin
+If USE-DEFAULT-BRANCH is set (interactively, via prefix
+argument), then browse the file at the default branch of the
+repository instead of the current HEAD."
+  (interactive (list nil nil nil current-prefix-arg))
+  (let* ((args (magithub-browse-file--get-file-and-region file begin end))
+         (file (plist-get args :file))
+         (begin (plist-get args :begin))
+         (end (plist-get args :end)))
+    (unless file
+      (user-error "Could not detect a file at point"))
+
+    (let-alist (magithub-repo)
+      (let* ((default-directory (if (file-directory-p file)
+                                    file
+                                  (file-name-directory file)))
+             (git-rev (if use-default-branch
+                          .default_branch
+                        (magit-git-string "rev-parse" "HEAD")))
+             (anchor (magithub-browse-file--get-anchor begin end)))
+        (unless (magithub-github-repository-p)
+          (user-error "Not a GitHub repository"))
+        (setq file (string-remove-prefix (magit-toplevel) file))
+        (browse-url
+         (if (string-empty-p file)
+             (format "%s/tree/%s" .html_url git-rev)
+           (format "%s/blob/%s/%s%s" .html_url git-rev file (or anchor ""))))))))
+
+(defun magithub-browse-file--get-file-and-region (file begin end)
+  "Get an appropriate file at point.
+FILE, BEGIN, and END are override values."
+  (let ((region-active-p (region-active-p)))
+    (list :file
+          (expand-file-name
+           (or file
+               buffer-file-name
+               (and (derived-mode-p 'dired-mode)
+                    (or (dired-file-name-at-point)
+                        default-directory))
+               (and (derived-mode-p 'magit-status-mode)
+                    (magit-file-at-point))))
+          :begin
           (or begin
               (and buffer-file-name
                    (line-number-at-pos
                     (if region-active-p
                         (region-beginning)
                       (point)))))
-
-          end
+          :end
           (or end
               (and buffer-file-name
                    region-active-p
                    (line-number-at-pos
-                    (region-end)))))
+                    (region-end)))))))
 
-    (setq file (expand-file-name file))
+(defun magithub-browse-file--get-anchor (&optional begin end)
+  (cond
+   ((and begin end)
+    (format "#L%d-L%d" begin end))
+   (begin
+    (format "#L%d" begin))))
 
-    (let* ((default-directory (if (file-directory-p file)
-                                  file
-                                (file-name-directory file)))
-           (root-url (let-alist (magithub-repo) .html_url))
-           (git-rev (magit-git-string "rev-parse" "HEAD"))
-           (anchor (cond
-                    ((and begin end) (format "#L%d-L%d" begin end))
-                    (begin (format "#L%d" begin)))))
-      (unless (magithub-github-repository-p)
-        (user-error "Not a GitHub repository"))
-      (setq file (string-remove-prefix (magit-toplevel) file))
-      (browse-url
-       (if (string-empty-p file)
-           (format "%s/tree/%s" root-url git-rev)
-         (format "%s/blob/%s/%s%s" root-url git-rev file (or anchor "")))))))
-
-(defun magithub-browse-file--get-file ()
-  "Get an appropriate file at point."
-  (or buffer-file-name
-      (and (derived-mode-p 'dired-mode)
-           (or (dired-file-name-at-point)
-               default-directory))
-      (and (derived-mode-p 'magit-status-mode)
-           (magit-file-at-point))))
-
-(defun magithub-browse-file-blame (file &optional use-default-branch)
+(defun magithub-browse-file-blame (file &optional begin end use-default-branch)
   "Blame FILE in the browser.
 
 If USE-DEFAULT-BRANCH is set (interactively, via prefix
 argument), then blame the file at the default branch of the
 repository instead of the current HEAD."
   (interactive (list nil current-prefix-arg))
-  (setq file
-        (or file
-            (magithub-browse-file--get-file)
-            (user-error "Could not detect a file at point")))
-  (unless (file-exists-p file)
-    (user-error "Nothing to blame here"))
-  (setq file (expand-file-name file))
-  (let-alist (magithub-repo)
-    (let* ((default-directory (file-name-directory file))
-           (git-rev (if use-default-branch
-                        .default_branch
-                      (magit-git-string "rev-parse" "HEAD"))))
-      (unless (magithub-github-repository-p)
-        (user-error "Not a GitHub repository"))
-      (setq file (string-remove-prefix (magit-toplevel) file))
-      (browse-url
-       (format "%s/blame/%s/%s" .html_url git-rev file)))))
+  (let* ((args (magithub-browse-file--get-file-and-region file begin end))
+         (file (plist-get args :file))
+         (begin (plist-get args :begin))
+         (end (plist-get args :end)))
+    (unless file
+      (user-error "Nothing to blame here"))
+    (let-alist (magithub-repo)
+      (let* ((default-directory (file-name-directory file))
+             (file (string-remove-prefix (magit-toplevel) file))
+             (git-rev (if use-default-branch
+                          .default_branch
+                        (magit-git-string "rev-parse" "HEAD")))
+             (anchor (magithub-browse-file--get-anchor begin end)))
+        (unless (magithub-github-repository-p)
+          (user-error "Not a GitHub repository"))
+        (browse-url
+         (format "%s/blame/%s/%s%s" .html_url git-rev file (or anchor "")))))))
 
 (defvar magithub-after-create-messages
   '("Don't be shy!"
