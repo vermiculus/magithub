@@ -15,4 +15,4 @@
 - Open and close issues with =O= and =C=, respectively.  [[PR:369]]
 - Browse files with ~magithub-browse-file~.  Supports file-visiting
   buffers with active regions as well as dired- and magit-status-like
-  buffers.  [[PR:377]]
+  buffers.  Blame the file with ~magithub-browse-file-blame~.  [[PR:377]]

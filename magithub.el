@@ -150,6 +150,31 @@ the current context:
       (and (derived-mode-p 'magit-status-mode)
            (magit-file-at-point))))
 
+(defun magithub-browse-file-blame (file &optional use-default-branch)
+  "Blame FILE in the browser.
+
+If USE-DEFAULT-BRANCH is set (interactively, via prefix
+argument), then blame the file at the default branch of the
+repository instead of the current HEAD."
+  (interactive (list nil current-prefix-arg))
+  (setq file
+        (or file
+            (magithub-browse-file--get-file)
+            (user-error "Could not detect a file at point")))
+  (unless (file-exists-p file)
+    (user-error "Nothing to blame here"))
+  (setq file (expand-file-name file))
+  (let-alist (magithub-repo)
+    (let* ((default-directory (file-name-directory file))
+           (git-rev (if use-default-branch
+                        .default_branch
+                      (magit-git-string "rev-parse" "HEAD"))))
+      (unless (magithub-github-repository-p)
+        (user-error "Not a GitHub repository"))
+      (setq file (string-remove-prefix (magit-toplevel) file))
+      (browse-url
+       (format "%s/blame/%s/%s" .html_url git-rev file)))))
+
 (defvar magithub-after-create-messages
   '("Don't be shy!"
     "Don't let your dreams be dreams!")
