@@ -105,12 +105,7 @@ the current context:
   (let ((region-active-p (region-active-p)))
     (setq file
           (or file
-              buffer-file-name
-              (and (derived-mode-p 'dired-mode)
-                   (or (dired-file-name-at-point)
-                       default-directory))
-              (and (derived-mode-p 'magit-status-mode)
-                   (magit-file-at-point))
+              (magithub-browse-file--get-file)
               (user-error "Could not detect a file at point"))
 
           begin
@@ -145,6 +140,15 @@ the current context:
        (if (string-empty-p file)
            (format "%s/tree/%s" root-url git-rev)
          (format "%s/blob/%s/%s%s" root-url git-rev file (or anchor "")))))))
+
+(defun magithub-browse-file--get-file ()
+  "Get an appropriate file at point."
+  (or buffer-file-name
+      (and (derived-mode-p 'dired-mode)
+           (or (dired-file-name-at-point)
+               default-directory))
+      (and (derived-mode-p 'magit-status-mode)
+           (magit-file-at-point))))
 
 (defvar magithub-after-create-messages
   '("Don't be shy!"
