@@ -261,7 +261,8 @@ There are two integrations turned on by default:
 
 Many services (such as Travis CI and CircleCI) will post statuses to
 commits.  A summary of these statuses are visible in the status buffer
-headers.
+headers.  Note that the branch must have a [[https://magit.vc/manual/magit/The-Two-Remotes.html#The-Two-Remotes][push-remote]]  set in order to 
+find the correct status to use.
 
 - Key: RET, magithub-ci-visit
 - Key: w, magithub-ci-visit
