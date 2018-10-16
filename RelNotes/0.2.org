@@ -11,6 +11,7 @@
   customized through the customization interface [[https://github.com/vermiculus/magithub/pull/357][PR:357]]
 - ~magithub--api-available-p~ now authenticates as =magithub= to retrieve
   ratelimit information.  [[BUG:363]]
+- ~magithub-instrument~ is introduced, which see.
 * Enhancements
 - Open and close issues with =O= and =C=, respectively.  [[PR:369]]
 - Browse files with ~magithub-browse-file~.  Supports file-visiting

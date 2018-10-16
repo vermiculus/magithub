@@ -78,7 +78,11 @@ Intended as around-advice for `ghub-requst'."
   (magithub-debug-message "ghub-request%S" args)
   (unless (magithub-debug-mode 'dry-api)
     (apply oldfun args)))
-(advice-add #'ghub-request :around #'magithub-debug--ghub-request-wrapper)
+
+(defun magithub-instrument ()
+  "Instrument Magithub for debugging."
+  (interactive)
+  (advice-add #'ghub-request :around #'magithub-debug--ghub-request-wrapper))
 
 (defcustom magithub-dir
   (expand-file-name "magithub" user-emacs-directory)
