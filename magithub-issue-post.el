@@ -170,7 +170,7 @@ See also URL
   (let ((is-single-commit
          (string= "1" (magit-git-string "rev-list" "--count" (format "%s.." base)))))
     (unless is-single-commit
-      (apply #'magit-log (list (format "%s..%s" base head)) (magit-log-arguments)))
+      (apply #'magit-log-other (list (format "%s..%s" base head)) (magit-log-arguments)))
     (with-current-buffer
         (let ((template (magithub-issue--template-text "PULL_REQUEST_TEMPLATE")))
           (magithub-edit-new (format "*magithub-pull-request: %s into %s:%s*"
