@@ -607,10 +607,12 @@ If there's only one remote available, optionally return it without prompting."
 (defconst magithub-feature-list
   ;; features must only return nil if they fail to install
   `((pull-request-merge . ,(lambda ()
-                             (magit-define-popup-action 'magit-am-popup
-                               ?P "Apply patches from pull request"
-                               #'magithub-pull-request-merge)
-                             t))
+                             (require 'magit-popup nil t)
+                             (when (boundp 'magit-am-popup)
+                               (magit-define-popup-action 'magit-am-popup
+                                 ?P "Apply patches from pull request"
+                                 #'magithub-pull-request-merge)
+                               t)))
 
     (commit-browse . ,(lambda ()
                         (define-key magit-commit-section-map "w"
