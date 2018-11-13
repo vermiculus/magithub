@@ -160,7 +160,8 @@ When set, the proxy is used whenever a GitHub repository is needed."
     (comment-delete                    long  "Are you sure you wish to delete this comment?")
     (report-error                      short "%s  Report?  (A bug report will be placed in your clipboard.)")
     (issue-reopen                      short "Reopen %s?")
-    (issue-close                       short "Close %s?"))
+    (issue-close                       short "Close %s?")
+    (issue-edit                        short "Update %s?"))
   "Alist of actions/decisions to their default behaviors and associated prompts.
 
 These behaviors can be overridden with (man)git-config.

@@ -35,6 +35,7 @@
     (define-key m [remap magithub-reply-thing] #'magithub-comment-new)
     (define-key m [remap magithub-browse-thing] #'magithub-issue-browse)
     (define-key m [remap magit-refresh] #'magithub-issue-view-refresh)
+    (define-key m [remap magithub-edit-thing] #'magithub-issue-body-edit)
     m))
 
 (define-derived-mode magithub-issue-view-mode magit-mode
@@ -175,6 +176,48 @@ Return the new buffer."
       (if (null comments)
           (insert (propertize "There's nothing here!\n\n" 'face 'magit-dimmed))
         (mapc #'magithub-comment-insert comments)))))
+
+(defun magithub-issue--submit-edit (issue repo new-body)
+  (interactive (list (thing-at-point 'github-issue)
+                     (thing-at-point 'github-repository)
+                     (buffer-string)))
+  (let ((issue-content (magithub-issue-post--parse-buffer new-body)))
+    (when (s-blank-p (alist-get 'title issue-content))
+      (user-error "Title is required"))
+    (magithub-confirm 'issue-edit
+                      (magithub-issue-reference issue))
+    (magithub-request
+     (ghubp-patch-repos-owner-repo-issues-number
+         repo issue issue-content))))
+
+(defun magithub-issue-body-edit (issue repo)
+  "Edit body of ISSUE."
+  (interactive (list (or (thing-at-point 'github-issue)
+                         (thing-at-point 'github-pull-request))
+                     (thing-at-point 'github-repository)))
+  (let* ((updated (magithub-request (ghubp-follow-get (alist-get 'url issue))))
+         (content (concat
+                   (alist-get 'title updated)
+                   "\n\n"
+                   (replace-regexp-in-string "" "" (alist-get 'body updated)))))
+    (with-current-buffer
+        (magithub-edit-new (format "*%s: editing issue by %s (%s)*"
+                                   (magithub-issue-reference issue)
+                                   (let-alist issue .user.login)
+                                   (alist-get 'id issue))
+          :submit #'magithub-issue--submit-edit
+          :content content
+          :file (expand-file-name "edit-issue-draft"
+                                  (magithub-repo-data-dir repo)))
+      (setq-local magithub-issue issue)
+      (setq-local magithub-repo repo)
+      (setq-local magithub-comment updated)
+      (magit-display-buffer (current-buffer)))
+
+    (unless (string= (alist-get 'body issue)
+                     (alist-get 'body updated))
+      (message "Issue has changed since information was cached; \
+updated issue pulled in for edit"))))
 
 (provide 'magithub-issue-view)
 ;;; magithub-issue-view.el ends here

@@ -46,8 +46,8 @@
       (magithub-edit-delete-draft)
       (magithub-issue-view issue))))
 
-(defun magithub-issue-post--parse-buffer ()
-  (let ((lines (split-string (buffer-string) "\n")))
+(defun magithub-issue-post--parse-buffer (&optional content)
+  (let ((lines (split-string (or content (buffer-string)) "\n")))
     `((title . ,(s-trim (car lines)))
       (body . ,(s-trim (mapconcat #'identity (cdr lines) "\n"))))))
 
