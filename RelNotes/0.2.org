@@ -17,3 +17,4 @@
 - Browse files with ~magithub-browse-file~.  Supports file-visiting
   buffers with active regions as well as dired- and magit-status-like
   buffers.  Blame the file with ~magithub-browse-file-blame~.  [[PR:377]]
+- Allow to edit issue and pull request title and body.  [[PR:386]]
