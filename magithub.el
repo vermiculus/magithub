@@ -108,28 +108,51 @@ If USE-DEFAULT-BRANCH is set (interactively, via prefix
 argument), then browse the file at the default branch of the
 repository instead of the current HEAD."
   (interactive (list nil nil nil current-prefix-arg))
+  (magithub-browse-file--url-fn-interactive #'browse-url
+    file begin end use-default-branch))
+
+(defun magithub-browse-file-copy-location-as-kill (file &optional begin end use-default-branch)
+  "Like `magithub-browse-file', but copy the URL as a kill instead."
+  (interactive (list nil nil nil current-prefix-arg))
+  (magithub-browse-file--url-fn-interactive #'kill-new
+    file begin end use-default-branch))
+
+(defun magithub-browse-file--url-fn-interactive (func file begin end use-default-branch)
+  "Provides boilerplate for using `magithub-browse-file--url'."
+  (declare (indent 1))
   (let* ((args (magithub-browse-file--get-file-and-region file begin end))
          (file (plist-get args :file))
          (begin (plist-get args :begin))
          (end (plist-get args :end)))
     (unless file
       (user-error "Could not detect a file at point"))
+    (let ((default-directory (if (file-directory-p file)
+                                 file
+                               (file-name-directory file))))
+      (unless (magithub-github-repository-p)
+        (user-error "Not a GitHub repository"))
+      (funcall func (magithub-browse-file--url
+                     file begin end use-default-branch)))))
 
-    (let-alist (magithub-repo)
-      (let* ((default-directory (if (file-directory-p file)
-                                    file
-                                  (file-name-directory file)))
-             (git-rev (if use-default-branch
-                          .default_branch
-                        (magit-git-string "rev-parse" "HEAD")))
-             (anchor (magithub-browse-file--get-anchor begin end)))
-        (unless (magithub-github-repository-p)
-          (user-error "Not a GitHub repository"))
-        (setq file (string-remove-prefix (magit-toplevel) file))
-        (browse-url
-         (if (string-empty-p file)
-             (format "%s/tree/%s" .html_url git-rev)
-           (format "%s/blob/%s/%s%s" .html_url git-rev file (or anchor ""))))))))
+(defun magithub-browse-file--url (file begin end use-default-branch)
+  "Wrapper for `magithub-browse-file--url2' providing sensible defaults."
+  (magithub-browse-file--url2
+   (magithub-repo) (magit-toplevel) file
+   (or (and use-default-branch 'default-branch)
+       (magit-rev-parse "HEAD"))
+   begin end))
+
+(defun magithub-browse-file--url2 (repo toplevel file rev begin end)
+  "For REPO cloned at TOPLEVEL, calculate the URL for FILE at REV.
+If provided, the region from lines BEGIN and END will be highlighted."
+  (let-alist repo
+    (setq file (string-remove-prefix toplevel file))
+    (if (eq rev 'default-branch)
+        (setq rev .default_branch))
+    (if (string-empty-p file)
+        (format "%s/tree/%s" .html_url rev)
+      (format "%s/blob/%s/%s%s" .html_url rev file
+              (or (magithub-browse-file--get-anchor begin end) "")))))
 
 (defun magithub-browse-file--get-file-and-region (file begin end)
   "Get an appropriate file at point.
