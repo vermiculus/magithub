@@ -563,7 +563,7 @@ proxy is a remote (with a GitHub-associated URL) that you choose to use for
 all GitHub API requests concerning the /actual/ current repository.  This is
 manifest in the git variable =magithub.proxy=.
 
-- Function: magithub-proxy-set-default
+- Key: H C x, magithub-settings--set-magithub.contextRemote
 
   If you consistently use a specific remote name for the bug tracker, you
   can set it globally.
