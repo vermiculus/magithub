@@ -17,3 +17,4 @@
 - Browse files with ~magithub-browse-file~.  Supports file-visiting
   buffers with active regions as well as dired- and magit-status-like
   buffers.  Blame the file with ~magithub-browse-file-blame~.  [[PR:377]]
+- Speed up magit-status by caching results of ghubp-host.  [[PR:394]]
