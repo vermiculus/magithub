@@ -281,6 +281,23 @@ This is stored in `magit-git-dir' and is unrelated to
                   (insert-file-contents-literally filename)
                   (buffer-string))))))))
 
+
+(defun magithub--ghubp-host ()
+  "Calls ghubp-host and cache result.
+
+Caching is done to speed up showing PRs for repos with a lot of opened
+PRs."
+  (when (not (hash-table-p magithub--ghubp-host-result))
+    (setq magithub--ghubp-host-result (make-hash-table :test 'equal)))
+
+  (if-let ((cached-result (gethash default-directory magithub--ghubp-host-result nil)))
+      cached-result
+    (puthash default-directory (ghubp-host) magithub--ghubp-host-result)))
+
+(defvar magithub--ghubp-host-result (make-hash-table :test 'equal)
+  "Cache result of magithub-ghubp-host.")
+
+
 (defun magithub-issue-repo (issue)
   "Get a repository object from ISSUE."
   (let-alist issue
@@ -289,7 +306,7 @@ This is stored in `magit-git-dir' and is unrelated to
         (save-match-data
           (when (string-match (concat (rx bos)
                                       "https://"
-                                      (regexp-quote (ghubp-host))
+                                      (regexp-quote (magithub--ghubp-host))
                                       (rx "/repos/"
                                           (group (+ (not (any "/")))) "/"
                                           (group (+ (not (any "/")))) "/issues/")
