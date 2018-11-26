@@ -44,4 +44,17 @@ cached API calls."
               (magithub-repo)))
     (should (magithub-repo))))                 ; force cache read
 
+(ert-deftest magithub-test-parse-number ()
+  "Test parsing of number."
+  (should (equal 10 (magithub--parse-number "10")))
+  (should (equal 0 (magithub--parse-number "0")))
+  (should (equal nil (magithub--parse-number "X"))))
+
+(ert-deftest magithub-test-parse-time-string ()
+  "Test parsing of datetime."
+  (should (equal '(23253 12274) (magithub--parse-time-string "2018-04-16T23:21:22Z")))
+  (should (equal '(23253 12274) (magithub--parse-time-string "2018-04-16T23:21:22")))
+  (should (equal '(23253 12274) (magithub--parse-time-string "2018-04-16T2321:22")))
+  (should-error (magithub--parse-time-string "2018-04-16T23:21:2XZ")))
+
 ;;; magithub-test.el ends here
