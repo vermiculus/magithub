@@ -787,10 +787,27 @@ See also `format-time-string'."
   :group 'magithub
   :type 'string)
 
+(defun magithub--parse-number (string)
+  "Parse a STRING into a number and return nil if parsing failed."
+  (let ((number (string-to-number string)))
+    (if (string-equal string (number-to-string number))
+        number
+      nil)))
+
 (defun magithub--parse-time-string (iso8601)
   "Parse ISO8601 into a time value.
-ISO8601 is expected to not have a TZ component."
-  (parse-iso8601-time-string (concat iso8601 "+00:00")))
+ISO8601 is expected to not have a TZ component.
+
+We first use a crude parsing and if it fails we fall back to a more
+general purpose function.  This is done to speed up parsing time."
+  (if-let ((year (magithub--parse-number (substring iso8601 0 4)))
+           (month (magithub--parse-number (substring iso8601 5 7)))
+           (day (magithub--parse-number (substring iso8601 8 10)))
+           (hour (magithub--parse-number (substring iso8601 11 13)))
+           (minute (magithub--parse-number (substring iso8601 14 16)))
+           (second (magithub--parse-number (substring iso8601 17 19))))
+      (encode-time second minute hour day month year t)
+    (parse-iso8601-time-string (concat iso8601 "+00:00"))))
 
 (defun magithub--format-time (time)
   "Format TIME according to `magithub-datetime-format'.
