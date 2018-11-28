@@ -48,6 +48,7 @@ cached API calls."
   "Test parsing of number."
   (should (equal 10 (magithub--parse-number "10")))
   (should (equal 0 (magithub--parse-number "0")))
+  (should (equal 0 (magithub--parse-number "01")))
   (should (equal nil (magithub--parse-number "X"))))
 
 (ert-deftest magithub-test-parse-time-string ()

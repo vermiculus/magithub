@@ -790,7 +790,7 @@ See also `format-time-string'."
 (defun magithub--parse-number (string)
   "Parse a STRING into a number and return nil if parsing failed."
   (let ((number (string-to-number string)))
-    (if (string-equal string (number-to-string number))
+    (if (string-equal string (format "%02d" number))
         number
       nil)))
 
