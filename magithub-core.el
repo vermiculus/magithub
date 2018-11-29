@@ -800,13 +800,15 @@ ISO8601 is expected to not have a TZ component.
 
 We first use a crude parsing and if it fails we fall back to a more
 general purpose function.  This is done to speed up parsing time."
-  (if-let ((year (magithub--parse-number (substring iso8601 0 4)))
-           (month (magithub--parse-number (substring iso8601 5 7)))
-           (day (magithub--parse-number (substring iso8601 8 10)))
-           (hour (magithub--parse-number (substring iso8601 11 13)))
-           (minute (magithub--parse-number (substring iso8601 14 16)))
-           (second (magithub--parse-number (substring iso8601 17 19))))
-      (encode-time second minute hour day month year t)
+  (if (string-match "^\\([0-9]+\\)-\\([0-9]+\\)-\\([0-9]+\\)T\\([0-9]+\\):\\([0-9]+\\):\\([0-9]+\\)Z$" iso8601)
+    (encode-time
+     (string-to-number (match-string 6 iso8601))
+     (string-to-number (match-string 5 iso8601))
+     (string-to-number (match-string 4 iso8601))
+     (string-to-number (match-string 3 iso8601))
+     (string-to-number (match-string 2 iso8601))
+     (string-to-number (match-string 1 iso8601))
+     t)
     (parse-iso8601-time-string (concat iso8601 "+00:00"))))
 
 (defun magithub--format-time (time)
