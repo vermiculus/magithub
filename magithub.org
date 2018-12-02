@@ -110,8 +110,31 @@ If you're having trouble /authenticating/, [[https://github.com/magit/ghub/issue
 
 For GitHub Enterprise support, you'll need to add your enterprise domain to
 ~magithub-github-hosts~ so that Magithub can detect when it's in a GitHub
-repository.  You will also need to configure your =~/.authinfo= file
-appropriately to authenticate to your domain; see Ghub's manual for details.
+repository.
+
+#+BEGIN_SRC elisp
+  (use-package magithub
+    :ensure t
+    :config
+    (magithub-feature-autoinject t)
+    (setq magithub-github-hosts '("github.enterprise.domain/api/v3")))
+#+END_SRC
+
+Next, you will need to create a personal access token and add it to
+your =~/.authinfo= file to authenticate to your domain; see Ghub's
+manual for details.
+
+#+BEGIN_EXAMPLE
+machine github.enterprise.domain/api/v3 login YOUR_USERNAME^magithub password YOUR_GITHUB_TOKEN
+#+END_EXAMPLE
+
+Finally, for each github repository you with to use with GHE, you will
+need to add a ~github.host~ config and a ~DOMAIN.user~ config.
+
+#+BEGIN_SRC shell
+  # where GHE_URL is the url to your v3 api endpoint, and USERNAME is your GHE username
+  GHE_URL=github.enterprise.domain/api/v3; git config github.host ${GHE_URL}; git config ${GHE_URL}.user $USERNAME
+#+END_SRC
 
 * Introduction
 ** _ :ignore:
