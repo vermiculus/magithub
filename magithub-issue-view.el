@@ -207,7 +207,7 @@ Return the new buffer."
                                      .user.login
                                      .id)
             :submit #'magithub-issue--submit-edit
-            :content content
+            :template content
             :file (expand-file-name "edit-issue-draft"
                                     (magithub-repo-data-dir repo))))
       (setq-local magithub-issue issue)
