@@ -201,14 +201,15 @@ Return the new buffer."
                    "\n\n"
                    (replace-regexp-in-string "" "" (alist-get 'body updated)))))
     (with-current-buffer
-        (magithub-edit-new (format "*%s: editing issue by %s (%s)*"
-                                   (magithub-issue-reference issue)
-                                   (let-alist issue .user.login)
-                                   (alist-get 'id issue))
-          :submit #'magithub-issue--submit-edit
-          :content content
-          :file (expand-file-name "edit-issue-draft"
-                                  (magithub-repo-data-dir repo)))
+        (let-alist issue
+          (magithub-edit-new (format "*%s: editing issue by %s (%s)*"
+                                     (magithub-issue-reference issue)
+                                     .user.login
+                                     .id)
+            :submit #'magithub-issue--submit-edit
+            :content content
+            :file (expand-file-name "edit-issue-draft"
+                                    (magithub-repo-data-dir repo))))
       (setq-local magithub-issue issue)
       (setq-local magithub-repo repo)
       (setq-local magithub-comment updated)
