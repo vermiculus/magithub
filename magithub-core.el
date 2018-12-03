@@ -787,13 +787,6 @@ See also `format-time-string'."
   :group 'magithub
   :type 'string)
 
-(defun magithub--parse-number (string)
-  "Parse a STRING into a number and return nil if parsing failed."
-  (let ((number (string-to-number string)))
-    (if (string-equal string (format "%02d" number))
-        number
-      nil)))
-
 (defun magithub--parse-time-string (iso8601)
   "Parse ISO8601 into a time value.
 ISO8601 is expected to not have a TZ component.
