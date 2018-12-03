@@ -199,7 +199,7 @@ Return the new buffer."
          (content (concat
                    (alist-get 'title updated)
                    "\n\n"
-                   (replace-regexp-in-string "" "" (alist-get 'body updated)))))
+                   (magithub-wash-gfm (alist-get 'body updated)))))
     (with-current-buffer
         (let-alist issue
           (magithub-edit-new (format "*%s: editing issue by %s (%s)*"
