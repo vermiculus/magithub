@@ -789,8 +789,20 @@ See also `format-time-string'."
 
 (defun magithub--parse-time-string (iso8601)
   "Parse ISO8601 into a time value.
-ISO8601 is expected to not have a TZ component."
-  (parse-iso8601-time-string (concat iso8601 "+00:00")))
+ISO8601 is expected to not have a TZ component.
+
+We first use a crude parsing and if it fails we fall back to a more
+general purpose function.  This is done to speed up parsing time."
+  (if (string-match "^\\([0-9]+\\)-\\([0-9]+\\)-\\([0-9]+\\)T\\([0-9]+\\):\\([0-9]+\\):\\([0-9]+\\)Z$" iso8601)
+    (encode-time
+     (string-to-number (match-string 6 iso8601))
+     (string-to-number (match-string 5 iso8601))
+     (string-to-number (match-string 4 iso8601))
+     (string-to-number (match-string 3 iso8601))
+     (string-to-number (match-string 2 iso8601))
+     (string-to-number (match-string 1 iso8601))
+     t)
+    (parse-iso8601-time-string (concat iso8601 "+00:00"))))
 
 (defun magithub--format-time (time)
   "Format TIME according to `magithub-datetime-format'.
