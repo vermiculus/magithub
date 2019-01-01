@@ -211,23 +211,24 @@ remote counterpart."
       (magit-insert-section (magithub-ci-status
                              `(magithub-ci-ref . ,ref)
                              'collapsed)
-        (insert (format "%-10s%s %s %s%s" "Status:"
-                        (magithub-ci--status-header checks)
-                        (propertize "on ref" 'face 'magit-dimmed)
-                        (propertize ref 'face 'magit-refname)
-                        (propertize "..." 'face 'magit-dimmed)))
-        (magit-insert-heading)
-        (insert (propertize
-                 (format "%-10sas of %s\n" ""
-                         (if-let ((time (magithub-ci--status-last-refreshed-time (magithub-repo) ref)))
-                             (magithub--format-time time)
-                           "???"))
-                 'face 'magit-dimmed))
-        (dolist (status (alist-get 'statuses checks))
-          (magit-insert-section (magithub-ci-status
-                                 `(magithub-ci-url . ,(alist-get 'target_url status)))
-            (insert indent (magithub-ci--status-propertized status "*"))
-            (magit-insert-heading)))))))
+        (magit-insert-heading
+          (format "%-10s%s %s %s%s" "Status:"
+                  (magithub-ci--status-header checks)
+                  (propertize "on ref" 'face 'magit-dimmed)
+                  (propertize ref 'face 'magit-refname)
+                  (propertize "..." 'face 'magit-dimmed)))
+        (magit-insert-section-body
+          (insert (propertize
+                   (format "%-10sas of %s\n" ""
+                           (if-let ((time (magithub-ci--status-last-refreshed-time (magithub-repo) ref)))
+                               (magithub--format-time time)
+                             "???"))
+                   'face 'magit-dimmed))
+          (dolist (status (alist-get 'statuses checks))
+            (magit-insert-section (magithub-ci-status
+                                   `(magithub-ci-url . ,(alist-get 'target_url status)))
+              (insert indent (magithub-ci--status-propertized status "*"))
+              (magit-insert-heading))))))))
 
 (defun magithub-ci--status-header (checks)
   (pcase (alist-get 'total_count checks)
