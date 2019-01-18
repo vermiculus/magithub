@@ -54,7 +54,7 @@
   "Returns non-nil if ISSUE can be managed by the current user."
   (magithub-request
    (or (string= (let-alist issue .user.login)
-                (let-alist (magithub-user-me) .user.login))
+                (let-alist (magithub-user-me) .login))
        (magithub-repo-admin-p))))
 
 (defun magithub-issue--ensure-admin (issue user-error-message)
