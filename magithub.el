@@ -413,7 +413,7 @@ See also `magithub-preferred-remote-method'."
    (with-temp-buffer
      (use-local-map magithub-map)
      (substitute-command-keys
-      "Deprecated; use `\\[magithub-browse-thing]' instead"))))
+      "Deprecated; use `\\[magit-browse-thing]' instead"))))
 
 (provide 'magithub)
 ;;; magithub.el ends here

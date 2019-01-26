@@ -32,7 +32,7 @@
 (defvar magit-magithub-repo-section-map
   (let ((m (make-sparse-keymap)))
     (set-keymap-parent m magithub-map)
-    (define-key m [remap magithub-browse-thing] #'magithub-repo-browse)
+    (define-key m [remap magit-browse-thing] #'magithub-repo-browse)
     m))
 
 (defun magithub-repo-browse (repo)

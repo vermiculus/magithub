@@ -189,7 +189,7 @@ remote counterpart."
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map magithub-map)
     (define-key map [remap magit-visit-thing] #'magithub-ci-visit)
-    (define-key map [remap magithub-browse-thing] #'magithub-ci-visit)
+    (define-key map [remap magit-browse-thing] #'magithub-ci-visit)
     (define-key map [remap magit-refresh] #'magithub-ci-refresh)
     map)
   "Keymap for `magithub-ci-status' header section.")

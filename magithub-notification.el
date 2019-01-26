@@ -33,7 +33,7 @@
   (let ((m (make-sparse-keymap)))
     (set-keymap-parent m magithub-map)
     (define-key m [remap magit-visit-thing] #'magithub-notification-visit)
-    (define-key m [remap magithub-browse-thing] #'magithub-notification-browse)
+    (define-key m [remap magit-browse-thing] #'magithub-notification-browse)
     (define-key m [remap magit-refresh] #'magithub-notification-refresh)
     m))
 

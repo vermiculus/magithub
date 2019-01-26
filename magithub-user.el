@@ -34,7 +34,7 @@
   (let ((m (make-sparse-keymap)))
     (set-keymap-parent m magithub-map)
     (define-key m [remap magit-visit-thing] #'magithub-user-visit)
-    (define-key m [remap magithub-browse-thing] #'magithub-user-browse)
+    (define-key m [remap magit-browse-thing] #'magithub-user-browse)
     (define-key m "m" #'magithub-user-email)
     m))
 

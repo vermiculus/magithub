@@ -33,7 +33,7 @@
 (defvar magithub-issue-view-mode-map
   (let ((m (make-composed-keymap (list magithub-map) magit-mode-map)))
     (define-key m [remap magithub-reply-thing] #'magithub-comment-new)
-    (define-key m [remap magithub-browse-thing] #'magithub-issue-browse)
+    (define-key m [remap magit-browse-thing] #'magithub-issue-browse)
     (define-key m [remap magit-refresh] #'magithub-issue-view-refresh)
     m))
 

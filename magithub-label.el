@@ -32,7 +32,7 @@
     (define-key m [remap magit-visit-thing]  #'magithub-label-visit)
     (define-key m [remap magit-delete-thing] #'magithub-label-remove)
     (define-key m [remap magit-section-toggle] (lambda () (interactive)))
-    (define-key m [remap magithub-browse-thing] #'magithub-label-browse)
+    (define-key m [remap magit-browse-thing] #'magithub-label-browse)
     (define-key m [remap magithub-add-thing] #'magithub-label-add)
     m)
   "Keymap for label sections.")

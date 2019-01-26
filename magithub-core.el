@@ -651,7 +651,7 @@ See `magithub-feature-autoinject'.
   (`magithub-pull-request-merge' inserted into `magit-am-popup')
 
 - `commit-browse'
-  Browse commits using \\<magithub-map>\\[magithub-browse-thing].
+  Browse commits using \\[magit-browse-thing].
 
 - `completion'
   Enable `completion-at-point' support for #issue and @user references
@@ -1235,11 +1235,6 @@ Interactively, this is the commit at point."
   (interactive)
   (user-error "There is no thing at point that could be added to"))
 
-(defun magithub-browse-thing ()
-  "Conceptual command to browse a thing on GitHub"
-  (interactive)
-  (user-error "There is no thing at point that could be browsed"))
-
 (defun magithub-edit-thing ()
   "Conceptual command to edit a thing (e.g., comment)"
   (interactive)
@@ -1253,7 +1248,6 @@ Interactively, this is the commit at point."
 (defvar magithub-map
   (let ((m (make-sparse-keymap)))
     (define-key m "a" #'magithub-add-thing)
-    (define-key m "w" #'magithub-browse-thing)
     (define-key m "e" #'magithub-edit-thing)
     (define-key m "r" #'magithub-reply-thing)
     m)

@@ -148,12 +148,6 @@ Magithub's functionality uses section-specific keymaps to expose
 functionality.  Where it makes sense, the following keys will map to
 functions that 'do the right thing':
 
-- Key: w, magithub-browse-thing
-
-  Open a browser to the thing at point.  For instance, when point is on
-  issue 42 in your-favorite/github-repo, we'll open
-  =http://github.com/your-favorite/github-repo/issue/42=.
-
 - Key: a, magithub-add-thing
 
   Add something to the thing at point.  For instance, on a list of labels,

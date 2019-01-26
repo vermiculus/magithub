@@ -38,7 +38,7 @@
 (defvar magit-magithub-comment-section-map
   (let ((m (make-sparse-keymap)))
     (set-keymap-parent m magithub-map)
-    (define-key m [remap magithub-browse-thing] #'magithub-comment-browse)
+    (define-key m [remap magit-browse-thing] #'magithub-comment-browse)
     (define-key m [remap magit-delete-thing] #'magithub-comment-delete)
     (define-key m (kbd "SPC") #'magithub-comment-view)
     (define-key m [remap magithub-reply-thing] #'magithub-comment-reply)
