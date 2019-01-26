@@ -153,10 +153,6 @@ functions that 'do the right thing':
   Add something to the thing at point.  For instance, on a list of labels,
   you can add more labels.
 
-- Key: e, magithub-edit-thing
-
-  Edit the thing at point, such as an issue.
-
 - Key: r, magithub-reply-thing
 
   Reply to the thing at point, such as a comment.

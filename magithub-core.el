@@ -1235,11 +1235,6 @@ Interactively, this is the commit at point."
   (interactive)
   (user-error "There is no thing at point that could be added to"))
 
-(defun magithub-edit-thing ()
-  "Conceptual command to edit a thing (e.g., comment)"
-  (interactive)
-  (user-error "There is no thing at point that could be edited"))
-
 (defun magithub-reply-thing ()
   "Conceptual command to reply to a thing (e.g., comment)"
   (interactive)
@@ -1248,7 +1243,6 @@ Interactively, this is the commit at point."
 (defvar magithub-map
   (let ((m (make-sparse-keymap)))
     (define-key m "a" #'magithub-add-thing)
-    (define-key m "e" #'magithub-edit-thing)
     (define-key m "r" #'magithub-reply-thing)
     m)
   "Parent keymap for Magithub sections.")

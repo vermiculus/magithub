@@ -42,7 +42,7 @@
     (define-key m [remap magit-delete-thing] #'magithub-comment-delete)
     (define-key m (kbd "SPC") #'magithub-comment-view)
     (define-key m [remap magithub-reply-thing] #'magithub-comment-reply)
-    (define-key m [remap magithub-edit-thing] #'magithub-comment-edit)
+    (define-key m [remap magit-edit-thing] #'magithub-comment-edit)
     m))
 
 (defun magithub-comment-browse (comment)
