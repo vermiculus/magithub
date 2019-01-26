@@ -302,9 +302,15 @@ This is stored in `magit-git-dir' and is unrelated to
 
 (defun magithub-issue-reference (issue)
   "Return a string like \"owner/repo#number\" for ISSUE."
-  (let-alist `((repo . ,(magithub-issue-repo issue))
-               (issue . ,issue))
-    (format "%s/%s#%d" .repo.owner.login .repo.name .issue.number)))
+  (if (forge-issue-p issue)
+      (let ((repo (forge-get-repository issue)))
+        (format "%s/%s#%d"
+                (oref repo owner)
+                (oref repo name)
+                (oref issue number)))
+    (let-alist `((repo . ,(magithub-issue-repo issue))
+                 (issue . ,issue))
+      (format "%s/%s#%d" .repo.owner.login .repo.name .issue.number))))
 
 (defun magithub-issue-from-reference (string)
   "Parse an issue from an \"owner/repo#number\" STRING."
