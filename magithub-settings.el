@@ -37,14 +37,20 @@
          (Nset (concat "magithub-settings--set-" variable))
          (Nfmt (concat "magithub-settings--format-" variable)))
     (let ((Sset (intern Nset))
-          (Sfmt (intern Nfmt))
           (docstring (format "%s\n\nThis is the Git variable %S." docstring variable)))
       `(progn
-         (defun ,Sset () ,docstring (interactive)
-                (magit--set-popup-variable ,variable ,choices ,default))
-         (defun ,(intern Nfmt) () ,(format "See `%s'." Nset)
-                (magit--format-popup-variable:choices ,variable ,choices ,default))
-         (magit-define-popup-variable ',popup ,key ,variable ',Sset ',Sfmt)
+         (define-infix-command ,Sset () ,docstring
+           :class 'magit--git-variable:choices
+           :variable ,variable
+           :choices ,choices
+           :default ,default)
+         (define-infix-command ,(intern Nfmt) () ,(format "See `%s'." Nset)
+           :class 'magit--git-variable:choices
+           :variable ,variable
+           :choices ,choices
+           :default ,default)
+         (transient-append-suffix ',popup "h"
+           '(,key ,variable ,Sset))
          ,variable))))
 
 (defun magithub-settings--value-or (variable default &optional accessor)
@@ -54,11 +60,13 @@
     default))
 
 ;;;###autoload (autoload 'magithub-settings-popup "magithub-settings" nil t)
-(magit-define-popup magithub-settings-popup
+(define-transient-command magithub-settings-popup ()
   "Popup console for managing Magithub settings."
-  'magithub-commands)
+  ["test"
+   ("h" "Ask for help on Gitter" magithub--meta-help)]
+  )
 
-(magithub-settings--simple magithub-settings-popup ?e "enabled"
+(magithub-settings--simple magithub-settings-popup "e" "enabled"
   "Enable/disable all Magithub functionality."
   '("true" "false") "true")
 
@@ -67,7 +75,7 @@
   (magithub-settings--value-or "magithub.enabled" t
     #'magit-get-boolean))
 
-(magithub-settings--simple magithub-settings-popup ?o "online"
+(magithub-settings--simple magithub-settings-popup "o" "online"
   "Controls whether Magithub is online or offline.
 
 - `true': requests are made to GitHub for missing data
@@ -85,7 +93,7 @@ Returns the value as t or nil."
     #'magit-get-boolean))
 
 
-(magithub-settings--simple magithub-settings-popup ?s "status.includeStatusHeader"
+(magithub-settings--simple magithub-settings-popup "s" "status.includeStatusHeader"
   "When true, the project status header is included in
 `magit-status-headers-hook'."
   '("true" "false") "true")
@@ -96,7 +104,7 @@ Returns the value as t or nil."
     #'magit-get-boolean))
 
 
-(magithub-settings--simple magithub-settings-popup ?i "status.includeIssuesSection"
+(magithub-settings--simple magithub-settings-popup "i" "status.includeIssuesSection"
   "When true, project issues are included in
 `magit-status-sections-hook'."
   '("true" "false") "true")
@@ -107,7 +115,7 @@ Returns the value as t or nil."
     #'magit-get-boolean))
 
 
-(magithub-settings--simple magithub-settings-popup ?p "status.includePullRequestsSection"
+(magithub-settings--simple magithub-settings-popup "p" "status.includePullRequestsSection"
   "When true, project pull requests are included in
 `magit-status-sections-hook'."
   '("true" "false") "true")
@@ -118,7 +126,7 @@ Returns the value as t or nil."
     #'magit-get-boolean))
 
 
-(magithub-settings--simple magithub-settings-popup ?x "contextRemote"
+(magithub-settings--simple magithub-settings-popup "x" "contextRemote"
   "Use REMOTE as the proxy.
 When set, the proxy is used whenever a GitHub repository is needed."
   (magit-list-remotes) "origin")

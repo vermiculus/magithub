@@ -59,28 +59,29 @@
 (require 'magithub-dash)
 
 ;;;###autoload (autoload 'magithub-dispatch-popup "magithub" nil t)
-(magit-define-popup magithub-dispatch-popup
+(define-transient-command magithub-dispatch-popup ()
   "Popup console for dispatching other Magithub popups."
-  'magithub-commands
-  :variables '((?C "Settings..." magithub-settings-popup))
-  :actions '("Actions"
-             (?d "Dashboard" magithub-dashboard)
-             (?H "Browse on GitHub" magithub-browse)
-             (?c "Create on GitHub" magithub-create)
-             (?f "Fork this repo" magithub-fork)
-             (?i "Submit an issue" magithub-issue-new)
-             (?p "Submit a pull request" magithub-pull-request-new)
-             "Meta"
-             (?& "Request a feature or report a bug" magithub--meta-new-issue)
-             (?h "Ask for help on Gitter" magithub--meta-help)))
+  [["Variables"
+    ("C" "Settings..." magithub-settings-popup)]
+   ["Actions"
+    ("d" "Dashboard" magithub-dashboard)
+    ("H" "Browse on GitHub" magithub-browse)
+    ("c" "Create on GitHub" magithub-create)
+    ("f" "Fork this repo" magithub-fork)
+    ("i" "Submit an issue" magithub-issue-new)
+    ("p" "Submit a pull request" magithub-pull-request-new)]
+   ["Meta"
+    ("&" "Request a feature or report a bug" magithub--meta-new-issue)
+    ("h" "Ask for help on Gitter" magithub--meta-help)]]
+  )
 
 ;;;###autoload
 (eval-after-load 'magit
   '(progn
-     (require 'magit-popup)
-     (when (boundp 'magit-dispatch-popup)
-       (magit-define-popup-action 'magit-dispatch-popup
-         ?H "Magithub" #'magithub-dispatch-popup ?!))
+     (require 'transient)
+     (when (functionp 'magit-am)
+       (transient-append-suffix 'magit-dispatch "C-h m"
+         '("H" "Magithub" magithub-dispatch-popup)))
      (define-key magit-status-mode-map
        "H" #'magithub-dispatch-popup)))
 
@@ -255,7 +256,7 @@ organization."
     (magit-remote-add "origin" (magithub-repo--clone-url repo))
     (magit-refresh)
     (when (magit-rev-verify "HEAD")
-      (magit-push-popup))))
+      (magit-push))))
 
 (defun magithub--read-user-or-org ()
   "Prompt for an account with completion.
@@ -314,7 +315,7 @@ be returned without prompting the user."
         (magit-set .owner.login "branch" (magit-get-current-branch) "pushRemote")))
     (let-alist repo
       (when (magithub-confirm-no-error 'fork-set-upstream-to-me .owner.login)
-        (call-interactively #'magit-set-branch*merge/remote)))))
+        (call-interactively #'magit-branch.<branch>.merge/remote)))))
 
 (defvar magithub-clone-history nil
   "History for `magithub-clone' prompt.")
@@ -399,8 +400,8 @@ See also `magithub-preferred-remote-method'."
                      (let ((upstream "upstream"))
                        (when set-proxy (magit-set upstream "magithub.proxy"))
                        (magit-remote-add upstream (magithub-repo--clone-url .parent))
-                       (magit-set-branch*merge/remote (magit-get-current-branch)
-                                                      upstream))))))))))))
+                       (magit-branch.<branch>.merge/remote (magit-get-current-branch)
+                                                           upstream))))))))))))
 
 (defun magithub-clone--finished (user repo dir)
   "After finishing the clone, allow the user to jump to their new repo."

@@ -654,8 +654,8 @@ Interactively, this finds the issue at point."
            (magit-branch-p branch)
            (string= remote (magit-get-push-remote branch))))))
 
-(make-obsolete 'magithub-pull-request-checkout 'magit-checkout-pull-request "0.1.6")
-(defalias 'magithub-pull-request-checkout #'magit-checkout-pull-request)
+;; (make-obsolete 'magithub-pull-request-checkout 'magit-checkout-pull-request "0.1.6")
+;; (defalias 'magithub-pull-request-checkout #'magit-checkout-pull-request)
 
 (provide 'magithub-issue)
 ;;; magithub-issue.el ends here
