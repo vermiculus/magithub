@@ -1,3 +1,18 @@
+# Maintainer's Note
+
+I have not had as much time for extra-curriculars as I once had.
+At this point, I will never catch up to the obvious successor of
+this package, Forge, nor would I really want to :smile:
+
+Please check out that project instead!  I believe there are things
+a GitHub-specific package could do that don't make sense to generalize,
+but Forge has served me well for the 95%.
+
+If you have a vision and would like to take over maintainership,
+reach out!
+
+---
+
 <a href="screenshots.md"><img align="right" src="https://github.com/vermiculus/magithub/raw/master/images/status.png" width="50%" alt="Overview -- the status buffer"/></a>
 
 # Magithub
