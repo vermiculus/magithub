@@ -36,7 +36,7 @@
   :type 'boolean
   :group 'magithub)
 
-(define-transient-command magithub-dashboard-popup ()
+(transient-define-prefix magithub-dashboard-popup ()
   "Popup console for the dashboard."
   ["Actions"
    ("r" "Toggle showing read notifications" magithub-dashboard-show-read-notifications-toggle)])
