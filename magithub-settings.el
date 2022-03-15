@@ -39,12 +39,12 @@
     (let ((Sset (intern Nset))
           (docstring (format "%s\n\nThis is the Git variable %S." docstring variable)))
       `(progn
-         (define-infix-command ,Sset () ,docstring
+         (transient-define-infix ,Sset () ,docstring
            :class 'magit--git-variable:choices
            :variable ,variable
            :choices ,choices
            :default ,default)
-         (define-infix-command ,(intern Nfmt) () ,(format "See `%s'." Nset)
+         (transient-define-infix ,(intern Nfmt) () ,(format "See `%s'." Nset)
            :class 'magit--git-variable:choices
            :variable ,variable
            :choices ,choices
@@ -60,7 +60,7 @@
     default))
 
 ;;;###autoload (autoload 'magithub-settings-popup "magithub-settings" nil t)
-(define-transient-command magithub-settings-popup ()
+(transient-define-prefix magithub-settings-popup ()
   "Popup console for managing Magithub settings."
   ["test"
    ("h" "Ask for help on Gitter" magithub--meta-help)]

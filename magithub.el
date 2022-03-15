@@ -59,7 +59,7 @@
 (require 'magithub-dash)
 
 ;;;###autoload (autoload 'magithub-dispatch-popup "magithub" nil t)
-(define-transient-command magithub-dispatch-popup ()
+(transient-define-prefix magithub-dispatch-popup ()
   "Popup console for dispatching other Magithub popups."
   [["Variables"
     ("C" "Settings..." magithub-settings-popup)]
